@@ -47,7 +47,7 @@ function Section({
         className="flex w-full items-center gap-2 px-4 py-3 text-left transition-colors hover:bg-secondary/40"
       >
         <Icon className="h-4 w-4 shrink-0 text-primary" />
-        <span className="flex-1 text-sm font-bold text-card-foreground">{title}</span>
+        <h4 className="flex-1 text-sm font-bold text-card-foreground">{title}</h4>
         <ChevronDown
           className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
         />
@@ -84,9 +84,11 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
         <h3 className="mt-1.5 text-lg font-extrabold leading-snug text-card-foreground">
           {answer.verdict}
         </h3>
-        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{answer.verdictDetail}</p>
+        <p className="mt-2 max-w-[70ch] text-sm leading-relaxed text-muted-foreground">
+          {answer.verdictDetail}
+        </p>
 
-        <div className="mt-4 rounded-control border-l-4 border-accent bg-accent/8 p-3">
+        <div className="mt-4 max-w-[70ch] rounded-control border-l-4 border-accent bg-accent/8 p-3">
           <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-accent">
             <Lightbulb className="h-3.5 w-3.5" /> Главный стратегический инсайт
           </p>
@@ -105,64 +107,76 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
         </div>
       </section>
 
-      <Section title="Почему сделан такой вывод" icon={ListChecks} defaultOpen>
-        <ol className="space-y-2">
-          {answer.arguments.map((a, i) => (
-            <li key={a} className="flex gap-2.5 text-sm leading-relaxed text-card-foreground">
-              <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-primary/12 text-[10px] font-bold text-primary">
-                {i + 1}
-              </span>
-              {a}
-            </li>
-          ))}
-        </ol>
-      </Section>
+      <div className="grid items-start gap-3 xl:grid-cols-2">
+        <Section title="Почему сделан такой вывод" icon={ListChecks} defaultOpen>
+          <ol className="space-y-2">
+            {answer.arguments.map((a, i) => (
+              <li key={a} className="flex gap-2.5 text-sm leading-relaxed text-card-foreground">
+                <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-primary/12 text-[10px] font-bold text-primary">
+                  {i + 1}
+                </span>
+                {a}
+              </li>
+            ))}
+          </ol>
+        </Section>
 
-      <Section title={`Релевантный кейс: ${answer.caseRef.title}`} icon={BookOpen} defaultOpen>
-        <span
-          className={`inline-flex rounded-full border px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide ${APPLICABILITY_TONE[answer.caseRef.applicability]}`}
-        >
-          {answer.caseRef.applicability}
-        </span>
-        <p className="mt-2 text-sm leading-relaxed text-card-foreground">
-          {answer.caseRef.summary}
-        </p>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          <div className="rounded-control border border-scope-internal/40 bg-scope-internal/8 p-3">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-scope-internal">
-              Что совпадает
-            </p>
-            <div className="mt-1.5">
-              <Bullets items={answer.caseRef.matches} />
+        <Section title={`Релевантный кейс: ${answer.caseRef.title}`} icon={BookOpen} defaultOpen>
+          <span
+            className={`inline-flex rounded-full border px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide ${APPLICABILITY_TONE[answer.caseRef.applicability]}`}
+          >
+            {answer.caseRef.applicability}
+          </span>
+          <p className="mt-2 text-sm leading-relaxed text-card-foreground">
+            {answer.caseRef.summary}
+          </p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <div className="rounded-control border border-scope-internal/40 bg-scope-internal/8 p-3">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-scope-internal">
+                Что совпадает
+              </p>
+              <div className="mt-1.5">
+                <Bullets items={answer.caseRef.matches} />
+              </div>
+            </div>
+            <div className="rounded-control border border-destructive/40 bg-destructive/8 p-3">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-destructive">
+                Что различается
+              </p>
+              <div className="mt-1.5">
+                <Bullets items={answer.caseRef.differences} />
+              </div>
             </div>
           </div>
-          <div className="rounded-control border border-destructive/40 bg-destructive/8 p-3">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-destructive">
-              Что различается
-            </p>
-            <div className="mt-1.5">
-              <Bullets items={answer.caseRef.differences} />
+        </Section>
+
+        <Section title="Что можно и что нельзя переносить" icon={Target}>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-primary">
+                Можно перенести
+              </p>
+              <Bullets items={answer.transferable} />
+            </div>
+            <div>
+              <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                Нельзя переносить напрямую
+              </p>
+              <Bullets items={answer.nonTransferable} />
             </div>
           </div>
-        </div>
-      </Section>
+        </Section>
 
-      <Section title="Что можно и что нельзя переносить" icon={Target}>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div>
-            <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-primary">
-              Можно перенести
-            </p>
-            <Bullets items={answer.transferable} />
-          </div>
-          <div>
-            <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-              Нельзя переносить напрямую
-            </p>
-            <Bullets items={answer.nonTransferable} />
-          </div>
-        </div>
-      </Section>
+        <Section title="Рекомендация и предлагаемые условия" icon={Target} defaultOpen>
+          <p className="rounded-control border-l-4 border-primary bg-primary/6 p-3 text-sm font-semibold leading-relaxed text-card-foreground">
+            {answer.recommendation}
+          </p>
+          <p className="mb-1.5 mt-3 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+            Предлагаемые условия
+          </p>
+          <Bullets items={answer.terms} />
+        </Section>
+      </div>
 
       <Section title="Варианты решения" icon={ListChecks} defaultOpen>
         <div className="overflow-x-auto">
@@ -201,55 +215,49 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
         </div>
       </Section>
 
-      <Section title="Рекомендация и предлагаемые условия" icon={Target} defaultOpen>
-        <p className="rounded-control border-l-4 border-primary bg-primary/6 p-3 text-sm font-semibold leading-relaxed text-card-foreground">
-          {answer.recommendation}
-        </p>
-        <p className="mb-1.5 mt-3 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-          Предлагаемые условия
-        </p>
-        <Bullets items={answer.terms} />
-      </Section>
+      <div className="grid items-start gap-3 xl:grid-cols-2">
+        <Section title="Риски" icon={AlertTriangle}>
+          <Bullets items={answer.risks} />
+        </Section>
 
-      <Section title="Риски" icon={AlertTriangle}>
-        <Bullets items={answer.risks} />
-      </Section>
+        <Section title="Что может изменить рекомендацию" icon={CircleHelp}>
+          <Bullets items={answer.changeFactors} />
+        </Section>
+      </div>
 
-      <Section title="Что может изменить рекомендацию" icon={CircleHelp}>
-        <Bullets items={answer.changeFactors} />
-      </Section>
+      <div className="grid items-start gap-3 xl:grid-cols-2">
+        <Section title="Чего не хватает для окончательного решения" icon={ShieldQuestion} defaultOpen>
+          <Bullets items={answer.missing} />
+        </Section>
 
-      <Section title="Чего не хватает для окончательного решения" icon={ShieldQuestion} defaultOpen>
-        <Bullets items={answer.missing} />
-      </Section>
-
-      <Section title={`Источники (${answer.sources.length})`} icon={Quote} defaultOpen>
-        <ul className="space-y-2">
-          {answer.sources.map((s) => (
-            <li key={s.id} className="rounded-control border border-border bg-secondary/40 p-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-sm font-semibold text-card-foreground">{s.title}</span>
-                <span className="rounded-full bg-card px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
-                  {s.kind}
-                </span>
-                <span className="rounded-full bg-primary/12 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
-                  {s.influence}
-                </span>
-              </div>
-              <p className="mt-1.5 border-l-2 border-accent pl-2 text-xs italic leading-relaxed text-muted-foreground">
-                «{s.quote}»
-              </p>
-            </li>
-          ))}
-        </ul>
-        <Link
-          to="/card/$id"
-          params={{ id: "card_001" }}
-          className="mt-3 inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wide text-primary transition-all hover:gap-2"
-        >
-          Открыть кейс в рабочем столе <ArrowRight className="h-4 w-4" />
-        </Link>
-      </Section>
+        <Section title={`Источники (${answer.sources.length})`} icon={Quote} defaultOpen>
+          <ul className="space-y-2">
+            {answer.sources.map((s) => (
+              <li key={s.id} className="rounded-control border border-border bg-secondary/40 p-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-sm font-semibold text-card-foreground">{s.title}</span>
+                  <span className="rounded-full bg-card px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+                    {s.kind}
+                  </span>
+                  <span className="rounded-full bg-primary/12 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
+                    {s.influence}
+                  </span>
+                </div>
+                <p className="mt-1.5 border-l-2 border-accent pl-2 text-xs italic leading-relaxed text-muted-foreground">
+                  «{s.quote}»
+                </p>
+              </li>
+            ))}
+          </ul>
+          <Link
+            to="/card/$id"
+            params={{ id: "card_001" }}
+            className="mt-3 inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wide text-primary transition-all hover:gap-2"
+          >
+            Открыть кейс в рабочем столе <ArrowRight className="h-4 w-4" />
+          </Link>
+        </Section>
+      </div>
     </div>
   );
 }

@@ -1,23 +1,7 @@
 import { Link } from "@tanstack/react-router";
-import {
-  Bookmark,
-  FileText,
-  Files,
-  MessageSquareQuote,
-  Mic,
-  Presentation,
-  Trash2,
-  Video,
-} from "lucide-react";
+import { Bookmark, Files, Trash2 } from "lucide-react";
 import { motion } from "motion/react";
-import type { KnowledgeCardData, MediaType } from "@/data/mockCards";
-
-const MEDIA_ICON: Record<MediaType, typeof FileText> = {
-  document: FileText,
-  video: Video,
-  podcast: Mic,
-  presentation: Presentation,
-};
+import type { KnowledgeCardData } from "@/data/mockCards";
 
 interface KnowledgeCardProps {
   card: KnowledgeCardData & { matchScore?: number };
@@ -27,10 +11,6 @@ interface KnowledgeCardProps {
   onDelete: (id: string) => void;
 }
 
-function Dot() {
-  return <span aria-hidden className="h-1 w-1 rounded-full bg-border" />;
-}
-
 export function KnowledgeCard({
   card,
   index,
@@ -38,7 +18,6 @@ export function KnowledgeCard({
   onToggleBookmark,
   onDelete,
 }: KnowledgeCardProps) {
-  const MediaIcon = MEDIA_ICON[card.media_type];
   const isInternal = card.scope === "INTERNAL";
 
   return (
@@ -63,7 +42,7 @@ export function KnowledgeCard({
               isInternal ? "bg-scope-internal" : "bg-scope-external"
             }`}
           />
-          {isInternal ? "Внутренний" : "Внешний"}
+          {isInternal ? "Общий" : "Приватный"}
         </span>
         <button
           onClick={() => onToggleBookmark(card.id)}
@@ -93,25 +72,8 @@ export function KnowledgeCard({
         </p>
       </div>
 
-      {/* Meta */}
-      <div className="mb-5 mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] font-medium text-muted-foreground">
-        <span className="flex min-w-0 items-center gap-1.5">
-          <MediaIcon className="h-3.5 w-3.5 shrink-0" />
-          <span className="truncate">{card.source}</span>
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="uppercase">{card.language}</span>
-          <Dot />
-          <span>{card.date}</span>
-        </span>
-        <span className="flex items-center gap-1.5">
-          <MessageSquareQuote className="h-3.5 w-3.5" />
-          {card.citations.length} цитат
-        </span>
-      </div>
-
       {/* Footer: file count & delete-on-hover */}
-      <div className="flex items-center justify-between gap-3 border-t border-border pt-4">
+      <div className="mt-auto flex items-center justify-between gap-3 border-t border-border pt-4">
         <span className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
           <Files className="h-4 w-4" />
           {card.citations.length} файлов

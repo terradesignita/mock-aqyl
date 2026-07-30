@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Check, Loader2, MessageSquarePlus, RefreshCw, Send, Sparkles } from "lucide-react";
+import { Check, Loader2, MessageSquarePlus, Send, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { HelpHint } from "@/components/HelpHint";
 import {
@@ -35,17 +35,18 @@ interface Props {
 function Stepper({ stage, onGoTo }: { stage: Stage; onGoTo: (s: Stage) => void }) {
   const current = STAGES.findIndex((s) => s.id === stage);
   return (
-    <ol className="flex items-center gap-1.5">
+    <ol className="flex items-center gap-1 sm:gap-1.5">
       {STAGES.map((s, i) => {
         const done = i < current;
         const active = i === current;
         return (
-          <li key={s.id} className="flex items-center gap-1.5">
+          <li key={s.id} className="flex shrink-0 items-center gap-1 sm:gap-1.5">
             <button
               type="button"
               disabled={!done}
               onClick={() => done && onGoTo(s.id)}
-              className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide transition-all ${
+              aria-label={s.label}
+              className={`flex items-center gap-1.5 rounded-full border px-1.5 py-1 text-[11px] font-bold uppercase tracking-wide transition-all sm:px-2.5 ${
                 active
                   ? "border-primary bg-primary text-primary-foreground shadow-soft"
                   : done
@@ -55,7 +56,7 @@ function Stepper({ stage, onGoTo }: { stage: Stage; onGoTo: (s: Stage) => void }
             >
               <span
                 aria-hidden
-                className={`grid h-4 w-4 place-items-center rounded-full text-[9px] ${
+                className={`grid h-4 w-4 shrink-0 place-items-center rounded-full text-[9px] ${
                   active
                     ? "bg-primary-foreground/20"
                     : done
@@ -65,12 +66,14 @@ function Stepper({ stage, onGoTo }: { stage: Stage; onGoTo: (s: Stage) => void }
               >
                 {done ? <Check className="h-2.5 w-2.5" /> : i + 1}
               </span>
-              {s.label}
+              <span aria-hidden className={active ? "" : "hidden sm:inline"}>
+                {s.label}
+              </span>
             </button>
             {i < STAGES.length - 1 && (
               <span
                 aria-hidden
-                className={`h-px w-4 ${i < current ? "bg-primary/50" : "bg-border"}`}
+                className={`h-px w-2 sm:w-4 ${i < current ? "bg-primary/50" : "bg-border"}`}
               />
             )}
           </li>
@@ -128,20 +131,13 @@ export function AdvisorFlow({ query, onReset, onFollowUp }: Props) {
         <span className="grid h-6 w-6 place-items-center rounded-full bg-primary/12">
           <Sparkles className="h-3.5 w-3.5 text-primary" />
         </span>
-        <span className="text-sm font-extrabold text-card-foreground">AI-советник</span>
-        <span className="rounded-full border border-primary/30 bg-primary/8 px-2 py-0.5 text-[11px] font-bold text-primary">
-          {dilemma.label}
-        </span>
         <HelpHint
           side="bottom"
           text={`Тип решения определён по вашему запросу. Из запроса понятно: ${known.join("; ")}.`}
         />
-        <span className="mx-1 hidden sm:block">
+        <span className="mx-1 max-w-full">
           <Stepper stage={stage} onGoTo={setStage} />
         </span>
-        <Button size="sm" variant="ghost" className="ml-auto gap-1.5" onClick={onReset}>
-          <RefreshCw className="h-3.5 w-3.5" /> Новый вопрос
-        </Button>
       </div>
 
       {stage === "clarify" && (
@@ -263,7 +259,11 @@ export function AdvisorFlow({ query, onReset, onFollowUp }: Props) {
               ))}
             </div>
             <div className="mt-3 flex gap-2">
+              <label htmlFor="advisor-follow-up" className="sr-only">
+                Уточняющий вопрос по рекомендации
+              </label>
               <input
+                id="advisor-follow-up"
                 value={followUp}
                 onChange={(e) => setFollowUp(e.target.value)}
                 onKeyDown={(e) => {

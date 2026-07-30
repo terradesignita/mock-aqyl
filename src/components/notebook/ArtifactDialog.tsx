@@ -35,6 +35,8 @@ export interface ArtifactDialogProps {
   onRegenerate?: () => void;
   regenerating?: boolean;
   initialFullscreen?: boolean;
+  /** "wide" — для визуальных форматов вроде презентации, которым тесно в стандартной ширине. */
+  size?: "default" | "wide";
 }
 
 export function ArtifactDialog({
@@ -49,6 +51,7 @@ export function ArtifactDialog({
   onRegenerate,
   regenerating,
   initialFullscreen = false,
+  size = "default",
 }: ArtifactDialogProps) {
   const [fullscreen, setFullscreen] = useState(initialFullscreen);
   const [copied, setCopied] = useState(false);
@@ -122,7 +125,7 @@ export function ArtifactDialog({
           className={
             fullscreen
               ? "fixed inset-0 z-50 flex flex-col bg-card outline-none duration-200 data-[state=open]:animate-in data-[state=open]:fade-in-0"
-              : "fixed left-1/2 top-1/2 z-50 flex max-h-[85vh] w-[92vw] max-w-2xl -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl outline-none duration-200 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95"
+              : `fixed left-1/2 top-1/2 z-50 flex max-h-[85vh] w-[92vw] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl outline-none duration-200 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 ${size === "wide" ? "max-w-5xl" : "max-w-2xl"}`
           }
         >
           <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 border-b border-border p-4">
@@ -157,9 +160,9 @@ export function ArtifactDialog({
 
           <div className="flex-1 overflow-y-auto p-4">
             <div
-              className={`mx-auto space-y-3 ${fullscreen ? "max-w-3xl" : ""} ${
-                regenerating ? "animate-pulse opacity-50" : ""
-              }`}
+              className={`mx-auto space-y-3 ${
+                fullscreen ? (size === "wide" ? "max-w-6xl" : "max-w-3xl") : ""
+              } ${regenerating ? "animate-pulse opacity-50" : ""}`}
               aria-busy={regenerating}
             >
               {content.intro && (

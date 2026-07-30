@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Bookmark, Home, Moon, PenSquare, Sun, Users } from "lucide-react";
+import { Bookmark, Home, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BiLogo } from "@/components/BiLogo";
 import { cn } from "@/lib/utils";
@@ -11,11 +11,7 @@ interface HeaderProps {
   onOpenBookmarks?: () => void;
 }
 
-const NAV = [
-  { id: "cases", label: "Кейсы", icon: Home, active: true },
-  { id: "notes", label: "Заметки", icon: PenSquare },
-  { id: "advisors", label: "Советники", icon: Users },
-];
+const NAV = [{ id: "cases", label: "Кейсы", icon: Home, active: true }];
 
 export function Header({
   dark,

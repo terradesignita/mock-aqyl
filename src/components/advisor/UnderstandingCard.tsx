@@ -21,7 +21,11 @@ export function UnderstandingCard({
       <h3 className="text-sm font-bold text-card-foreground">Вот как я понял вашу ситуацию</h3>
       <p className="mt-2 text-sm leading-relaxed text-card-foreground">{text}</p>
 
+      <label htmlFor="advisor-extra-context" className="sr-only">
+        Добавить контекст: что ещё важно учесть при рекомендации
+      </label>
       <textarea
+        id="advisor-extra-context"
         value={extraContext}
         onChange={(e) => onExtraContext(e.target.value)}
         rows={2}

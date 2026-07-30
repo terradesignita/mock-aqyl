@@ -140,7 +140,12 @@ export function QuizView({ questions }: { questions: QuizQuestion[] }) {
       })}
 
       {answered > 0 && (
-        <Button size="sm" variant="ghost" className="gap-1.5" onClick={() => setAnswers({})}>
+        <Button
+          size="sm"
+          variant={done ? "default" : "ghost"}
+          className="gap-1.5"
+          onClick={() => setAnswers({})}
+        >
           <RotateCcw className="h-3.5 w-3.5" /> Пройти заново
         </Button>
       )}

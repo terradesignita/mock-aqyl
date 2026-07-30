@@ -24,7 +24,7 @@ export function HelpHint({ text, side = "top", className = "", label }: Props) {
             type="button"
             onClick={(e) => e.preventDefault()}
             aria-label={label ?? "Подсказка"}
-            className={`inline-grid h-4 w-4 shrink-0 place-items-center rounded-full text-muted-foreground/60 outline-none transition-colors hover:text-primary focus-visible:text-primary ${className}`}
+            className={`relative inline-grid h-4 w-4 shrink-0 place-items-center rounded-full text-muted-foreground/60 transition-colors after:absolute after:-inset-1 after:content-[''] hover:text-primary focus-visible:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${className}`}
           >
             <HelpCircle className="h-3.5 w-3.5" />
           </button>

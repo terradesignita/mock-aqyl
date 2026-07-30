@@ -59,10 +59,15 @@ export function ClarifyBlock({
               type="button"
               onClick={() => onIndex(i)}
               aria-label={`Вопрос ${i + 1}`}
-              className={`h-1.5 flex-1 rounded-full transition-colors ${
-                i === index ? "bg-primary" : done ? "bg-primary/35" : "bg-border"
-              }`}
-            />
+              className="flex h-6 flex-1 items-center"
+            >
+              <span
+                aria-hidden
+                className={`h-1.5 w-full rounded-full transition-colors ${
+                  i === index ? "bg-primary" : done ? "bg-primary/35" : "bg-border"
+                }`}
+              />
+            </button>
           );
         })}
         <span className="ml-1 shrink-0 text-[11px] font-bold text-muted-foreground">
@@ -110,14 +115,20 @@ export function ClarifyBlock({
       </div>
 
       {showOwn ? (
-        <textarea
-          autoFocus={ownOpen}
-          value={own}
-          onChange={(e) => onChange({ ...selection, own: { ...selection.own, [q.id]: e.target.value } })}
-          rows={2}
-          placeholder={`Свой вариант: ${q.ownPlaceholder}`}
-          className="mt-2.5 w-full resize-y rounded-control border border-border bg-secondary/40 px-3 py-2 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-primary"
-        />
+        <>
+          <label htmlFor={`clarify-own-${q.id}`} className="sr-only">
+            {`Свой вариант ответа: ${q.ownPlaceholder}`}
+          </label>
+          <textarea
+            id={`clarify-own-${q.id}`}
+            autoFocus={ownOpen}
+            value={own}
+            onChange={(e) => onChange({ ...selection, own: { ...selection.own, [q.id]: e.target.value } })}
+            rows={2}
+            placeholder={`Свой вариант: ${q.ownPlaceholder}`}
+            className="mt-2.5 w-full resize-y rounded-control border border-border bg-secondary/40 px-3 py-2 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-primary"
+          />
+        </>
       ) : (
         <button
           type="button"

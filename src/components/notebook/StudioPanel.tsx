@@ -61,10 +61,8 @@ const ARTIFACTS: {
   title: string;
   subtitle: string;
   icon: typeof FileText;
-  tone: string;
-  bar: string;
-  edge: string;
   chip: string;
+  edge: string;
   ring: string;
 }[] = [
   {
@@ -72,66 +70,54 @@ const ARTIFACTS: {
     title: "Тест",
     subtitle: "Тест на понимание",
     icon: HelpCircle,
-    tone: "text-art-quiz",
-    bar: "bg-art-quiz",
-    edge: "border-art-quiz/45",
     chip: "bg-art-quiz/12 text-art-quiz",
-    ring: "hover:border-art-quiz/50 hover:bg-art-quiz/6",
+    edge: "border-art-quiz/45",
+    ring: "hover:border-art-quiz/70 hover:bg-art-quiz/6",
   },
   {
     id: "deck",
     title: "Презентация",
     subtitle: "Слайды для встречи",
     icon: Presentation,
-    tone: "text-art-deck",
-    bar: "bg-art-deck",
-    edge: "border-art-deck/45",
     chip: "bg-art-deck/12 text-art-deck",
-    ring: "hover:border-art-deck/50 hover:bg-art-deck/6",
+    edge: "border-art-deck/45",
+    ring: "hover:border-art-deck/70 hover:bg-art-deck/6",
   },
   {
     id: "report",
     title: "Отчёт",
     subtitle: "Аналитический отчёт",
     icon: FileText,
-    tone: "text-art-report",
-    bar: "bg-art-report",
-    edge: "border-art-report/45",
     chip: "bg-art-report/12 text-art-report",
-    ring: "hover:border-art-report/50 hover:bg-art-report/6",
+    edge: "border-art-report/45",
+    ring: "hover:border-art-report/70 hover:bg-art-report/6",
   },
   {
     id: "cards",
     title: "Карточки",
     subtitle: "Карточки с выводами",
     icon: LayoutGrid,
-    tone: "text-art-cards",
-    bar: "bg-art-cards",
-    edge: "border-art-cards/45",
     chip: "bg-art-cards/12 text-art-cards",
-    ring: "hover:border-art-cards/50 hover:bg-art-cards/6",
+    edge: "border-art-cards/45",
+    ring: "hover:border-art-cards/70 hover:bg-art-cards/6",
   },
   {
     id: "podcast",
     title: "Подкаст",
     subtitle: "Аудио по материалу",
     icon: Radio,
-    tone: "text-art-podcast",
-    bar: "bg-art-podcast",
-    edge: "border-art-podcast/45",
     chip: "bg-art-podcast/12 text-art-podcast",
-    ring: "hover:border-art-podcast/50 hover:bg-art-podcast/6",
+    edge: "border-art-podcast/45",
+    ring: "hover:border-art-podcast/70 hover:bg-art-podcast/6",
   },
   {
     id: "infographic",
     title: "Инфографика",
     subtitle: "Визуальная сводка",
     icon: BarChart3,
-    tone: "text-art-infographic",
-    bar: "bg-art-infographic",
-    edge: "border-art-infographic/45",
     chip: "bg-art-infographic/12 text-art-infographic",
-    ring: "hover:border-art-infographic/50 hover:bg-art-infographic/6",
+    edge: "border-art-infographic/45",
+    ring: "hover:border-art-infographic/70 hover:bg-art-infographic/6",
   },
 ];
 
@@ -453,17 +439,22 @@ ${content.items
             <PanelRightClose className="h-4 w-4" />
           </button>
         )}
-        <p className="flex min-w-0 items-center gap-1.5 truncate text-base font-bold tracking-tight text-card-foreground">
-          Артефакты
-          <HelpHint
-            side="bottom"
-            text="Готовые форматы на основе выбранных источников: тест, презентация, отчёт, карточки, подкаст, инфографика. «⋮» — перегенерировать, открыть на весь экран или скачать."
-          />
-        </p>
+        <span className="min-w-0">
+          <p className="flex min-w-0 items-center gap-1.5 truncate text-base font-bold tracking-tight text-card-foreground">
+            Артефакты
+            <HelpHint
+              side="bottom"
+              text="Готовые форматы на основе выбранных источников: тест, презентация, отчёт, карточки, подкаст, инфографика. «⋮» — перегенерировать, открыть на весь экран или скачать."
+            />
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {generated.length} из {ARTIFACTS.length} готово
+          </p>
+        </span>
       </div>
 
 
-      <div className="flex-1 space-y-4 overflow-y-auto px-3 pb-3">
+      <div className="flex-1 space-y-1.5 overflow-y-auto px-3 pb-3">
         <div className="grid grid-cols-2 gap-2">
           {ARTIFACTS.map((a) => {
             const Icon = a.icon;
@@ -471,29 +462,39 @@ ${content.items
             return (
               <div
                 key={a.id}
-                className={`group relative overflow-hidden rounded-xl border-2 bg-card transition-colors ${a.edge} ${a.ring}`}
+                className={`group relative flex flex-col overflow-hidden rounded-xl border-2 bg-card transition-colors ${a.edge} ${a.ring}`}
               >
                 <button
                   onClick={() => generate(a.id)}
                   disabled={loading !== null}
-                  className="block w-full p-3 pr-8 text-left disabled:opacity-60"
+                  title={a.title}
+                  className="flex flex-1 flex-col items-start gap-2 p-3 pr-8 text-left disabled:opacity-60"
                 >
-                  <span className={`grid h-8 w-8 place-items-center rounded-lg ${a.chip}`}>
+                  <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${a.chip}`}>
                     {loading === a.id ? (
                       <Loader2 className="h-4.5 w-4.5 animate-spin" />
                     ) : (
                       <Icon className="h-4.5 w-4.5" />
                     )}
                   </span>
-                  <span className="mt-2 block text-xs font-bold text-card-foreground">
-                    {a.title}
-                  </span>
-                  <span className="mt-0.5 flex items-center gap-1 text-[11px] leading-snug text-muted-foreground">
-                    {isReady && (
-                      <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-full bg-success" />
-                    )}
-                    <span className={isReady ? "font-medium text-success" : undefined}>
-                      {isReady ? "Готов · открыть" : a.subtitle}
+                  <span className="min-w-0">
+                    <span className="flex min-w-0 items-center gap-1.5">
+                      <span className="truncate text-sm font-semibold text-card-foreground">
+                        {a.title}
+                      </span>
+                      {isReady && (
+                        <span
+                          aria-hidden
+                          className="h-1.5 w-1.5 shrink-0 rounded-full bg-success"
+                        />
+                      )}
+                    </span>
+                    <span
+                      className={`block text-xs leading-snug ${
+                        isReady ? "font-medium text-success" : "text-muted-foreground"
+                      }`}
+                    >
+                      {isReady ? "Готово · открыть" : a.subtitle}
                     </span>
                   </span>
                 </button>
@@ -502,7 +503,7 @@ ${content.items
                   <DropdownMenuTrigger asChild>
                     <button
                       aria-label={`Действия — ${a.title}`}
-                      className="absolute right-1 top-1 rounded-md p-1.5 text-muted-foreground opacity-60 transition-colors hover:bg-secondary hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100"
+                      className="absolute right-1.5 top-1.5 rounded-md p-1.5 text-muted-foreground/70 transition-colors hover:bg-secondary hover:text-foreground"
                     >
                       <MoreVertical className="h-3.5 w-3.5" />
                     </button>
@@ -600,6 +601,7 @@ ${content.items
             onRegenerate={regenerate}
             regenerating={regenerating}
             initialFullscreen={openFullscreen}
+            size={active.id === "deck" || active.id === "infographic" ? "wide" : "default"}
           />
         )}
       </div>

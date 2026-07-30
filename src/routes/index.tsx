@@ -47,7 +47,7 @@ function Dashboard() {
   const [filters, setFilters] = useState<Filters>(emptyFilters);
   const [onlyBookmarks, setOnlyBookmarks] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [advisor, setAdvisor] = useState(false);
+  const [advisor, setAdvisor] = useState(true);
   const [advisorQuery, setAdvisorQuery] = useState<string | null>(null);
   const firstRender = useRef(true);
 
@@ -117,8 +117,8 @@ function Dashboard() {
           }
         />
 
-        {advisor ? (
-          <div className="mx-auto max-w-[1100px] px-4 pb-10 sm:px-6">
+        {advisor && (
+          <div className="mx-auto max-w-[1600px] px-4 pb-6 sm:px-6">
             {advisorQuery ? (
               <AdvisorFlow
                 query={advisorQuery}
@@ -157,46 +157,44 @@ function Dashboard() {
               </div>
             )}
           </div>
-        ) : (
-          <>
-            <FiltersBar filters={filters} onChange={setFilters} total={results.length} />
-
-            <div className="mx-auto max-w-[1600px] px-4 pb-8 sm:px-6">
-              {loading ? (
-                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-                  {Array.from({ length: 6 }).map((_, i) => (
-                    <CardSkeleton key={i} />
-                  ))}
-                </div>
-              ) : results.length === 0 ? (
-                <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-20 text-center">
-                  <SearchX className="h-8 w-8 text-muted-foreground" />
-                  <p className="mt-4 text-sm font-semibold text-foreground">
-                    {debounced ? "Ничего не нашлось" : "Введите вопрос, чтобы начать поиск"}
-                  </p>
-                  <p className="mt-1 max-w-sm text-xs text-muted-foreground">
-                    {debounced
-                      ? "Попробуйте другую формулировку или сбросьте фильтры."
-                      : "Или выберите одну из популярных тем выше."}
-                  </p>
-                </div>
-              ) : (
-                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-                  {results.map((card, i) => (
-                    <KnowledgeCard
-                      key={card.id}
-                      card={card}
-                      index={i}
-                      bookmarked={bookmarks.includes(card.id)}
-                      onToggleBookmark={toggleBookmark}
-                      onDelete={dismiss}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          </>
         )}
+
+        <FiltersBar filters={filters} onChange={setFilters} total={results.length} />
+
+        <div className="mx-auto max-w-[1600px] px-4 pb-8 sm:px-6">
+          {loading ? (
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <CardSkeleton key={i} />
+              ))}
+            </div>
+          ) : results.length === 0 ? (
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-20 text-center">
+              <SearchX className="h-8 w-8 text-muted-foreground" />
+              <p className="mt-4 text-sm font-semibold text-foreground">
+                {debounced ? "Ничего не нашлось" : "Введите вопрос, чтобы начать поиск"}
+              </p>
+              <p className="mt-1 max-w-sm text-xs text-muted-foreground">
+                {debounced
+                  ? "Попробуйте другую формулировку или сбросьте фильтры."
+                  : "Или выберите одну из популярных тем выше."}
+              </p>
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+              {results.map((card, i) => (
+                <KnowledgeCard
+                  key={card.id}
+                  card={card}
+                  index={i}
+                  bookmarked={bookmarks.includes(card.id)}
+                  onToggleBookmark={toggleBookmark}
+                  onDelete={dismiss}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </main>
 
 

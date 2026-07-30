@@ -1,7 +1,5 @@
-import { useState } from "react";
 import { HelpHint } from "@/components/HelpHint";
 import { ArrowRight, History, Search, Sparkles, X } from "lucide-react";
-import { TOPIC_TAGS } from "@/data/mockCards";
 import type { ScopeFilter } from "@/lib/search";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -37,7 +35,6 @@ export function SearchPanel({
   onAdvisorChange,
   onSubmit,
 }: SearchPanelProps) {
-  const [tagsExpanded, setTagsExpanded] = useState(false);
   return (
     <section className="mx-auto w-full max-w-[1600px] px-4 pb-2 pt-6 sm:px-6">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">
@@ -129,7 +126,7 @@ export function SearchPanel({
 
 
 
-      {history.length > 0 && (
+      {advisor && history.length > 0 && (
         <div className="mt-3 rounded-2xl border border-border bg-card p-4 shadow-soft">
           <p className="flex items-center gap-1.5 pb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
             <History className="h-3.5 w-3.5" /> Недавние вопросы
@@ -160,52 +157,6 @@ export function SearchPanel({
 
       {!advisor && (
         <>
-          <div className="mt-3">
-            <div
-              className={cn(
-                "flex flex-wrap items-center gap-2 overflow-hidden transition-[max-height] duration-300",
-                tagsExpanded ? "max-h-[999px]" : "max-h-[68px]",
-              )}
-            >
-              <button
-                onClick={() => onQueryChange("")}
-                title="Показать все материалы"
-                className={cn(
-                  "rounded-full border px-3 py-1 text-xs font-semibold transition-colors active:scale-[0.96]",
-                  query.trim() === ""
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-border bg-card text-muted-foreground hover:border-primary hover:text-primary",
-                )}
-              >
-                Все
-              </button>
-              {TOPIC_TAGS.map((t) => {
-                const active = query.trim().toLowerCase() === t.label.toLowerCase();
-                return (
-                  <button
-                    key={t.label}
-                    onClick={() => onQueryChange(t.label)}
-                    title={t.description}
-                    className={cn(
-                      "rounded-full border px-3 py-1 text-xs transition-colors active:scale-[0.96]",
-                      active
-                        ? "border-primary bg-primary/10 font-semibold text-primary"
-                        : "border-border bg-card text-muted-foreground hover:border-primary hover:text-primary",
-                    )}
-                  >
-                    #{t.label}
-                  </button>
-                );
-              })}
-            </div>
-            <button
-              onClick={() => setTagsExpanded((v) => !v)}
-              className="mt-1.5 text-xs font-medium text-primary hover:underline"
-            >
-              {tagsExpanded ? "Свернуть" : "Ещё"}
-            </button>
-          </div>
-
           <div className="mt-3 flex w-fit items-center gap-1 rounded-2xl border border-border bg-card p-1 shadow-soft">
             {MODES.map((m) => (
               <button
