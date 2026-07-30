@@ -26,14 +26,15 @@ const MAX_PERSONAS = 3;
 function AvatarStack({ personaIds }: { personaIds: string[] }) {
   const shown = personaIds.slice(0, 2);
   const rest = personaIds.length - shown.length;
+  const names = personaIds.map((id) => getPersona(id).name).join(", ");
   return (
-    <div className="flex items-center -space-x-2">
+    <div role="img" aria-label={`Участники: ${names}`} className="flex items-center -space-x-2">
       {shown.map((id) => {
         const p = getPersona(id);
         return (
           <span
             key={id}
-            title={p.name}
+            aria-hidden
             className={cn(
               "grid h-6 w-6 place-items-center rounded-full border-2 border-card text-[10px] font-bold text-white",
               p.color,
@@ -44,7 +45,10 @@ function AvatarStack({ personaIds }: { personaIds: string[] }) {
         );
       })}
       {rest > 0 && (
-        <span className="grid h-6 w-6 place-items-center rounded-full border-2 border-card bg-secondary text-[10px] font-bold text-muted-foreground">
+        <span
+          aria-hidden
+          className="grid h-6 w-6 place-items-center rounded-full border-2 border-card bg-secondary text-[10px] font-bold text-muted-foreground"
+        >
           +{rest}
         </span>
       )}
@@ -97,12 +101,16 @@ function NewCouncilPanel({
   return (
     <div className="mx-auto w-full max-w-xl space-y-6 px-6 py-10">
       <div>
-        <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+        <label
+          htmlFor="council-case-search"
+          className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted-foreground"
+        >
           1. Выберите кейс
-        </p>
+        </label>
         <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-3">
           <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
           <input
+            id="council-case-search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Найдите кейс по названию"
@@ -140,6 +148,7 @@ function NewCouncilPanel({
                 key={p.id}
                 onClick={() => togglePersona(p.id)}
                 disabled={disabled}
+                aria-pressed={selected}
                 className={cn(
                   "flex items-center gap-2.5 rounded-xl border p-2.5 text-left transition-colors disabled:opacity-40",
                   selected
@@ -187,7 +196,7 @@ function EmptyState({ onNew }: { onNew: () => void }) {
   const heroIds = ["external", "cfo", "legal"];
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
-      <div className="flex items-center -space-x-3">
+      <div aria-hidden className="flex items-center -space-x-3">
         {heroIds.map((id, i) => {
           const p = getPersona(id);
           return (
@@ -234,7 +243,7 @@ function SessionView({ session }: { session: CouncilSession }) {
   };
 
   return (
-    <div className="mx-auto w-full max-w-2xl space-y-5 overflow-y-auto px-6 py-8">
+    <div className="mx-auto w-full max-w-2xl space-y-5 px-6 py-8">
       <div>
         <p className="text-xs font-bold uppercase tracking-wider text-primary">Кейс</p>
         <h2 className="mt-1 text-lg font-bold text-foreground">{session.topic.title}</h2>
@@ -287,7 +296,11 @@ function SessionView({ session }: { session: CouncilSession }) {
       </div>
 
       <div className="flex gap-2 border-t border-border pt-4">
+        <label htmlFor="council-follow-up" className="sr-only">
+          Уточняющий вопрос совету
+        </label>
         <input
+          id="council-follow-up"
           value={followUp}
           onChange={(e) => setFollowUp(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && send()}
@@ -322,9 +335,10 @@ function CouncilPage() {
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-background">
       <Header dark={dark} onToggleDark={toggle} bookmarkCount={bookmarks.length} />
+      <h1 className="sr-only">Консилиум</h1>
 
-      <div className="flex min-h-0 flex-1">
-        <aside className="flex w-[320px] shrink-0 flex-col border-r border-border bg-card p-3">
+      <div className="flex min-h-0 flex-1 flex-col md:flex-row">
+        <aside className="flex max-h-[40vh] w-full shrink-0 flex-col overflow-y-auto border-b border-border bg-card p-3 md:max-h-none md:w-[320px] md:border-b-0 md:border-r">
           <Button
             className="h-11 w-full gap-1.5 rounded-2xl text-sm"
             onClick={() => {
@@ -335,7 +349,7 @@ function CouncilPage() {
             <Plus className="h-4 w-4" /> Новый совет
           </Button>
 
-          <div className="mt-4 flex-1 space-y-4 overflow-y-auto">
+          <div className="mt-4 flex-1 space-y-4">
             {today.length > 0 && (
               <div>
                 <p className="px-1 pb-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -363,7 +377,7 @@ function CouncilPage() {
           </div>
         </aside>
 
-        <main className="flex min-w-0 flex-1 flex-col">
+        <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto">
           {creating ? (
             <NewCouncilPanel
               onCancel={() => setCreating(false)}
@@ -396,6 +410,7 @@ function SessionRow({
   return (
     <button
       onClick={() => onClick(session.id)}
+      aria-current={active ? "true" : undefined}
       className={cn(
         "w-full rounded-xl border p-3 text-left transition-colors",
         active

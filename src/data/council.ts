@@ -7,11 +7,12 @@ export interface CouncilPersona {
 }
 
 export const COUNCIL_PERSONAS: CouncilPersona[] = [
-  { id: "cfo", name: "Санжар Ахметов", initials: "SA", role: "Финансовый директор", color: "bg-amber-600" },
+  // Цвета подобраны на контраст ≥4.5:1 с белым текстом инициалов (WCAG AA).
+  { id: "cfo", name: "Санжар Ахметов", initials: "SA", role: "Финансовый директор", color: "bg-amber-700" },
   { id: "legal", name: "Дана Бекова", initials: "DB", role: "Юрист", color: "bg-violet-600" },
   { id: "ops", name: "Ержан Мадиев", initials: "EM", role: "Операционный директор", color: "bg-blue-600" },
-  { id: "hr", name: "Жанна Хан", initials: "JH", role: "HR-директор", color: "bg-teal-600" },
-  { id: "strategy", name: "Самал Зейнеп", initials: "SZ", role: "Стратегический советник", color: "bg-orange-600" },
+  { id: "hr", name: "Жанна Хан", initials: "JH", role: "HR-директор", color: "bg-teal-700" },
+  { id: "strategy", name: "Самал Зейнеп", initials: "SZ", role: "Стратегический советник", color: "bg-orange-700" },
   { id: "external", name: "Марк Абрамс", initials: "MA", role: "Внешний консультант", color: "bg-fuchsia-600" },
 ];
 
