@@ -1,0 +1,334 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - link [ref=e6] [cursor=pointer]:
+          - /url: /
+          - generic "BI AQYL" [ref=e7]:
+            - generic [ref=e8]: BI
+            - generic [ref=e9]: AQYL
+        - navigation [ref=e10]:
+          - generic [ref=e11]:
+            - link "Кейсы" [ref=e12] [cursor=pointer]:
+              - /url: /
+            - link "Консилиум" [ref=e16] [cursor=pointer]:
+              - /url: /council
+        - generic [ref=e22]:
+          - button "Закладки" [ref=e23] [cursor=pointer]
+          - generic [ref=e25]:
+            - button "Светлая тема" [ref=e26]
+            - button "Тёмная тема" [ref=e33]
+          - generic [ref=e36]: МА
+    - main [ref=e37]:
+      - generic [ref=e38]:
+        - generic [ref=e39]:
+          - heading "Добрый день, Марат" [level=1] [ref=e40]
+          - paragraph [ref=e41]: "Режим AI-советника: рекомендация по вашей ситуации со ссылками на опыт"
+        - generic [ref=e43]:
+          - generic [ref=e44]:
+            - switch "Режим AI-советника" [checked] [ref=e45]:
+              - generic [ref=e51]: AI-советник
+            - button "Подсказка" [ref=e52]
+          - textbox "Опишите бизнес-ситуацию или решение, которое нужно принять — советник разберётся и предложит рекомендацию" [active] [ref=e56]
+          - button "Отправить запрос" [ref=e58]
+      - generic [ref=e62]:
+        - paragraph [ref=e63]: Опишите управленческую ситуацию обычным языком
+        - paragraph [ref=e64]: Советник определит тип решения, задаст 3–4 уточняющих вопроса, найдёт похожие кейсы и предложит рекомендацию с рисками, условиями и источниками.
+        - generic [ref=e65]:
+          - button "У нас есть внутренний AI-продукт. Партнёр предлагает вывести его на рынок вместе. Стоит ли соглашаться?" [ref=e66]
+          - button "Стоит ли выходить на рынок Узбекистана самостоятельно или через локального партнёра?" [ref=e67]
+          - button "Продавать ли долю в непрофильном активе сейчас или развивать его дальше?" [ref=e68]
+      - generic [ref=e69]:
+        - generic [ref=e70]:
+          - generic [ref=e71]: "Найдено: 22"
+          - generic [ref=e73]:
+            - generic [ref=e74]:
+              - button "Все" [ref=e75]
+              - button "#Качество" [ref=e76]
+              - button "#Безопасность" [ref=e77]
+              - button "#Проекты" [ref=e78]
+              - button "#Эффективность" [ref=e79]
+              - button "#Стандартизация" [ref=e80]
+              - button "#Сроки" [ref=e81]
+              - button "#NPS" [ref=e82]
+              - button "#Опыт" [ref=e83]
+              - button "#Лояльность" [ref=e84]
+              - button "#Ценообразование" [ref=e85]
+              - button "#Маркетинг" [ref=e86]
+              - button "#Инновация" [ref=e87]
+              - button "#Конкуренция" [ref=e88]
+              - button "#Рост" [ref=e89]
+              - button "#Локализация" [ref=e90]
+              - button "#Стратегия" [ref=e91]
+              - button "#Масштабирование" [ref=e92]
+              - button "#Бренд" [ref=e93]
+              - button "#Доверие" [ref=e94]
+              - button "#Лидерство" [ref=e95]
+              - button "#Культура" [ref=e96]
+              - button "#Ценности" [ref=e97]
+              - button "#Команда" [ref=e98]
+              - button "#HR" [ref=e99]
+              - button "#Управление" [ref=e100]
+              - button "#Переговоры" [ref=e101]
+              - button "#Перемены" [ref=e102]
+              - button "#Трансформация" [ref=e103]
+              - button "#Аналитика" [ref=e104]
+              - button "#Обучение" [ref=e105]
+              - button "#Финансы" [ref=e106]
+              - button "#Принципы" [ref=e107]
+            - button "Ещё" [ref=e109]
+        - generic [ref=e111]:
+          - article [ref=e112]:
+            - generic [ref=e113]:
+              - generic [ref=e114]: Общий
+              - button "В закладки" [ref=e116]
+            - generic [ref=e119]:
+              - 'link "Framework: Risk Management Maturity Model" [ref=e120] [cursor=pointer]':
+                - /url: /card/card_001
+              - paragraph [ref=e121]: "4-уровневая модель оценки зрелости системы управления рисками: от реактивного к проактивному подходу."
+            - generic [ref=e122]:
+              - generic [ref=e123]: 2 файлов
+              - button "Удалить кейс" [ref=e128]
+          - article [ref=e132]:
+            - generic [ref=e133]:
+              - generic [ref=e134]: Приватный
+              - button "В закладки" [ref=e136]
+            - generic [ref=e139]:
+              - 'link "Playing to Win: выбор там, где вы не играете" [ref=e140] [cursor=pointer]':
+                - /url: /card/card_018
+              - paragraph [ref=e141]: Стратегия как каскад из пяти взаимосвязанных решений — от амбиции до систем управления.
+            - generic [ref=e142]:
+              - generic [ref=e143]: 2 файлов
+              - button "Удалить кейс" [ref=e148]
+          - article [ref=e152]:
+            - generic [ref=e153]:
+              - generic [ref=e154]: Общий
+              - button "В закладки" [ref=e156]
+            - generic [ref=e159]:
+              - 'link "Себестоимость: 6 драйверов отклонений на площадке" [ref=e160] [cursor=pointer]':
+                - /url: /card/card_010
+              - paragraph [ref=e161]: "Аналитика 30 объектов: где фактическая себестоимость чаще всего уходит от плана."
+            - generic [ref=e162]:
+              - generic [ref=e163]: 3 файлов
+              - button "Удалить кейс" [ref=e168]
+          - article [ref=e172]:
+            - generic [ref=e173]:
+              - generic [ref=e174]: Общий
+              - button "В закладки" [ref=e176]
+            - generic [ref=e179]:
+              - link "Уроки внедрения BIM на крупных объектах" [ref=e180] [cursor=pointer]:
+                - /url: /card/card_002
+              - paragraph [ref=e181]: "Синтез 14 проектов: где BIM-модель реально экономит время, а где становится дорогой формальностью."
+            - generic [ref=e182]:
+              - generic [ref=e183]: 3 файлов
+              - button "Удалить кейс" [ref=e188]
+          - article [ref=e192]:
+            - generic [ref=e193]:
+              - generic [ref=e194]: Общий
+              - button "В закладки" [ref=e196]
+            - generic [ref=e199]:
+              - 'link "Видео-лекция: экономика девелоперского проекта" [ref=e200] [cursor=pointer]':
+                - /url: /card/card_017
+              - paragraph [ref=e201]: Базовая модель денежного потока девелопмента и её чувствительность к срокам продаж.
+            - generic [ref=e202]:
+              - generic [ref=e203]: 2 файлов
+              - button "Удалить кейс" [ref=e208]
+          - article [ref=e212]:
+            - generic [ref=e213]:
+              - generic [ref=e214]: Приватный
+              - button "В закладки" [ref=e216]
+            - generic [ref=e219]:
+              - 'link "HBS Case: Amazon''s Two-Pizza Teams" [ref=e220] [cursor=pointer]':
+                - /url: /card/card_003
+              - paragraph [ref=e221]: Как ограничение размера команды меняет скорость принятия решений и владение результатом.
+            - generic [ref=e222]:
+              - generic [ref=e223]: 2 файлов
+              - button "Удалить кейс" [ref=e228]
+          - article [ref=e232]:
+            - generic [ref=e233]:
+              - generic [ref=e234]: Приватный
+              - button "В закладки" [ref=e236]
+            - generic [ref=e239]:
+              - 'link "Лидерство в кризисе: протокол первых 72 часов" [ref=e240] [cursor=pointer]':
+                - /url: /card/card_013
+              - paragraph [ref=e241]: Что делает руководитель в первые три дня после серьёзного сбоя — по материалам разборов инцидентов.
+            - generic [ref=e242]:
+              - generic [ref=e243]: 2 файлов
+              - button "Удалить кейс" [ref=e248]
+          - article [ref=e252]:
+            - generic [ref=e253]:
+              - generic [ref=e254]: Приватный
+              - button "В закладки" [ref=e256]
+            - generic [ref=e259]:
+              - 'link "Цифровая трансформация: почему 70% программ буксуют" [ref=e260] [cursor=pointer]':
+                - /url: /card/card_004
+              - paragraph [ref=e261]: "Мета-обзор исследований: главные причины провала — не технологии, а отсутствие владельца изменений."
+            - generic [ref=e262]:
+              - generic [ref=e263]: 2 файлов
+              - button "Удалить кейс" [ref=e268]
+          - article [ref=e272]:
+            - generic [ref=e273]:
+              - generic [ref=e274]: Общий
+              - button "В закладки" [ref=e276]
+            - generic [ref=e279]:
+              - 'link "Data-driven решения: минимальный набор метрик для дирекции" [ref=e280] [cursor=pointer]':
+                - /url: /card/card_021
+              - paragraph [ref=e281]: Какие 9 показателей реально используются на еженедельном комитете и почему остальные шумят.
+            - generic [ref=e282]:
+              - generic [ref=e283]: 2 файлов
+              - button "Удалить кейс" [ref=e288]
+          - article [ref=e292]:
+            - generic [ref=e293]:
+              - generic [ref=e294]: Общий
+              - button "В закладки" [ref=e296]
+            - generic [ref=e299]:
+              - 'link "Как удерживать инженеров: данные по 3 годам" [ref=e300] [cursor=pointer]':
+                - /url: /card/card_014
+              - paragraph [ref=e301]: "Анализ увольнений: деньги — третий по значимости фактор ухода инженерного персонала."
+            - generic [ref=e302]:
+              - generic [ref=e303]: 2 файлов
+              - button "Удалить кейс" [ref=e308]
+          - article [ref=e312]:
+            - generic [ref=e313]:
+              - generic [ref=e314]: Общий
+              - button "В закладки" [ref=e316]
+            - generic [ref=e319]:
+              - 'link "Подкаст: как мы сократили цикл закупки с 45 до 19 дней" [ref=e320] [cursor=pointer]':
+                - /url: /card/card_005
+              - paragraph [ref=e321]: "Разбор внутреннего кейса закупочной службы: три узких места и решения, которые сработали."
+            - generic [ref=e322]:
+              - generic [ref=e323]: 2 файлов
+              - button "Удалить кейс" [ref=e328]
+          - article [ref=e332]:
+            - generic [ref=e333]:
+              - generic [ref=e334]: Приватный
+              - button "В закладки" [ref=e336]
+            - generic [ref=e339]:
+              - 'link "Change Management: модель ADKAR на практике" [ref=e340] [cursor=pointer]':
+                - /url: /card/card_020
+              - paragraph [ref=e341]: Пять состояний сотрудника при изменении и типовые ошибки на каждом из них.
+            - generic [ref=e342]:
+              - generic [ref=e343]: 2 файлов
+              - button "Удалить кейс" [ref=e348]
+          - article [ref=e352]:
+            - generic [ref=e353]:
+              - generic [ref=e354]: Приватный
+              - button "В закладки" [ref=e356]
+            - generic [ref=e359]:
+              - 'link "Innovation Portfolio: 70-20-10 Rule" [ref=e360] [cursor=pointer]':
+                - /url: /card/card_006
+              - paragraph [ref=e361]: Как распределять инвестиции между ядром, смежными и прорывными инициативами.
+            - generic [ref=e362]:
+              - generic [ref=e363]: 2 файлов
+              - button "Удалить кейс" [ref=e368]
+          - article [ref=e372]:
+            - generic [ref=e373]:
+              - generic [ref=e374]: Приватный
+              - button "В закладки" [ref=e376]
+            - generic [ref=e379]:
+              - 'link "Toyota Production System: поток вместо загрузки" [ref=e380] [cursor=pointer]':
+                - /url: /card/card_011
+              - paragraph [ref=e381]: "Классика бережливого производства: почему оптимизация загрузки участков ломает поток."
+            - generic [ref=e382]:
+              - generic [ref=e383]: 2 файлов
+              - button "Удалить кейс" [ref=e388]
+          - article [ref=e392]:
+            - generic [ref=e393]:
+              - generic [ref=e394]: Общий
+              - button "В закладки" [ref=e396]
+            - generic [ref=e399]:
+              - 'link "Тәуекелдерді басқару: практикалық бақылау парағы" [ref=e400] [cursor=pointer]':
+                - /url: /card/card_007
+              - paragraph [ref=e401]: Жоба деңгейінде тәуекелдерді анықтауға және бақылауға арналған қысқа чек-лист.
+            - generic [ref=e402]:
+              - generic [ref=e403]: 1 файлов
+              - button "Удалить кейс" [ref=e408]
+          - article [ref=e412]:
+            - generic [ref=e413]:
+              - generic [ref=e414]: Приватный
+              - button "В закладки" [ref=e416]
+            - generic [ref=e419]:
+              - 'link "Blue Ocean Strategy: сетка «убрать–снизить–повысить–создать»" [ref=e420] [cursor=pointer]':
+                - /url: /card/card_022
+              - paragraph [ref=e421]: Инструмент пересборки ценностного предложения без лобовой конкуренции по цене.
+            - generic [ref=e422]:
+              - generic [ref=e423]: 2 файлов
+              - button "Удалить кейс" [ref=e428]
+          - article [ref=e432]:
+            - generic [ref=e433]:
+              - generic [ref=e434]: Приватный
+              - button "В закладки" [ref=e436]
+            - generic [ref=e439]:
+              - 'link "Pricing Power: три способа поднять цену без потери клиента" [ref=e440] [cursor=pointer]':
+                - /url: /card/card_015
+              - paragraph [ref=e441]: Обзор практик ценообразования на зрелых рынках с высокой конкуренцией.
+            - generic [ref=e442]:
+              - generic [ref=e443]: 2 файлов
+              - button "Удалить кейс" [ref=e448]
+          - article [ref=e452]:
+            - generic [ref=e453]:
+              - generic [ref=e454]: Общий
+              - button "В закладки" [ref=e456]
+            - generic [ref=e459]:
+              - 'link "Видео-разбор: переговоры с крупным поставщиком" [ref=e460] [cursor=pointer]':
+                - /url: /card/card_008
+              - paragraph [ref=e461]: "Запись внутреннего тренинга: подготовка BATNA и работа с ценовым давлением."
+            - generic [ref=e462]:
+              - generic [ref=e463]: 2 файлов
+              - button "Удалить кейс" [ref=e468]
+          - article [ref=e472]:
+            - generic [ref=e473]:
+              - generic [ref=e474]: Приватный
+              - button "В закладки" [ref=e476]
+            - generic [ref=e479]:
+              - 'link "Netflix Culture Deck: контекст вместо контроля" [ref=e480] [cursor=pointer]':
+                - /url: /card/card_009
+              - paragraph [ref=e481]: Как заменить процессный контроль передачей контекста и высокой планкой найма.
+            - generic [ref=e482]:
+              - generic [ref=e483]: 2 файлов
+              - button "Удалить кейс" [ref=e488]
+          - article [ref=e492]:
+            - generic [ref=e493]:
+              - generic [ref=e494]: Общий
+              - button "В закладки" [ref=e496]
+            - generic [ref=e499]:
+              - 'link "Подкаст: как устроен инновационный конвейер в промышленности" [ref=e500] [cursor=pointer]':
+                - /url: /card/card_019
+              - paragraph [ref=e501]: Разговор с директором завода о том, как идеи рабочих доходят до внедрения.
+            - generic [ref=e502]:
+              - generic [ref=e503]: 1 файлов
+              - button "Удалить кейс" [ref=e508]
+          - article [ref=e512]:
+            - generic [ref=e513]:
+              - generic [ref=e514]: Общий
+              - button "В закладки" [ref=e516]
+            - generic [ref=e519]:
+              - 'link "Raqamli transformatsiya: mintaqaviy ofis tajribasi" [ref=e520] [cursor=pointer]':
+                - /url: /card/card_012
+              - paragraph [ref=e521]: Mintaqaviy ofisda hujjat aylanishini raqamlashtirish bo'yicha amaliy xulosalar.
+            - generic [ref=e522]:
+              - generic [ref=e523]: 1 файлов
+              - button "Удалить кейс" [ref=e528]
+          - article [ref=e532]:
+            - generic [ref=e533]:
+              - generic [ref=e534]: Общий
+              - button "В закладки" [ref=e536]
+            - generic [ref=e539]:
+              - 'link "Risklərin idarə edilməsi: layihə səviyyəsində yanaşma" [ref=e540] [cursor=pointer]':
+                - /url: /card/card_016
+              - paragraph [ref=e541]: Layihə komandası üçün risklərin qeydiyyatı və monitorinqi üzrə qısa təlimat.
+            - generic [ref=e542]:
+              - generic [ref=e543]: 1 файлов
+              - button "Удалить кейс" [ref=e548]
+    - contentinfo [ref=e553]:
+      - generic [ref=e554]:
+        - generic [ref=e555]:
+          - generic "BI AQYL" [ref=e556]:
+            - generic [ref=e557]: BI
+            - generic [ref=e558]: AQYL
+          - text: AQYL — Knowledge Discovery Platform
+        - generic [ref=e560]:
+          - generic [ref=e561]: Документация
+          - generic [ref=e562]: Поддержка
+          - generic [ref=e563]: MVP v0.1 · demo mode
+  - region "Notifications alt+T"

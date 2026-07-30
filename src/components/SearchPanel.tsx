@@ -27,6 +27,7 @@ interface SearchPanelProps {
   onSubmit: () => void;
   filters: Filters;
   onFiltersChange: (f: Filters) => void;
+  onFocusChange?: (focused: boolean) => void;
 }
 
 const MODES: { key: ScopeFilter; label: string }[] = [
@@ -48,6 +49,7 @@ export function SearchPanel({
   onSubmit,
   filters,
   onFiltersChange,
+  onFocusChange,
 }: SearchPanelProps) {
   const activeFilterCount = [filters.mediaType, filters.businessUnit, filters.language].filter(
     (v) => v !== "all",
@@ -114,6 +116,8 @@ export function SearchPanel({
             onKeyDown={(e) => {
               if (e.key === "Enter") onSubmit();
             }}
+            onFocus={() => onFocusChange?.(true)}
+            onBlur={() => onFocusChange?.(false)}
             placeholder={
               advisor
                 ? "Опишите бизнес-ситуацию или решение, которое нужно принять — советник разберётся и предложит рекомендацию"
@@ -157,14 +161,24 @@ export function SearchPanel({
               очистить
             </Button>
           </p>
-          <ul className="space-y-1">
-            {history.map((h) => (
+          <ul className="space-y-0.5">
+            {history.map((h, i) => (
               <li key={h}>
                 <button
                   onClick={() => onQueryChange(h)}
-                  className="grid w-full grid-cols-[auto_minmax(0,1fr)] items-start gap-2 rounded-xl px-2 py-1.5 text-left text-sm text-card-foreground transition-colors hover:bg-secondary"
+                  className={cn(
+                    "grid w-full grid-cols-[auto_minmax(0,1fr)] items-start gap-2 rounded-xl px-2 text-left transition-colors hover:bg-secondary",
+                    i === 0
+                      ? "py-2 text-sm font-semibold text-card-foreground"
+                      : "py-1 text-xs text-muted-foreground",
+                  )}
                 >
-                  <Search className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                  <Search
+                    className={cn(
+                      "shrink-0",
+                      i === 0 ? "mt-0.5 h-4 w-4 text-primary" : "mt-0.5 h-3 w-3 text-muted-foreground/60",
+                    )}
+                  />
                   <span className="min-w-0 truncate">{h}</span>
                 </button>
               </li>
@@ -174,7 +188,7 @@ export function SearchPanel({
       )}
 
       {!advisor && (
-        <div className="mt-3 flex items-center gap-2">
+        <div className="mt-3 flex items-center justify-between gap-2">
           <div className="flex w-fit items-center gap-1 rounded-2xl border border-border bg-card p-1 shadow-soft">
             {MODES.map((m) => (
               <button
@@ -212,7 +226,7 @@ export function SearchPanel({
                   )}
                 </button>
               </PopoverTrigger>
-              <PopoverContent align="start" className="w-64 space-y-2 p-3">
+              <PopoverContent align="end" className="w-64 space-y-2 p-3">
                 <Select
                   value={filters.mediaType}
                   onValueChange={(v) =>

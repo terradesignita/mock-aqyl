@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { Check, Loader2, MessageSquarePlus, Send, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { HelpHint } from "@/components/HelpHint";
@@ -35,48 +35,50 @@ interface Props {
 function Stepper({ stage, onGoTo }: { stage: Stage; onGoTo: (s: Stage) => void }) {
   const current = STAGES.findIndex((s) => s.id === stage);
   return (
-    <ol className="flex items-center gap-1 sm:gap-1.5">
+    <ol className="flex w-full items-center">
       {STAGES.map((s, i) => {
         const done = i < current;
         const active = i === current;
         return (
-          <li key={s.id} className="flex shrink-0 items-center gap-1 sm:gap-1.5">
-            <button
-              type="button"
-              disabled={!done}
-              onClick={() => done && onGoTo(s.id)}
-              aria-label={s.label}
-              className={`flex items-center gap-1.5 rounded-full border px-1.5 py-1 text-[11px] font-bold uppercase tracking-wide transition-all sm:px-2.5 ${
-                active
-                  ? "border-primary bg-primary text-primary-foreground shadow-soft"
-                  : done
-                    ? "border-primary/40 bg-primary/10 text-primary hover:bg-primary/16"
-                    : "border-border bg-secondary/40 text-muted-foreground/60"
-              }`}
-            >
-              <span
-                aria-hidden
-                className={`grid h-4 w-4 shrink-0 place-items-center rounded-full text-[9px] ${
+          <Fragment key={s.id}>
+            <li className="flex shrink-0 items-center">
+              <button
+                type="button"
+                disabled={!done}
+                onClick={() => done && onGoTo(s.id)}
+                aria-label={s.label}
+                className={`flex items-center gap-1.5 rounded-full border px-1.5 py-1 text-[11px] font-bold uppercase tracking-wide transition-all sm:px-2.5 ${
                   active
-                    ? "bg-primary-foreground/20"
+                    ? "border-primary bg-primary text-primary-foreground shadow-soft"
                     : done
-                      ? "bg-primary/20"
-                      : "bg-border/60"
+                      ? "border-primary/40 bg-primary/10 text-primary hover:bg-primary/16"
+                      : "border-border bg-secondary/40 text-muted-foreground/60"
                 }`}
               >
-                {done ? <Check className="h-2.5 w-2.5" /> : i + 1}
-              </span>
-              <span aria-hidden className={active ? "" : "hidden sm:inline"}>
-                {s.label}
-              </span>
-            </button>
+                <span
+                  aria-hidden
+                  className={`grid h-4 w-4 shrink-0 place-items-center rounded-full text-[9px] ${
+                    active
+                      ? "bg-primary-foreground/20"
+                      : done
+                        ? "bg-primary/20"
+                        : "bg-border/60"
+                  }`}
+                >
+                  {done ? <Check className="h-2.5 w-2.5" /> : i + 1}
+                </span>
+                <span aria-hidden className={active ? "" : "hidden sm:inline"}>
+                  {s.label}
+                </span>
+              </button>
+            </li>
             {i < STAGES.length - 1 && (
               <span
                 aria-hidden
-                className={`h-px w-2 sm:w-4 ${i < current ? "bg-primary/50" : "bg-border"}`}
+                className={`mx-1 h-px min-w-2 flex-1 sm:mx-1.5 ${i < current ? "bg-primary/50" : "bg-border"}`}
               />
             )}
-          </li>
+          </Fragment>
         );
       })}
     </ol>
@@ -135,7 +137,7 @@ export function AdvisorFlow({ query, onReset, onFollowUp }: Props) {
           side="bottom"
           text={`Тип решения определён по вашему запросу. Из запроса понятно: ${known.join("; ")}.`}
         />
-        <span className="mx-1 max-w-full">
+        <span className="mx-1 min-w-0 flex-1">
           <Stepper stage={stage} onGoTo={setStage} />
         </span>
       </div>

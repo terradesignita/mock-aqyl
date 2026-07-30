@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { SearchX } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Header } from "@/components/Header";
 import { SearchPanel } from "@/components/SearchPanel";
 import { FiltersBar } from "@/components/FiltersBar";
@@ -49,7 +50,10 @@ function Dashboard() {
   const [loading, setLoading] = useState(false);
   const [advisor, setAdvisor] = useState(true);
   const [advisorQuery, setAdvisorQuery] = useState<string | null>(null);
+  const [searchFocused, setSearchFocused] = useState(false);
   const firstRender = useRef(true);
+
+  const focusOnAdvisor = advisor && (searchFocused || query.trim().length > 0);
 
   useEffect(() => {
     const t = window.setTimeout(() => setDebounced(query), 120);
@@ -86,12 +90,14 @@ function Dashboard() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <Header
-        dark={dark}
-        onToggleDark={toggle}
-        bookmarkCount={bookmarks.length}
-        onOpenBookmarks={() => setOnlyBookmarks((v) => !v)}
-      />
+      <div className={cn("transition-opacity duration-300", focusOnAdvisor && "opacity-70")}>
+        <Header
+          dark={dark}
+          onToggleDark={toggle}
+          bookmarkCount={bookmarks.length}
+          onOpenBookmarks={() => setOnlyBookmarks((v) => !v)}
+        />
+      </div>
 
       <main className="flex-1">
         <SearchPanel
@@ -112,6 +118,7 @@ function Dashboard() {
           onSubmit={submit}
           filters={filters}
           onFiltersChange={setFilters}
+          onFocusChange={setSearchFocused}
           totalLabel={
             advisor
               ? "Режим AI-советника: рекомендация по вашей ситуации со ссылками на опыт"
@@ -120,7 +127,7 @@ function Dashboard() {
         />
 
         {advisor && (
-          <div className="mx-auto max-w-[1600px] px-4 pb-6 sm:px-6">
+          <div className="mx-auto max-w-[1600px] px-4 pt-4 pb-6 sm:px-6">
             {advisorQuery ? (
               <AdvisorFlow
                 query={advisorQuery}
@@ -150,7 +157,7 @@ function Dashboard() {
                         setQuery(e);
                         setAdvisorQuery(e);
                       }}
-                      className="max-w-md rounded-full border border-border bg-card px-3 py-1.5 text-left text-xs text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+                      className="max-w-md rounded-control border border-border bg-card px-3.5 py-2 text-left text-xs leading-relaxed text-muted-foreground transition-colors hover:border-primary hover:text-primary"
                     >
                       {e}
                     </button>
@@ -161,9 +168,10 @@ function Dashboard() {
           </div>
         )}
 
-        <FiltersBar filters={filters} onChange={setFilters} total={results.length} />
+        <div className={cn("transition-opacity duration-300", focusOnAdvisor && "opacity-70")}>
+          <FiltersBar filters={filters} onChange={setFilters} total={results.length} />
 
-        <div className="mx-auto max-w-[1600px] px-4 pb-8 sm:px-6">
+          <div className="mx-auto max-w-[1600px] px-4 pb-8 sm:px-6">
           {loading ? (
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
               {Array.from({ length: 6 }).map((_, i) => (
@@ -196,11 +204,14 @@ function Dashboard() {
               ))}
             </div>
           )}
+          </div>
         </div>
       </main>
 
 
-      <Footer />
+      <div className={cn("transition-opacity duration-300", focusOnAdvisor && "opacity-70")}>
+        <Footer />
+      </div>
     </div>
   );
 }

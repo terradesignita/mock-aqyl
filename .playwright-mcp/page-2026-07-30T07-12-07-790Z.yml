@@ -1,0 +1,137 @@
+- generic [active] [ref=f15e1]:
+  - generic [ref=f15e2]:
+    - banner [ref=f15e3]:
+      - generic [ref=f15e4]:
+        - link [ref=f15e5] [cursor=pointer]:
+          - /url: /
+          - generic "BI AQYL" [ref=f15e6]:
+            - generic [ref=f15e7]: BI
+            - generic [ref=f15e8]: AQYL
+        - navigation [ref=f15e9]:
+          - generic [ref=f15e10]:
+            - button "Кейсы" [ref=f15e11]
+            - button "Заметки" [ref=f15e16]
+            - button "Советники" [ref=f15e20]
+        - generic [ref=f15e26]:
+          - generic [ref=f15e27]:
+            - button "Светлая тема" [ref=f15e28]
+            - button "Тёмная тема" [ref=f15e35]
+          - generic [ref=f15e38]: МА
+    - generic [ref=f15e39]:
+      - generic [ref=f15e41]:
+        - generic [ref=f15e42]:
+          - 'heading "Framework: Risk Management Maturity Model" [level=1] [ref=f15e43]'
+          - generic [ref=f15e44]: INTERNAL
+        - generic [ref=f15e46]: Lessons Learned Database · Отдел риск-менеджмента · RU · 2024-11-15 · Корпоративный центр
+      - generic [ref=f15e47]:
+        - button "В закладки" [ref=f15e48] [cursor=pointer]
+        - link "Закрыть кейс" [ref=f15e50] [cursor=pointer]:
+          - /url: /
+    - generic [ref=f15e54]:
+      - complementary [ref=f15e55]:
+        - generic [ref=f15e56]:
+          - generic [ref=f15e57]:
+            - paragraph [ref=f15e58]:
+              - text: Источники
+              - generic [ref=f15e59]: "2"
+              - generic [ref=f15e60]: из 2
+              - button "Подсказка" [ref=f15e61]
+            - button "Снять все" [ref=f15e65]
+            - button "Свернуть панель источников" [ref=f15e66]
+          - generic [ref=f15e71]:
+            - paragraph [ref=f15e73]: Перетащите файлы сюда
+            - paragraph [ref=f15e74]: PDF, DOCX, PPTX, MP3 или ссылка
+          - generic [ref=f15e76]:
+            - paragraph [ref=f15e77]:
+              - text: Загруженные файлы
+              - generic [ref=f15e79]: "1"
+            - list [ref=f15e80]:
+              - listitem [ref=f15e81]:
+                - checkbox "Использовать «Деловой отчёт компании Z (2024, стр. 15)» в чате" [checked] [ref=f15e82]
+                - button "Деловой отчёт компании Z (2024, стр. 15) PDF · 2.4 МБ · Документ" [ref=f15e83]:
+                  - generic [ref=f15e88]:
+                    - generic [ref=f15e89]: Деловой отчёт компании Z (2024, стр. 15)
+                    - generic [ref=f15e90]: PDF · 2.4 МБ · Документ
+                - button "Действия с источником" [ref=f15e91]
+          - generic [ref=f15e96]:
+            - paragraph [ref=f15e97]:
+              - text: Заметки
+              - generic [ref=f15e101]: "0"
+              - button "Подсказка" [ref=f15e102]
+            - paragraph [ref=f15e106]: Сохраняйте ответы из диалога — они появятся здесь.
+        - separator "Изменить ширину панели источников" [ref=f15e107]
+      - main [ref=f15e108]:
+        - generic [ref=f15e109]:
+          - generic [ref=f15e111]:
+            - generic [ref=f15e112]: AQYL ассистент
+            - generic [ref=f15e115]:
+              - text: "Контекст: 2 из 2 источников"
+              - button "Подсказка" [ref=f15e116]
+          - paragraph [ref=f15e123]: "4-уровневая модель оценки зрелости системы управления рисками: от реактивного к проактивному подходу."
+          - generic [ref=f15e125]:
+            - generic [ref=f15e126]:
+              - button "Кратко о чём этот материал?" [ref=f15e127]
+              - button "Дай 5 тезисов для планёрки" [ref=f15e128]
+              - button "Как применить это у нас?" [ref=f15e129]
+              - button "Составь пошаговый план внедрения" [ref=f15e130]
+              - button "Какие риски и ограничения?" [ref=f15e131]
+              - button "Что может пойти не так на площадке?" [ref=f15e132]
+              - button "Ещё варианты" [ref=f15e133]
+            - generic [ref=f15e140]:
+              - textbox "Задайте вопрос по 2 выбранным источникам..." [ref=f15e141]
+              - button "Голосовой ввод" [ref=f15e142]
+              - button "Отправить" [disabled] [ref=f15e146]
+            - paragraph [ref=f15e149]: AQYL — ИИ и может ошибаться. Пожалуйста, перепроверяйте факты и цитируемые источники.
+      - complementary [ref=f15e150]:
+        - separator "Изменить ширину панели артефактов" [ref=f15e151]
+        - generic [ref=f15e152]:
+          - generic [ref=f15e153]:
+            - button "Свернуть панель артефактов" [ref=f15e154]
+            - generic [ref=f15e158]:
+              - paragraph [ref=f15e159]:
+                - text: Артефакты
+                - button "Подсказка" [ref=f15e160]
+              - paragraph [ref=f15e164]: 0 из 6 готово
+          - generic [ref=f15e166]:
+            - generic [ref=f15e167]:
+              - button "Тест Тест на понимание" [ref=f15e168]:
+                - generic [ref=f15e173]:
+                  - generic [ref=f15e174]: Тест
+                  - generic [ref=f15e176]: Тест на понимание
+              - button "Действия — Тест" [ref=f15e177]
+            - generic [ref=f15e182]:
+              - button "Презентация Слайды для встречи" [ref=f15e183]:
+                - generic [ref=f15e188]:
+                  - generic [ref=f15e189]: Презентация
+                  - generic [ref=f15e191]: Слайды для встречи
+              - button "Действия — Презентация" [ref=f15e192]
+            - generic [ref=f15e197]:
+              - button "Отчёт Аналитический отчёт" [ref=f15e198]:
+                - generic [ref=f15e203]:
+                  - generic [ref=f15e204]: Отчёт
+                  - generic [ref=f15e206]: Аналитический отчёт
+              - button "Действия — Отчёт" [ref=f15e207]
+            - generic [ref=f15e212]:
+              - button "Карточки Карточки с выводами" [ref=f15e213]:
+                - generic [ref=f15e220]:
+                  - generic [ref=f15e221]: Карточки
+                  - generic [ref=f15e223]: Карточки с выводами
+              - button "Действия — Карточки" [ref=f15e224]
+            - generic [ref=f15e229]:
+              - button "Подкаст Аудио по материалу" [ref=f15e230]:
+                - generic [ref=f15e238]:
+                  - generic [ref=f15e239]: Подкаст
+                  - generic [ref=f15e241]: Аудио по материалу
+              - button "Действия — Подкаст" [ref=f15e242]
+            - generic [ref=f15e247]:
+              - button "Инфографика Визуальная сводка" [ref=f15e248]:
+                - generic [ref=f15e252]:
+                  - generic [ref=f15e253]: Инфографика
+                  - generic [ref=f15e255]: Визуальная сводка
+              - button "Действия — Инфографика" [ref=f15e256]
+          - generic [ref=f15e261]:
+            - paragraph [ref=f15e262]: Создано с помощью ИИ
+            - blockquote [ref=f15e265]:
+              - paragraph [ref=f15e266]: Стратегия без исполнения — просто презентация.
+              - generic [ref=f15e267]: — Мортен Хансен
+  - region "Notifications alt+T"

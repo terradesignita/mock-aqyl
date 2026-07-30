@@ -1,0 +1,54 @@
+- generic [active] [ref=f18e1]:
+  - generic [ref=f18e2]:
+    - banner [ref=f18e3]:
+      - generic [ref=f18e4]:
+        - link [ref=f18e5] [cursor=pointer]:
+          - /url: /
+          - generic "BI AQYL" [ref=f18e6]:
+            - generic [ref=f18e7]: BI
+            - generic [ref=f18e8]: AQYL
+        - navigation [ref=f18e9]:
+          - generic [ref=f18e10]:
+            - link "Кейсы" [ref=f18e11] [cursor=pointer]:
+              - /url: /
+            - link "Консилиум" [ref=f18e15] [cursor=pointer]:
+              - /url: /council
+        - generic [ref=f18e21]:
+          - generic [ref=f18e22]:
+            - button "Светлая тема" [ref=f18e23]
+            - button "Тёмная тема" [ref=f18e30]
+          - generic [ref=f18e33]: МА
+    - generic [ref=f18e34]:
+      - complementary [ref=f18e35]:
+        - button "Новый совет" [ref=f18e36] [cursor=pointer]
+        - generic [ref=f18e37]:
+          - generic [ref=f18e38]:
+            - paragraph [ref=f18e39]: Сегодня
+            - button "Iz Lynn Chan at Far East Organization (Abridged) SZ DB +1 30.07.2026" [ref=f18e41]:
+              - paragraph [ref=f18e43]: Iz Lynn Chan at Far East Organization (Abridged)
+              - generic [ref=f18e44]:
+                - generic [ref=f18e45]:
+                  - generic "Самал Зейнеп" [ref=f18e46]: SZ
+                  - generic "Дана Бекова" [ref=f18e47]: DB
+                  - generic [ref=f18e48]: "+1"
+                - generic [ref=f18e49]: 30.07.2026
+          - generic [ref=f18e50]:
+            - paragraph [ref=f18e51]: Ранее
+            - button "SpinBrush EM JH +1 28.07.2026" [ref=f18e53]:
+              - paragraph [ref=f18e55]: SpinBrush
+              - generic [ref=f18e57]:
+                - generic [ref=f18e58]:
+                  - generic "Ержан Мадиев" [ref=f18e59]: EM
+                  - generic "Жанна Хан" [ref=f18e60]: JH
+                  - generic [ref=f18e61]: "+1"
+                - generic [ref=f18e62]: 28.07.2026
+      - main [ref=f18e63]:
+        - generic [ref=f18e64]:
+          - generic [ref=f18e65]:
+            - generic [ref=f18e66]: MA
+            - generic [ref=f18e67]: SA
+            - generic [ref=f18e68]: DB
+          - heading "Разберите решение с советом" [level=2] [ref=f18e69]
+          - paragraph [ref=f18e70]: Выберите кейс и соберите до трёх персон для предметного разговора.
+          - button "Новый совет" [ref=f18e71] [cursor=pointer]
+  - region "Notifications alt+T"

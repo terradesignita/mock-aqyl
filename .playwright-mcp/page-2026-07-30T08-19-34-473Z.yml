@@ -1,0 +1,49 @@
+- generic [active] [ref=f23e1]:
+  - generic [ref=f23e2]:
+    - banner [ref=f23e3]:
+      - generic [ref=f23e4]:
+        - link [ref=f23e5] [cursor=pointer]:
+          - /url: /
+          - generic "BI AQYL" [ref=f23e6]:
+            - generic [ref=f23e7]: BI
+            - generic [ref=f23e8]: AQYL
+        - generic [ref=f23e9]:
+          - generic [ref=f23e10]:
+            - button "Светлая тема" [ref=f23e11]
+            - button "Тёмная тема" [ref=f23e18]
+          - generic [ref=f23e21]: МА
+    - heading "Консилиум" [level=1] [ref=f23e22]
+    - generic [ref=f23e23]:
+      - complementary [ref=f23e24]:
+        - button "Новый совет" [ref=f23e25] [cursor=pointer]
+        - generic [ref=f23e26]:
+          - generic [ref=f23e27]:
+            - paragraph [ref=f23e28]: Сегодня
+            - 'button "Iz Lynn Chan at Far East Organization (Abridged) Участники: Самал Зейнеп, Дана Бекова, Марк Абрамс 30.07.2026" [ref=f23e30]':
+              - paragraph [ref=f23e32]: Iz Lynn Chan at Far East Organization (Abridged)
+              - generic [ref=f23e33]:
+                - 'img "Участники: Самал Зейнеп, Дана Бекова, Марк Абрамс" [ref=f23e34]':
+                  - generic [ref=f23e35]: SZ
+                  - generic [ref=f23e36]: DB
+                  - generic [ref=f23e37]: "+1"
+                - generic [ref=f23e38]: 30.07.2026
+          - generic [ref=f23e39]:
+            - paragraph [ref=f23e40]: Ранее
+            - 'button "SpinBrush Участники: Ержан Мадиев, Жанна Хан, Марк Абрамс 28.07.2026" [ref=f23e42]':
+              - paragraph [ref=f23e44]: SpinBrush
+              - generic [ref=f23e46]:
+                - 'img "Участники: Ержан Мадиев, Жанна Хан, Марк Абрамс" [ref=f23e47]':
+                  - generic [ref=f23e48]: EM
+                  - generic [ref=f23e49]: JH
+                  - generic [ref=f23e50]: "+1"
+                - generic [ref=f23e51]: 28.07.2026
+      - main [ref=f23e52]:
+        - generic [ref=f23e53]:
+          - generic [ref=f23e54]:
+            - generic [ref=f23e55]: MA
+            - generic [ref=f23e56]: SA
+            - generic [ref=f23e57]: DB
+          - heading "Разберите решение с советом" [level=2] [ref=f23e58]
+          - paragraph [ref=f23e59]: Выберите кейс и соберите до трёх персон для предметного разговора.
+          - button "Новый совет" [ref=f23e60] [cursor=pointer]
+  - region "Notifications alt+T"

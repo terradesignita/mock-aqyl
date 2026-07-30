@@ -1,0 +1,55 @@
+- generic [active] [ref=f22e1]:
+  - generic [ref=f22e2]:
+    - banner [ref=f22e3]:
+      - generic [ref=f22e4]:
+        - link [ref=f22e5] [cursor=pointer]:
+          - /url: /
+          - generic "BI AQYL" [ref=f22e6]:
+            - generic [ref=f22e7]: BI
+            - generic [ref=f22e8]: AQYL
+        - navigation [ref=f22e9]:
+          - generic [ref=f22e10]:
+            - link "Кейсы" [ref=f22e11] [cursor=pointer]:
+              - /url: /
+            - link "Консилиум" [ref=f22e15] [cursor=pointer]:
+              - /url: /council
+        - generic [ref=f22e21]:
+          - generic [ref=f22e22]:
+            - button "Светлая тема" [ref=f22e23]
+            - button "Тёмная тема" [ref=f22e30]
+          - generic [ref=f22e33]: МА
+    - heading "Консилиум" [level=1] [ref=f22e34]
+    - generic [ref=f22e35]:
+      - complementary [ref=f22e36]:
+        - button "Новый совет" [ref=f22e37] [cursor=pointer]
+        - generic [ref=f22e38]:
+          - generic [ref=f22e39]:
+            - paragraph [ref=f22e40]: Сегодня
+            - 'button "Iz Lynn Chan at Far East Organization (Abridged) Участники: Самал Зейнеп, Дана Бекова, Марк Абрамс 30.07.2026" [ref=f22e42]':
+              - paragraph [ref=f22e44]: Iz Lynn Chan at Far East Organization (Abridged)
+              - generic [ref=f22e45]:
+                - 'img "Участники: Самал Зейнеп, Дана Бекова, Марк Абрамс" [ref=f22e46]':
+                  - generic [ref=f22e47]: SZ
+                  - generic [ref=f22e48]: DB
+                  - generic [ref=f22e49]: "+1"
+                - generic [ref=f22e50]: 30.07.2026
+          - generic [ref=f22e51]:
+            - paragraph [ref=f22e52]: Ранее
+            - 'button "SpinBrush Участники: Ержан Мадиев, Жанна Хан, Марк Абрамс 28.07.2026" [ref=f22e54]':
+              - paragraph [ref=f22e56]: SpinBrush
+              - generic [ref=f22e58]:
+                - 'img "Участники: Ержан Мадиев, Жанна Хан, Марк Абрамс" [ref=f22e59]':
+                  - generic [ref=f22e60]: EM
+                  - generic [ref=f22e61]: JH
+                  - generic [ref=f22e62]: "+1"
+                - generic [ref=f22e63]: 28.07.2026
+      - main [ref=f22e64]:
+        - generic [ref=f22e65]:
+          - generic [ref=f22e66]:
+            - generic [ref=f22e67]: MA
+            - generic [ref=f22e68]: SA
+            - generic [ref=f22e69]: DB
+          - heading "Разберите решение с советом" [level=2] [ref=f22e70]
+          - paragraph [ref=f22e71]: Выберите кейс и соберите до трёх персон для предметного разговора.
+          - button "Новый совет" [ref=f22e72] [cursor=pointer]
+  - region "Notifications alt+T"

@@ -5,22 +5,22 @@ export interface Filters {
   mediaType: MediaType | "all";
   businessUnit: string | "all";
   language: Lang | "all";
-  topic: string | "all";
+  topics: string[];
 }
 
 export const emptyFilters: Filters = {
   mediaType: "all",
   businessUnit: "all",
   language: "all",
-  topic: "all",
+  topics: [],
 };
 
-function matchesTopic(card: KnowledgeCardData, topic: string) {
-  const t = topic.trim().toLowerCase();
+function matchesTopics(card: KnowledgeCardData, topics: string[]) {
+  if (topics.length === 0) return true;
   const haystack = [card.title, card.executive_summary, card.core_insight, card.tags.join(" "), card.business_unit]
     .join(" ")
     .toLowerCase();
-  return haystack.includes(t);
+  return topics.some((topic) => haystack.includes(topic.trim().toLowerCase()));
 }
 
 function score(card: KnowledgeCardData, q: string) {
@@ -66,7 +66,7 @@ export function searchCards(
     .filter((c) => (filters.mediaType === "all" ? true : c.media_type === filters.mediaType))
     .filter((c) => (filters.businessUnit === "all" ? true : c.business_unit === filters.businessUnit))
     .filter((c) => (filters.language === "all" ? true : c.language === filters.language))
-    .filter((c) => (filters.topic === "all" ? true : matchesTopic(c, filters.topic)))
+    .filter((c) => matchesTopics(c, filters.topics))
     .filter((c) => (onlyBookmarked ? onlyBookmarked.includes(c.id) : true))
     .map((c) => ({ ...c, matchScore: score(c, query) }))
     .filter((c) => c.matchScore >= 0)
