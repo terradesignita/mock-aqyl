@@ -79,3 +79,5 @@ export const MEDIA_LABELS: Record<MediaType, string> = {
   podcast: "Подкаст",
   presentation: "Презентация",
 };
+
+export const LANGUAGES = ["RU", "EN", "KK", "UZ", "AZ"] as const;

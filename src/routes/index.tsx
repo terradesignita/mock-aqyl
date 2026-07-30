@@ -110,6 +110,8 @@ function Dashboard() {
             setAdvisorQuery(null);
           }}
           onSubmit={submit}
+          filters={filters}
+          onFiltersChange={setFilters}
           totalLabel={
             advisor
               ? "Режим AI-советника: рекомендация по вашей ситуации со ссылками на опыт"

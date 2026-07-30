@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Bookmark, Home, Moon, Sun } from "lucide-react";
+import { Bookmark, Home, Moon, Sun, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BiLogo } from "@/components/BiLogo";
 import { cn } from "@/lib/utils";
@@ -11,7 +11,10 @@ interface HeaderProps {
   onOpenBookmarks?: () => void;
 }
 
-const NAV = [{ id: "cases", label: "Кейсы", icon: Home, active: true }];
+const NAV = [
+  { id: "cases", label: "Кейсы", icon: Home, to: "/" as const, exact: true },
+  { id: "council", label: "Консилиум", icon: Users, to: "/council" as const, exact: false },
+];
 
 export function Header({
   dark,
@@ -31,19 +34,19 @@ export function Header({
             {NAV.map((item) => {
               const Icon = item.icon;
               return (
-                <button
+                <Link
                   key={item.id}
-                  className={cn(
-                    "flex h-9 items-center gap-2 rounded-xl px-3 text-sm font-semibold transition-colors active:scale-[0.96]",
-                    item.active
-                      ? "bg-card text-foreground shadow-soft"
-                      : "text-muted-foreground hover:bg-secondary hover:text-foreground",
-                  )}
-                  aria-label={item.label}
+                  to={item.to}
+                  activeOptions={{ exact: item.exact }}
+                  className="flex h-9 items-center gap-2 rounded-xl px-3 text-sm font-semibold transition-colors active:scale-[0.96]"
+                  activeProps={{ className: "bg-card text-foreground shadow-soft" }}
+                  inactiveProps={{
+                    className: "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                  }}
                 >
                   <Icon className="h-4 w-4" />
-                  {item.active && <span>{item.label}</span>}
-                </button>
+                  {item.label}
+                </Link>
               );
             })}
           </div>

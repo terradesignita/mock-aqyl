@@ -1,6 +1,7 @@
 import { useCallback, useEffect } from "react";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import type { ScopeFilter } from "@/lib/search";
+import { SEED_COUNCIL_SESSIONS, type CouncilSession } from "@/data/council";
 
 export function useTheme() {
   const [dark, setDark] = useLocalStorage<boolean>("biaqyl:dark", false);
@@ -33,6 +34,26 @@ export function useDismissed() {
 
 export function useScope() {
   return useLocalStorage<ScopeFilter>("biaqyl:mode", "ALL");
+}
+
+export function useCouncilSessions() {
+  const [sessions, setSessions] = useLocalStorage<CouncilSession[]>(
+    "biaqyl:council-sessions",
+    SEED_COUNCIL_SESSIONS,
+  );
+
+  const create = useCallback(
+    (session: CouncilSession) => setSessions((prev) => [session, ...prev]),
+    [setSessions],
+  );
+
+  const markRead = useCallback(
+    (id: string) =>
+      setSessions((prev) => prev.map((s) => (s.id === id ? { ...s, unread: false } : s))),
+    [setSessions],
+  );
+
+  return { sessions, create, markRead };
 }
 
 export function useHistory() {

@@ -1,7 +1,17 @@
 import { HelpHint } from "@/components/HelpHint";
-import { ArrowRight, History, Search, Sparkles, X } from "lucide-react";
-import type { ScopeFilter } from "@/lib/search";
+import { ArrowRight, History, Search, SlidersHorizontal, Sparkles, X } from "lucide-react";
+import type { Filters, ScopeFilter } from "@/lib/search";
+import { LANGUAGES, MEDIA_LABELS, emptyFilters } from "@/lib/search";
+import { BUSINESS_UNITS } from "@/data/mockCards";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 interface SearchPanelProps {
@@ -15,6 +25,8 @@ interface SearchPanelProps {
   advisor: boolean;
   onAdvisorChange: (v: boolean) => void;
   onSubmit: () => void;
+  filters: Filters;
+  onFiltersChange: (f: Filters) => void;
 }
 
 const MODES: { key: ScopeFilter; label: string }[] = [
@@ -34,7 +46,13 @@ export function SearchPanel({
   advisor,
   onAdvisorChange,
   onSubmit,
+  filters,
+  onFiltersChange,
 }: SearchPanelProps) {
+  const activeFilterCount = [filters.mediaType, filters.businessUnit, filters.language].filter(
+    (v) => v !== "all",
+  ).length;
+
   return (
     <section className="mx-auto w-full max-w-[1600px] px-4 pb-2 pt-6 sm:px-6">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">
@@ -156,8 +174,8 @@ export function SearchPanel({
       )}
 
       {!advisor && (
-        <>
-          <div className="mt-3 flex w-fit items-center gap-1 rounded-2xl border border-border bg-card p-1 shadow-soft">
+        <div className="mt-3 flex items-center gap-2">
+          <div className="flex w-fit items-center gap-1 rounded-2xl border border-border bg-card p-1 shadow-soft">
             {MODES.map((m) => (
               <button
                 key={m.key}
@@ -173,7 +191,104 @@ export function SearchPanel({
               </button>
             ))}
           </div>
-        </>
+
+          <div className="flex items-center rounded-2xl border border-border bg-card p-1 shadow-soft">
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  className={cn(
+                    "relative flex h-9 items-center gap-1.5 rounded-xl px-3 text-sm font-semibold transition-colors active:scale-[0.96]",
+                    activeFilterCount > 0
+                      ? "text-primary"
+                      : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                  )}
+                >
+                  <SlidersHorizontal className="h-4 w-4" />
+                  Фильтры
+                  {activeFilterCount > 0 && (
+                    <span className="grid h-4 w-4 place-items-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="start" className="w-64 space-y-2 p-3">
+                <Select
+                  value={filters.mediaType}
+                  onValueChange={(v) =>
+                    onFiltersChange({ ...filters, mediaType: v as Filters["mediaType"] })
+                  }
+                >
+                  <SelectTrigger className="h-9 w-full text-xs">
+                    <SelectValue placeholder="Тип" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Все типы</SelectItem>
+                    {Object.entries(MEDIA_LABELS).map(([k, v]) => (
+                      <SelectItem key={k} value={k}>
+                        {v}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  value={filters.businessUnit}
+                  onValueChange={(v) => onFiltersChange({ ...filters, businessUnit: v })}
+                >
+                  <SelectTrigger className="h-9 w-full text-xs">
+                    <SelectValue placeholder="Направление" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Все направления</SelectItem>
+                    {BUSINESS_UNITS.map((b) => (
+                      <SelectItem key={b} value={b}>
+                        {b}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  value={filters.language}
+                  onValueChange={(v) =>
+                    onFiltersChange({ ...filters, language: v as Filters["language"] })
+                  }
+                >
+                  <SelectTrigger className="h-9 w-full text-xs">
+                    <SelectValue placeholder="Язык" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Все языки</SelectItem>
+                    {LANGUAGES.map((l) => (
+                      <SelectItem key={l} value={l}>
+                        {l}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {activeFilterCount > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full text-xs"
+                    onClick={() =>
+                      onFiltersChange({
+                        ...filters,
+                        mediaType: emptyFilters.mediaType,
+                        businessUnit: emptyFilters.businessUnit,
+                        language: emptyFilters.language,
+                      })
+                    }
+                  >
+                    Сбросить
+                  </Button>
+                )}
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
       )}
 
 
