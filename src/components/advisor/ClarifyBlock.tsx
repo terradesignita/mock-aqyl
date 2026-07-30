@@ -1,0 +1,132 @@
+import { useState } from "react";
+import { Plus } from "lucide-react";
+import { HelpHint } from "@/components/HelpHint";
+import type { AdvisorSelection, ClarifyQuestion, Dilemma } from "@/data/advisor";
+
+interface Props {
+  dilemma: Dilemma;
+  questions: ClarifyQuestion[];
+  selection: AdvisorSelection;
+  onChange: (next: AdvisorSelection) => void;
+  index: number;
+  onIndex: (i: number) => void;
+}
+
+const UNKNOWN = "__unknown";
+
+export function ClarifyBlock({
+  dilemma,
+  questions,
+  selection,
+  onChange,
+  index,
+  onIndex,
+}: Props) {
+  const [ownOpen, setOwnOpen] = useState(false);
+  const q = questions[Math.min(index, questions.length - 1)];
+  if (!q) return null;
+
+  const picked = selection.choices[q.id] ?? [];
+  const own = selection.own[q.id] ?? "";
+
+  const toggle = (optionId: string) => {
+    const next = q.multi
+      ? picked.includes(optionId)
+        ? picked.filter((x) => x !== optionId)
+        : optionId === UNKNOWN
+          ? [UNKNOWN]
+          : [...picked.filter((x) => x !== UNKNOWN), optionId]
+      : picked.includes(optionId)
+        ? []
+        : [optionId];
+    onChange({ ...selection, choices: { ...selection.choices, [q.id]: next } });
+  };
+
+  const options = q.unknown ? [...q.options, { id: UNKNOWN, label: "Пока неизвестно" }] : q.options;
+  const showOwn = ownOpen || own.length > 0;
+
+  return (
+    <div className="rounded-card border border-border bg-card p-5 shadow-soft">
+      {/* Точки-прогресс: сколько вопросов и где мы сейчас */}
+      <div className="flex items-center gap-2">
+        {questions.map((item, i) => {
+          const done =
+            (selection.choices[item.id]?.length ?? 0) > 0 ||
+            (selection.own[item.id] ?? "").trim().length > 0;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => onIndex(i)}
+              aria-label={`Вопрос ${i + 1}`}
+              className={`h-1.5 flex-1 rounded-full transition-colors ${
+                i === index ? "bg-primary" : done ? "bg-primary/35" : "bg-border"
+              }`}
+            />
+          );
+        })}
+        <span className="ml-1 shrink-0 text-[11px] font-bold text-muted-foreground">
+          {index + 1}/{questions.length}
+        </span>
+      </div>
+
+      <div className="mt-4 flex items-start gap-2">
+        <h3 className="text-base font-bold leading-snug text-card-foreground">{q.title}</h3>
+        <span className="mt-1">
+          <HelpHint
+            side="right"
+            text={`${q.multi ? "Можно выбрать несколько вариантов." : "Выберите один вариант."} На вывод влияют: ${dilemma.drivers.join(", ")}.`}
+          />
+        </span>
+      </div>
+
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        {options.map((o) => {
+          const on = picked.includes(o.id);
+          return (
+            <button
+              key={o.id}
+              type="button"
+              aria-pressed={on}
+              onClick={() => toggle(o.id)}
+              className={`flex items-start gap-2.5 rounded-control border px-3.5 py-3 text-left text-sm transition-all ${
+                on
+                  ? "border-primary bg-primary/8 font-semibold text-card-foreground"
+                  : "border-border text-muted-foreground hover:border-primary/40 hover:bg-secondary/40 hover:text-card-foreground"
+              }`}
+            >
+              <span
+                aria-hidden
+                className={`mt-0.5 grid h-4 w-4 shrink-0 place-items-center border-2 transition-colors ${
+                  q.multi ? "rounded-[5px]" : "rounded-full"
+                } ${on ? "border-primary bg-primary text-primary-foreground" : "border-border"}`}
+              >
+                {on && <span className="h-1.5 w-1.5 rounded-full bg-primary-foreground" />}
+              </span>
+              {o.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {showOwn ? (
+        <textarea
+          autoFocus={ownOpen}
+          value={own}
+          onChange={(e) => onChange({ ...selection, own: { ...selection.own, [q.id]: e.target.value } })}
+          rows={2}
+          placeholder={`Свой вариант: ${q.ownPlaceholder}`}
+          className="mt-2.5 w-full resize-y rounded-control border border-border bg-secondary/40 px-3 py-2 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-primary"
+        />
+      ) : (
+        <button
+          type="button"
+          onClick={() => setOwnOpen(true)}
+          className="mt-2.5 inline-flex items-center gap-1.5 rounded-full border border-dashed border-border px-3 py-1 text-[11px] font-semibold text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+        >
+          <Plus className="h-3 w-3" /> Ответить своими словами
+        </button>
+      )}
+    </div>
+  );
+}

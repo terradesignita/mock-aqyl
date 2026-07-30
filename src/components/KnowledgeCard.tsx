@@ -1,0 +1,148 @@
+import { Link } from "@tanstack/react-router";
+import {
+  Bookmark,
+  BookmarkCheck,
+  FileText,
+  Files,
+  MessageSquareQuote,
+  Mic,
+  Presentation,
+  Trash2,
+  Video,
+  Zap,
+} from "lucide-react";
+import { motion } from "motion/react";
+import type { KnowledgeCardData, MediaType } from "@/data/mockCards";
+
+const MEDIA_ICON: Record<MediaType, typeof FileText> = {
+  document: FileText,
+  video: Video,
+  podcast: Mic,
+  presentation: Presentation,
+};
+
+interface KnowledgeCardProps {
+  card: KnowledgeCardData & { matchScore?: number };
+  index: number;
+  bookmarked: boolean;
+  onToggleBookmark: (id: string) => void;
+  onDelete: (id: string) => void;
+}
+
+function Dot() {
+  return <span aria-hidden className="h-1 w-1 rounded-full bg-border" />;
+}
+
+export function KnowledgeCard({
+  card,
+  index,
+  bookmarked,
+  onToggleBookmark,
+  onDelete,
+}: KnowledgeCardProps) {
+  const MediaIcon = MEDIA_ICON[card.media_type];
+  const isInternal = card.scope === "INTERNAL";
+
+  return (
+    <motion.article
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.28, delay: Math.min(index, 9) * 0.05 }}
+      className="group relative flex h-full flex-col rounded-card border border-border bg-card p-5 shadow-sm transition-all duration-300 hover:border-primary/40 hover:shadow-md"
+    >
+      {/* Header: scope badge & bookmark */}
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <span
+          className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${
+            isInternal
+              ? "border-scope-internal/25 bg-scope-internal/10 text-scope-internal"
+              : "border-scope-external/25 bg-scope-external/10 text-scope-external"
+          }`}
+        >
+          <span
+            aria-hidden
+            className={`h-1.5 w-1.5 rounded-full ${
+              isInternal ? "bg-scope-internal" : "bg-scope-external"
+            }`}
+          />
+          {isInternal ? "Внутренний" : "Внешний"}
+        </span>
+        <button
+          onClick={() => onToggleBookmark(card.id)}
+          aria-label={bookmarked ? "Убрать из закладок" : "В закладки"}
+          className="shrink-0 text-muted-foreground transition-colors hover:text-accent"
+        >
+          {bookmarked ? (
+            <BookmarkCheck className="h-[18px] w-[18px] text-accent" />
+          ) : (
+            <Bookmark className="h-[18px] w-[18px]" />
+          )}
+        </button>
+      </div>
+
+      {/* Title & summary */}
+      <div className="mb-4">
+        <Link
+          to="/card/$id"
+          params={{ id: card.id }}
+          className="text-base font-bold leading-snug text-card-foreground transition-colors group-hover:text-primary"
+        >
+          {card.title}
+        </Link>
+        <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+          {card.executive_summary}
+        </p>
+      </div>
+
+      {/* Core insight */}
+      <div className="mb-4 rounded-control border-l-4 border-primary bg-primary/6 p-3">
+        <div className="flex items-start gap-2.5">
+          <Zap className="mt-0.5 h-4 w-4 shrink-0 text-primary" strokeWidth={2.5} />
+          <p className="text-xs font-medium leading-relaxed text-card-foreground">
+            <span className="mr-1 text-[10px] font-bold uppercase tracking-wider text-primary">
+              Ключевой инсайт:
+            </span>
+            {card.core_insight}
+          </p>
+        </div>
+      </div>
+
+      {/* Meta */}
+      <div className="mb-5 mt-auto flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] font-medium text-muted-foreground">
+        <span className="flex min-w-0 items-center gap-1.5">
+          <MediaIcon className="h-3.5 w-3.5 shrink-0" />
+          <span className="truncate">{card.source}</span>
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="uppercase">{card.language}</span>
+          <Dot />
+          <span>{card.date}</span>
+        </span>
+        <span className="flex items-center gap-1.5">
+          <MessageSquareQuote className="h-3.5 w-3.5" />
+          {card.citations.length} цитат
+        </span>
+      </div>
+
+      {/* Footer: file count & delete-on-hover */}
+      <div className="flex items-center justify-between gap-3 border-t border-border pt-4">
+        <span className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
+          <Files className="h-4 w-4" />
+          {card.citations.length} файлов
+        </span>
+
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            onDelete(card.id);
+          }}
+          aria-label="Удалить кейс"
+          title="Удалить кейс"
+          className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wide text-muted-foreground opacity-0 transition-all hover:text-destructive focus-visible:opacity-100 group-hover:opacity-100"
+        >
+          <Trash2 className="h-4 w-4" />
+        </button>
+      </div>
+    </motion.article>
+  );
+}
