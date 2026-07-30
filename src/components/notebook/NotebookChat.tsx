@@ -459,12 +459,11 @@ export function NotebookChat({
         />
         <div className="mx-auto w-full max-w-3xl">
           <div className="mb-2 flex flex-wrap items-center gap-1.5">
-            {pills.map((s, i) => (
+            {pills.map((s) => (
               <button
-                key={`${pillOffset}-${s}`}
+                key={s}
                 onClick={() => ask(s)}
-                style={{ animationDelay: `${i * 40}ms` }}
-                className="animate-in fade-in slide-in-from-bottom-1 rounded-full border border-border bg-card px-3 py-1.5 text-[11px] text-muted-foreground transition-all duration-200 fill-mode-both hover:-translate-y-0.5 hover:border-primary hover:text-primary hover:shadow-sm"
+                className="rounded-full border border-border bg-card px-3 py-1.5 text-[11px] text-muted-foreground transition-[color,border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-primary hover:text-primary hover:shadow-sm"
               >
                 {s}
               </button>

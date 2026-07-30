@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link, createFileRoute, notFound } from "@tanstack/react-router";
-import { Bookmark, BookmarkCheck, PanelLeft, PanelRight, X } from "lucide-react";
+import { Bookmark, PanelLeft, PanelRight, X } from "lucide-react";
 import { toast } from "sonner";
 import { Header } from "@/components/Header";
 import { SourcesPanel } from "@/components/notebook/SourcesPanel";
@@ -128,11 +128,10 @@ function CardWorkspace() {
               toast.success(bookmarked ? "Убрано из закладок" : "Добавлено в закладки");
             }}
           >
-            {bookmarked ? (
-              <BookmarkCheck className="h-4 w-4 text-accent" />
-            ) : (
-              <Bookmark className="h-4 w-4" />
-            )}
+            <Bookmark
+              className={`h-4 w-4 transition-colors ${bookmarked ? "text-accent" : ""}`}
+              fill={bookmarked ? "currentColor" : "none"}
+            />
             <span className="hidden sm:inline">{bookmarked ? "В закладках" : "В закладки"}</span>
           </Button>
           <Link

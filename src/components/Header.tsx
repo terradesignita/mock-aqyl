@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Bookmark, BookOpen, Home, Moon, PenSquare, Sun, Users } from "lucide-react";
+import { Bookmark, Home, Moon, PenSquare, Sun, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BiLogo } from "@/components/BiLogo";
 import { cn } from "@/lib/utils";
@@ -13,7 +13,6 @@ interface HeaderProps {
 
 const NAV = [
   { id: "cases", label: "Кейсы", icon: Home, active: true },
-  { id: "library", label: "Библиотека", icon: BookOpen },
   { id: "notes", label: "Заметки", icon: PenSquare },
   { id: "advisors", label: "Советники", icon: Users },
 ];
@@ -39,7 +38,7 @@ export function Header({
                 <button
                   key={item.id}
                   className={cn(
-                    "flex h-9 items-center gap-2 rounded-xl px-3 text-sm font-semibold transition-colors",
+                    "flex h-9 items-center gap-2 rounded-xl px-3 text-sm font-semibold transition-colors active:scale-[0.96]",
                     item.active
                       ? "bg-card text-foreground shadow-soft"
                       : "text-muted-foreground hover:bg-secondary hover:text-foreground",
@@ -72,7 +71,7 @@ export function Header({
               onClick={() => dark && onToggleDark()}
               aria-label="Светлая тема"
               className={cn(
-                "grid h-7 w-7 place-items-center rounded-full transition-colors",
+                "grid h-7 w-7 place-items-center rounded-full transition-colors active:scale-[0.96]",
                 dark ? "text-muted-foreground" : "bg-card text-foreground shadow-soft",
               )}
             >
@@ -82,7 +81,7 @@ export function Header({
               onClick={() => !dark && onToggleDark()}
               aria-label="Тёмная тема"
               className={cn(
-                "grid h-7 w-7 place-items-center rounded-full transition-colors",
+                "grid h-7 w-7 place-items-center rounded-full transition-colors active:scale-[0.96]",
                 dark ? "bg-card text-foreground shadow-soft" : "text-muted-foreground",
               )}
             >

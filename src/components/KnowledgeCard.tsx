@@ -1,7 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import {
   Bookmark,
-  BookmarkCheck,
   FileText,
   Files,
   MessageSquareQuote,
@@ -9,7 +8,6 @@ import {
   Presentation,
   Trash2,
   Video,
-  Zap,
 } from "lucide-react";
 import { motion } from "motion/react";
 import type { KnowledgeCardData, MediaType } from "@/data/mockCards";
@@ -70,13 +68,14 @@ export function KnowledgeCard({
         <button
           onClick={() => onToggleBookmark(card.id)}
           aria-label={bookmarked ? "Убрать из закладок" : "В закладки"}
-          className="shrink-0 text-muted-foreground transition-colors hover:text-accent"
+          className={`shrink-0 transition-colors active:scale-[0.96] ${
+            bookmarked ? "text-accent" : "text-muted-foreground hover:text-accent"
+          }`}
         >
-          {bookmarked ? (
-            <BookmarkCheck className="h-[18px] w-[18px] text-accent" />
-          ) : (
-            <Bookmark className="h-[18px] w-[18px]" />
-          )}
+          <Bookmark
+            className="h-[18px] w-[18px] transition-colors"
+            fill={bookmarked ? "currentColor" : "none"}
+          />
         </button>
       </div>
 
@@ -92,19 +91,6 @@ export function KnowledgeCard({
         <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
           {card.executive_summary}
         </p>
-      </div>
-
-      {/* Core insight */}
-      <div className="mb-4 rounded-control border-l-4 border-primary bg-primary/6 p-3">
-        <div className="flex items-start gap-2.5">
-          <Zap className="mt-0.5 h-4 w-4 shrink-0 text-primary" strokeWidth={2.5} />
-          <p className="text-xs font-medium leading-relaxed text-card-foreground">
-            <span className="mr-1 text-[10px] font-bold uppercase tracking-wider text-primary">
-              Ключевой инсайт:
-            </span>
-            {card.core_insight}
-          </p>
-        </div>
       </div>
 
       {/* Meta */}
@@ -138,7 +124,7 @@ export function KnowledgeCard({
           }}
           aria-label="Удалить кейс"
           title="Удалить кейс"
-          className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wide text-muted-foreground opacity-0 transition-all hover:text-destructive focus-visible:opacity-100 group-hover:opacity-100"
+          className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wide text-muted-foreground opacity-0 transition-[opacity,color] active:scale-[0.96] hover:text-destructive focus-visible:opacity-100 group-hover:opacity-100"
         >
           <Trash2 className="h-4 w-4" />
         </button>

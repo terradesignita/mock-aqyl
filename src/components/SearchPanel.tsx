@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { HelpHint } from "@/components/HelpHint";
 import { ArrowRight, History, Search, Sparkles, X } from "lucide-react";
-import { POPULAR_QUERIES } from "@/data/mockCards";
+import { TOPIC_TAGS } from "@/data/mockCards";
 import type { ScopeFilter } from "@/lib/search";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -36,6 +37,7 @@ export function SearchPanel({
   onAdvisorChange,
   onSubmit,
 }: SearchPanelProps) {
+  const [tagsExpanded, setTagsExpanded] = useState(false);
   return (
     <section className="mx-auto w-full max-w-[1600px] px-4 pb-2 pt-6 sm:px-6">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">
@@ -109,7 +111,7 @@ export function SearchPanel({
               <button
                 onClick={() => onQueryChange("")}
                 aria-label="Очистить"
-                className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition-colors hover:text-foreground"
+                className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition-colors active:scale-[0.96] hover:text-foreground"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -117,7 +119,7 @@ export function SearchPanel({
             <button
               onClick={onSubmit}
               aria-label="Отправить запрос"
-              className="grid h-9 w-9 place-items-center rounded-full border border-primary/40 text-primary transition-colors hover:bg-primary hover:text-primary-foreground group-focus-within:bg-primary group-focus-within:text-primary-foreground"
+              className="grid h-9 w-9 place-items-center rounded-full border border-primary/40 text-primary transition-colors active:scale-[0.96] hover:bg-primary hover:text-primary-foreground group-focus-within:bg-primary group-focus-within:text-primary-foreground"
             >
               <ArrowRight className="h-4 w-4" />
             </button>
@@ -158,16 +160,50 @@ export function SearchPanel({
 
       {!advisor && (
         <>
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            {POPULAR_QUERIES.map((q) => (
+          <div className="mt-3">
+            <div
+              className={cn(
+                "flex flex-wrap items-center gap-2 overflow-hidden transition-[max-height] duration-300",
+                tagsExpanded ? "max-h-[999px]" : "max-h-[68px]",
+              )}
+            >
               <button
-                key={q}
-                onClick={() => onQueryChange(q)}
-                className="rounded-full border border-border bg-card px-3 py-1 text-xs text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+                onClick={() => onQueryChange("")}
+                title="Показать все материалы"
+                className={cn(
+                  "rounded-full border px-3 py-1 text-xs font-semibold transition-colors active:scale-[0.96]",
+                  query.trim() === ""
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border bg-card text-muted-foreground hover:border-primary hover:text-primary",
+                )}
               >
-                #{q.replace(/\s/g, "_")}
+                Все
               </button>
-            ))}
+              {TOPIC_TAGS.map((t) => {
+                const active = query.trim().toLowerCase() === t.label.toLowerCase();
+                return (
+                  <button
+                    key={t.label}
+                    onClick={() => onQueryChange(t.label)}
+                    title={t.description}
+                    className={cn(
+                      "rounded-full border px-3 py-1 text-xs transition-colors active:scale-[0.96]",
+                      active
+                        ? "border-primary bg-primary/10 font-semibold text-primary"
+                        : "border-border bg-card text-muted-foreground hover:border-primary hover:text-primary",
+                    )}
+                  >
+                    #{t.label}
+                  </button>
+                );
+              })}
+            </div>
+            <button
+              onClick={() => setTagsExpanded((v) => !v)}
+              className="mt-1.5 text-xs font-medium text-primary hover:underline"
+            >
+              {tagsExpanded ? "Свернуть" : "Ещё"}
+            </button>
           </div>
 
           <div className="mt-3 flex w-fit items-center gap-1 rounded-2xl border border-border bg-card p-1 shadow-soft">
@@ -176,7 +212,7 @@ export function SearchPanel({
                 key={m.key}
                 onClick={() => onScopeChange(m.key)}
                 className={cn(
-                  "h-9 rounded-xl px-3 text-sm font-semibold transition-colors",
+                  "h-9 rounded-xl px-3 text-sm font-semibold transition-colors active:scale-[0.96]",
                   scope === m.key
                     ? "bg-primary text-primary-foreground shadow-brand"
                     : "text-muted-foreground hover:bg-secondary hover:text-foreground",

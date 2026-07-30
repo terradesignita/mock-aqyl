@@ -89,7 +89,7 @@ export function ClarifyBlock({
               type="button"
               aria-pressed={on}
               onClick={() => toggle(o.id)}
-              className={`flex items-start gap-2.5 rounded-control border px-3.5 py-3 text-left text-sm transition-all ${
+              className={`flex items-start gap-2.5 rounded-control border px-3.5 py-3 text-left text-sm transition-colors active:scale-[0.96] ${
                 on
                   ? "border-primary bg-primary/8 font-semibold text-card-foreground"
                   : "border-border text-muted-foreground hover:border-primary/40 hover:bg-secondary/40 hover:text-card-foreground"
