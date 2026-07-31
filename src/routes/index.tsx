@@ -114,9 +114,11 @@ function Dashboard() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <div className={cn("transition-opacity duration-300", focusOnAdvisor && "opacity-70")}>
-        <Header dark={dark} onToggleDark={toggle} />
-      </div>
+      <Header
+        dark={dark}
+        onToggleDark={toggle}
+        className={cn("transition-opacity duration-300", focusOnAdvisor && "opacity-70")}
+      />
 
       <main className="flex-1">
         <SearchPanel
