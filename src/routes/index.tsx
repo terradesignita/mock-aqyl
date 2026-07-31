@@ -155,10 +155,6 @@ function Dashboard() {
                   setAdvisorQuery(null);
                   setQuery("");
                 }}
-                onFollowUp={(q) => {
-                  setQuery(q);
-                  setAdvisorQuery(q);
-                }}
               />
             ) : !hintDismissed ? (
               <div className="relative rounded-card border border-dashed border-primary/25 bg-primary/[0.03] p-6 text-center sm:p-8">

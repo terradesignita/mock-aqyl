@@ -1,9 +1,10 @@
-import { Fragment, useMemo, useState } from "react";
-import { Check, Loader2, MessageSquarePlus, Send, Sparkles } from "lucide-react";
+import { Fragment, useEffect, useMemo, useState } from "react";
+import { Check, Loader2, MessageSquarePlus, Send, Sparkle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { HelpHint } from "@/components/HelpHint";
 import {
   buildAnswer,
+  buildFollowUpReply,
   buildUnderstanding,
   classify,
   contextIsSufficient,
@@ -29,7 +30,11 @@ const STAGES: { id: Stage; label: string }[] = [
 interface Props {
   query: string;
   onReset: () => void;
-  onFollowUp: (q: string) => void;
+}
+
+interface FollowUpMessage {
+  author: "user" | "advisor";
+  text: string;
 }
 
 function Stepper({ stage, onGoTo }: { stage: Stage; onGoTo: (s: Stage) => void }) {
@@ -85,7 +90,7 @@ function Stepper({ stage, onGoTo }: { stage: Stage; onGoTo: (s: Stage) => void }
   );
 }
 
-export function AdvisorFlow({ query, onReset, onFollowUp }: Props) {
+export function AdvisorFlow({ query, onReset }: Props) {
   const dilemma = useMemo(() => classify(query), [query]);
   const known = useMemo(() => extractKnown(query), [query]);
   const [selection, setSelection] = useState<AdvisorSelection>({ choices: {}, own: {} });
@@ -93,11 +98,30 @@ export function AdvisorFlow({ query, onReset, onFollowUp }: Props) {
   const [qIndex, setQIndex] = useState(0);
   const [step, setStep] = useState(0);
   const [followUp, setFollowUp] = useState("");
+  const [thread, setThread] = useState<FollowUpMessage[]>([]);
+  const [thinkingFollowUp, setThinkingFollowUp] = useState(false);
 
   const questions = visibleQuestions(dilemma, selection);
   const enough = contextIsSufficient(dilemma, selection);
   const understanding = buildUnderstanding(dilemma, selection, query);
   const answer = useMemo(() => buildAnswer(dilemma, selection), [dilemma, selection]);
+
+  useEffect(() => {
+    setThread([]);
+    setThinkingFollowUp(false);
+  }, [query]);
+
+  const askFollowUp = (text: string) => {
+    const value = text.trim();
+    if (!value || thinkingFollowUp) return;
+    setThread((t) => [...t, { author: "user", text: value }]);
+    setFollowUp("");
+    setThinkingFollowUp(true);
+    window.setTimeout(() => {
+      setThinkingFollowUp(false);
+      setThread((t) => [...t, { author: "advisor", text: buildFollowUpReply(value, answer) }]);
+    }, 650);
+  };
 
   const runThinking = () => {
     setStage("thinking");
@@ -245,7 +269,38 @@ export function AdvisorFlow({ query, onReset, onFollowUp }: Props) {
               <MessageSquarePlus className="h-3.5 w-3.5 text-primary" /> Уточнить или изменить
               условия
             </p>
-            <div className="mt-2.5 flex flex-wrap gap-2">
+
+            {thread.length > 0 && (
+              <div className="mt-3 space-y-2.5">
+                {thread.map((m, i) =>
+                  m.author === "user" ? (
+                    <div
+                      key={i}
+                      className="ml-8 rounded-2xl rounded-tr-sm border border-primary/30 bg-primary/6 px-3 py-2 text-sm text-card-foreground"
+                    >
+                      {m.text}
+                    </div>
+                  ) : (
+                    <div key={i} className="flex gap-2">
+                      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-primary/12">
+                        <Sparkle className="h-3.5 w-3.5 text-primary" />
+                      </span>
+                      <div className="min-w-0 flex-1 rounded-2xl rounded-tl-sm border border-border bg-secondary/40 px-3 py-2 text-sm leading-relaxed text-card-foreground">
+                        {m.text}
+                      </div>
+                    </div>
+                  ),
+                )}
+                {thinkingFollowUp && (
+                  <div className="flex items-center gap-2 pl-1 text-sm text-muted-foreground">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" /> Смотрю, что
+                    меняется в рекомендации...
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="mt-3 flex flex-wrap gap-2">
               {[
                 "А если партнёр даст гарантированный объём?",
                 "Что изменится при эксклюзивности только на один сегмент?",
@@ -253,8 +308,9 @@ export function AdvisorFlow({ query, onReset, onFollowUp }: Props) {
               ].map((q) => (
                 <button
                   key={q}
-                  onClick={() => onFollowUp(q)}
-                  className="rounded-full border border-border bg-secondary/30 px-3 py-1.5 text-xs text-muted-foreground transition-[color,border-color,background-color,transform] hover:-translate-y-px hover:border-primary hover:bg-primary/8 hover:text-primary"
+                  disabled={thinkingFollowUp}
+                  onClick={() => askFollowUp(q)}
+                  className="rounded-full border border-border bg-secondary/30 px-3 py-1.5 text-xs text-muted-foreground transition-[color,border-color,background-color,transform] hover:-translate-y-px hover:border-primary hover:bg-primary/8 hover:text-primary disabled:pointer-events-none disabled:opacity-50"
                 >
                   {q}
                 </button>
@@ -268,22 +324,17 @@ export function AdvisorFlow({ query, onReset, onFollowUp }: Props) {
                 id="advisor-follow-up"
                 value={followUp}
                 onChange={(e) => setFollowUp(e.target.value)}
+                disabled={thinkingFollowUp}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && followUp.trim()) {
-                    onFollowUp(followUp.trim());
-                    setFollowUp("");
-                  }
+                  if (e.key === "Enter") askFollowUp(followUp);
                 }}
                 placeholder="Задайте уточняющий вопрос по этой рекомендации"
-                className="h-10 w-full min-w-0 rounded-control border border-border bg-secondary/40 px-3 text-base outline-none transition-colors placeholder:text-muted-foreground focus:border-primary sm:text-sm"
+                className="h-10 w-full min-w-0 rounded-control border border-border bg-secondary/40 px-3 text-base outline-none transition-colors placeholder:text-muted-foreground focus:border-primary disabled:opacity-60 sm:text-sm"
               />
               <Button
                 size="icon"
-                disabled={!followUp.trim()}
-                onClick={() => {
-                  onFollowUp(followUp.trim());
-                  setFollowUp("");
-                }}
+                disabled={!followUp.trim() || thinkingFollowUp}
+                onClick={() => askFollowUp(followUp)}
                 aria-label="Отправить уточнение"
               >
                 <Send className="h-4 w-4" />

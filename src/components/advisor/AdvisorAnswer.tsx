@@ -33,7 +33,7 @@ function Section({
   defaultOpen = false,
   children,
 }: {
-  title: string;
+  title: React.ReactNode;
   icon: typeof Target;
   defaultOpen?: boolean;
   children: React.ReactNode;
@@ -48,6 +48,9 @@ function Section({
       >
         <Icon className="h-4 w-4 shrink-0 text-primary" />
         <h3 className="flex-1 text-sm font-bold text-card-foreground">{title}</h3>
+        <span className="hidden text-xs font-medium text-muted-foreground/50 sm:inline">
+          {open ? "Свернуть" : "Развернуть"}
+        </span>
         <ChevronDown
           className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
         />
@@ -79,20 +82,23 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
   return (
     <div className="space-y-3">
       {/* Первый экран: вывод + инсайт + доказательность */}
-      <section className="rounded-card border-2 border-primary/40 bg-card p-5 shadow-soft">
+      <section className="rounded-card border-2 border-primary/50 bg-gradient-to-br from-primary/10 via-primary/[0.04] to-transparent p-6 shadow-brand">
         <p className="text-xs font-bold uppercase tracking-wider text-primary">Краткий вывод</p>
-        <h2 className="mt-1.5 text-lg font-extrabold leading-snug text-card-foreground">
+        <h2 className="mt-1.5 text-xl font-extrabold leading-snug text-card-foreground">
           {answer.verdict}
         </h2>
-        <p className="mt-2 max-w-[70ch] text-sm leading-relaxed text-muted-foreground">
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           {answer.verdictDetail}
         </p>
 
-        <div className="mt-4 max-w-[70ch] rounded-control border-l-4 border-accent bg-accent/8 p-3">
-          <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-accent">
-            <Lightbulb className="h-3.5 w-3.5" /> Главный стратегический инсайт
+        <div className="mt-4 rounded-control border-l-4 border-accent bg-accent/10 p-4">
+          <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-accent">
+            <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent/15">
+              <Lightbulb className="h-3.5 w-3.5" />
+            </span>
+            Главный стратегический инсайт
           </p>
-          <p className="mt-1 text-sm font-semibold leading-relaxed text-card-foreground">
+          <p className="mt-2 text-sm font-semibold leading-relaxed text-card-foreground">
             {answer.insight}
           </p>
         </div>
@@ -167,7 +173,7 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
           </div>
         </Section>
 
-        <Section title="Рекомендация и предлагаемые условия" icon={Target} defaultOpen>
+        <Section title="Рекомендация и предлагаемые условия" icon={Target}>
           <p className="rounded-control border-l-4 border-primary bg-primary/6 p-3 text-sm font-semibold leading-relaxed text-card-foreground">
             {answer.recommendation}
           </p>
@@ -230,7 +236,18 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
           <Bullets items={answer.missing} />
         </Section>
 
-        <Section title={`Источники (${answer.sources.length})`} icon={Quote} defaultOpen>
+        <Section
+          title={
+            <span className="inline-flex items-center gap-2">
+              Источники
+              <span className="grid h-5 w-5 place-items-center rounded-full bg-primary/15 text-xs font-bold text-primary">
+                {answer.sources.length}
+              </span>
+            </span>
+          }
+          icon={Quote}
+          defaultOpen
+        >
           <ul className="space-y-2">
             {answer.sources.map((s) => (
               <li key={s.id} className="rounded-control border border-border bg-secondary/40 p-3">
