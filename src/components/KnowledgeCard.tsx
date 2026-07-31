@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Bookmark, Files, Lock, Trash2, Users } from "lucide-react";
+import { ArrowRight, Bookmark, Building2, Files, Globe, Lock, Trash2, Users } from "lucide-react";
 import { motion } from "motion/react";
 import type { KnowledgeCardData } from "@/data/mockCards";
 import { Button } from "@/components/ui/button";
@@ -154,12 +154,11 @@ export function KnowledgeCard({
         {/* Footer: scope, file count & delete */}
         <div className="mt-auto flex items-center justify-between gap-3 border-t border-border pt-4">
           <span className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-xs font-medium text-muted-foreground">
-            <span
-              aria-hidden
-              className={`h-1.5 w-1.5 shrink-0 rounded-full ${
-                isInternal ? "bg-scope-internal" : "bg-scope-external"
-              }`}
-            />
+            {isInternal ? (
+              <Building2 className="h-3.5 w-3.5 shrink-0 text-scope-internal" />
+            ) : (
+              <Globe className="h-3.5 w-3.5 shrink-0 text-scope-external" />
+            )}
             <span
               className={`whitespace-nowrap ${isInternal ? "text-scope-internal" : "text-scope-external"}`}
             >
