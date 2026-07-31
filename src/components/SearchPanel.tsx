@@ -34,6 +34,7 @@ interface SearchPanelProps {
   onClearHistory: () => void;
   totalLabel?: string;
   advisor: boolean;
+  advisorQueryActive: boolean;
   onAdvisorChange: (v: boolean) => void;
   onSubmit: () => void;
   filters: Filters;
@@ -56,6 +57,7 @@ export function SearchPanel({
   onClearHistory,
   totalLabel,
   advisor,
+  advisorQueryActive,
   onAdvisorChange,
   onSubmit,
   filters,
@@ -225,7 +227,7 @@ export function SearchPanel({
 
 
 
-      {advisor && history.length > 0 && (
+      {advisor && !advisorQueryActive && history.length > 0 && (
         <div className="mt-3 rounded-2xl border border-border bg-card p-4 shadow-soft">
           <p className="flex items-center gap-1.5 pb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             <History className="h-3.5 w-3.5" /> Недавние вопросы

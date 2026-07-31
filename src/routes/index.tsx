@@ -130,6 +130,7 @@ function Dashboard() {
           history={history}
           onClearHistory={clear}
           advisor={advisor}
+          advisorQueryActive={advisorQuery !== null}
           onAdvisorChange={(v) => {
             setAdvisor(v);
             setAdvisorQuery(null);
