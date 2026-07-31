@@ -204,7 +204,7 @@ export function ArtifactDialog({
                         }`}
                       >
                         {item.label && (
-                          <span className="mb-1 block text-xs font-bold uppercase tracking-wider text-accent">
+                          <span className="mb-1 block text-xs font-bold text-accent">
                             {item.label}
                           </span>
                         )}

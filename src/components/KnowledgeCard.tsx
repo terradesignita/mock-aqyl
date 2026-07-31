@@ -82,6 +82,7 @@ export function KnowledgeCard({
       <div inert={overlayMode !== null} className="flex h-full flex-col">
         {/* Header: visibility toggle & bookmark */}
         <div className="mb-4 flex items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-1">
           <Popover open={confirmOpen} onOpenChange={setConfirmOpen}>
             <PopoverTrigger asChild>
               <button
@@ -98,12 +99,6 @@ export function KnowledgeCard({
                 {isPrivate ? "Приватный" : "Общий"}
               </button>
             </PopoverTrigger>
-            <span onClick={(e) => e.stopPropagation()}>
-              <HelpHint
-                side="bottom"
-                text="Общий — кейс виден всем сотрудникам в общей базе знаний. Приватный — виден только вам."
-              />
-            </span>
             <PopoverContent
               align="start"
               className="w-72 space-y-3 p-4"
@@ -130,6 +125,13 @@ export function KnowledgeCard({
               </div>
             </PopoverContent>
           </Popover>
+          <span onClick={(e) => e.stopPropagation()}>
+            <HelpHint
+              side="bottom"
+              text="Общий — кейс виден всем сотрудникам в общей базе знаний. Приватный — виден только вам."
+            />
+          </span>
+          </div>
 
           <button
             onClick={(e) => {
@@ -183,7 +185,7 @@ export function KnowledgeCard({
             }}
             aria-label="Удалить кейс"
             title="Удалить кейс"
-            className="-m-1 inline-flex items-center gap-1 rounded-md p-1 text-xs font-bold uppercase tracking-wide text-muted-foreground/50 transition-colors active:scale-[0.96] hover:text-destructive focus-visible:text-destructive group-hover:text-muted-foreground"
+            className="-m-1 inline-flex items-center gap-1 rounded-md p-1 text-xs font-bold text-muted-foreground/50 transition-colors active:scale-[0.96] hover:text-destructive focus-visible:text-destructive group-hover:text-muted-foreground"
           >
             <Trash2 className="h-4 w-4" />
           </button>

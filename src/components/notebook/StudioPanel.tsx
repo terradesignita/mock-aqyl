@@ -272,7 +272,7 @@ function buildArtifact(id: ArtifactId, card: KnowledgeCardData): ArtifactContent
           { label: "Блок 2 · Цифра-герой", text: card.core_insight },
           {
             label: "Блок 3 · Путь внедрения",
-            text: steps.length ? steps.join("  →  ") : "Инсайт → пилот → масштабирование",
+            text: steps.length ? steps.join(" → ") : "Инсайт → пилот → масштабирование",
           },
           {
             label: "Блок 4 · Подпись",
@@ -383,7 +383,7 @@ export function StudioPanel({ card, onSaveNote, onCollapse }: Props) {
   .metric b { display: block; font-size: 15px; }
   .metric span { font-size: 11px; color: #6b7280; }
   section { margin-bottom: 14px; page-break-inside: avoid; }
-  section h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: #0058ff; margin: 0 0 4px; }
+  section h2 { font-size: 12px; color: #0058ff; margin: 0 0 4px; }
   section p { font-size: 13px; white-space: pre-line; margin: 0; }
   footer { margin-top: 24px; font-size: 11px; color: #9ca3af; }
 </style></head><body>
@@ -509,7 +509,7 @@ ${content.items
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuLabel className="text-xs uppercase tracking-wider text-muted-foreground">
+                    <DropdownMenuLabel className="text-xs text-muted-foreground">
                       {a.title}
                     </DropdownMenuLabel>
                     <DropdownMenuItem onSelect={() => generate(a.id)}>

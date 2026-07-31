@@ -177,7 +177,7 @@ function Dashboard() {
                   Советник определит тип решения, задаст 3–4 уточняющих вопроса, найдёт похожие
                   кейсы и предложит рекомендацию с рисками, условиями и источниками.
                 </p>
-                <p className="mt-5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <p className="mt-5 text-xs font-semibold text-muted-foreground">
                   Например
                 </p>
                 <div className="mt-2 flex flex-wrap justify-center gap-2">

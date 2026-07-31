@@ -8,7 +8,7 @@ export function InfographicView({
   fullscreen: boolean;
 }) {
   const steps = card.framework?.map((f) => f.step.replace(/^\d+\.\s*/, "")) ?? [];
-  const path = steps.length ? steps.join("   →   ") : "Инсайт   →   Пилот   →   Масштабирование";
+  const path = steps.length ? steps.join(" → ") : "Инсайт → Пилот → Масштабирование";
 
   const stats = [
     { label: "Релевантность", value: `${card.relevance}%` },
@@ -27,7 +27,7 @@ export function InfographicView({
         >
           <div className="flex min-w-0 flex-col justify-between border-r border-border pr-6">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-art-infographic">
+              <p className="text-xs font-bold text-art-infographic">
                 {card.business_unit}
               </p>
               <h3
@@ -40,7 +40,7 @@ export function InfographicView({
             </div>
 
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              <p className="text-xs font-bold text-muted-foreground">
                 Главный инсайт
               </p>
               <p
@@ -53,7 +53,7 @@ export function InfographicView({
             </div>
 
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              <p className="text-xs font-bold text-muted-foreground">
                 Путь внедрения
               </p>
               <p

@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Filters, ScopeFilter } from "@/lib/search";
-import { LANGUAGES, MEDIA_LABELS, emptyFilters } from "@/lib/search";
+import { LANGUAGES, emptyFilters } from "@/lib/search";
 import { BUSINESS_UNITS } from "@/data/mockCards";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -64,7 +64,7 @@ export function SearchPanel({
   onFiltersChange,
   onFocusChange,
 }: SearchPanelProps) {
-  const activeFilterCount = [filters.mediaType, filters.businessUnit, filters.language].filter(
+  const activeFilterCount = [filters.businessUnit, filters.language].filter(
     (v) => v !== "all",
   ).length;
 
@@ -229,7 +229,7 @@ export function SearchPanel({
 
       {advisor && !advisorQueryActive && history.length > 0 && (
         <div className="mt-3 rounded-2xl border border-border bg-card p-4 shadow-soft">
-          <p className="flex items-center gap-1.5 pb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <p className="flex items-center gap-1.5 pb-2 text-xs font-semibold text-muted-foreground">
             <History className="h-3.5 w-3.5" /> Недавние вопросы
             <Button
               variant="ghost"
@@ -307,25 +307,6 @@ export function SearchPanel({
               </PopoverTrigger>
               <PopoverContent align="end" className="w-64 space-y-2 p-3">
                 <Select
-                  value={filters.mediaType}
-                  onValueChange={(v) =>
-                    onFiltersChange({ ...filters, mediaType: v as Filters["mediaType"] })
-                  }
-                >
-                  <SelectTrigger className="h-9 w-full text-xs">
-                    <SelectValue placeholder="Тип" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Все типы</SelectItem>
-                    {Object.entries(MEDIA_LABELS).map(([k, v]) => (
-                      <SelectItem key={k} value={k}>
-                        {v}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select
                   value={filters.businessUnit}
                   onValueChange={(v) => onFiltersChange({ ...filters, businessUnit: v })}
                 >
@@ -369,7 +350,6 @@ export function SearchPanel({
                     onClick={() =>
                       onFiltersChange({
                         ...filters,
-                        mediaType: emptyFilters.mediaType,
                         businessUnit: emptyFilters.businessUnit,
                         language: emptyFilters.language,
                       })

@@ -52,7 +52,7 @@ function Stepper({ stage, onGoTo }: { stage: Stage; onGoTo: (s: Stage) => void }
                 disabled={!done}
                 onClick={() => done && onGoTo(s.id)}
                 aria-label={s.label}
-                className={`flex items-center gap-1.5 rounded-full border px-1.5 py-1 text-xs font-bold uppercase tracking-wide transition-colors sm:px-2.5 ${
+                className={`flex items-center gap-1.5 rounded-full border px-1.5 py-1 text-xs font-bold transition-colors sm:px-2.5 ${
                   active
                     ? "border-primary bg-primary text-primary-foreground shadow-soft"
                     : done
@@ -255,7 +255,7 @@ export function AdvisorFlow({ query, onReset }: Props) {
             onClick={() => setStage("understanding")}
             className="flex w-full items-start gap-2 rounded-card border border-dashed border-border bg-secondary/30 px-3.5 py-2.5 text-left text-xs leading-relaxed text-muted-foreground transition-colors hover:border-primary/50 hover:text-card-foreground"
           >
-            <span className="mt-px shrink-0 font-bold uppercase tracking-wider text-primary">
+            <span className="mt-px shrink-0 font-bold text-primary">
               Ситуация
             </span>
             <span className="flex-1 line-clamp-2">{understanding}</span>
@@ -265,7 +265,7 @@ export function AdvisorFlow({ query, onReset }: Props) {
           <AdvisorAnswer answer={answer} />
 
           <div className="rounded-card border border-border bg-card p-4 shadow-soft">
-            <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            <p className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
               <MessageSquarePlus className="h-3.5 w-3.5 text-primary" /> Уточнить или изменить
               условия
             </p>

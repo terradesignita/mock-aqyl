@@ -103,7 +103,7 @@ function NewCouncilPanel({
       <div>
         <label
           htmlFor="council-case-search"
-          className="mb-2 block text-xs font-bold uppercase tracking-wider text-muted-foreground"
+          className="mb-2 block text-xs font-bold text-muted-foreground"
         >
           1. Выберите кейс
         </label>
@@ -136,7 +136,7 @@ function NewCouncilPanel({
       </div>
 
       <div>
-        <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+        <p className="mb-2 text-xs font-bold text-muted-foreground">
           2. Соберите до трёх персон ({personaIds.length}/{MAX_PERSONAS})
         </p>
         <div className="grid grid-cols-2 gap-2">
@@ -245,7 +245,7 @@ function SessionView({ session }: { session: CouncilSession }) {
   return (
     <div className="mx-auto w-full max-w-2xl space-y-5 px-6 py-8">
       <div>
-        <p className="text-xs font-bold uppercase tracking-wider text-primary">Кейс</p>
+        <p className="text-xs font-bold text-primary">Кейс</p>
         <h2 className="mt-1 text-lg font-bold text-foreground">{session.topic.title}</h2>
         <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
           {session.topic.summary}
@@ -284,7 +284,7 @@ function SessionView({ session }: { session: CouncilSession }) {
             </div>
           ) : (
             <div key={i} className="flex gap-3">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-secondary text-xs font-bold uppercase text-muted-foreground">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-secondary text-xs font-bold text-muted-foreground">
                 Итог
               </span>
               <div className="min-w-0 flex-1 rounded-2xl rounded-tl-sm border border-dashed border-border bg-secondary/40 p-3 text-sm leading-relaxed text-card-foreground">
@@ -351,7 +351,7 @@ function CouncilPage() {
           <div className="mt-4 flex-1 space-y-4">
             {today.length > 0 && (
               <div>
-                <p className="px-1 pb-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                <p className="px-1 pb-1.5 text-xs font-bold text-muted-foreground">
                   Сегодня
                 </p>
                 <div className="space-y-1.5">
@@ -363,7 +363,7 @@ function CouncilPage() {
             )}
             {earlier.length > 0 && (
               <div>
-                <p className="px-1 pb-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                <p className="px-1 pb-1.5 text-xs font-bold text-muted-foreground">
                   Ранее
                 </p>
                 <div className="space-y-1.5">

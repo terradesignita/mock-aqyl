@@ -189,7 +189,7 @@ export function SourceReaderDialog({
             <article className={`mx-auto w-full max-w-2xl ${FONT_STEPS[fontStep]} leading-8`}>
               {source.sections.map((s) => (
                 <section key={s.heading} className="mb-7">
-                  <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-primary">
+                  <h3 className="mb-2 text-xs font-bold text-primary">
                     {s.heading}
                   </h3>
                   <HighlightedBody body={s.body} highlight={highlight} markRef={markRef} />

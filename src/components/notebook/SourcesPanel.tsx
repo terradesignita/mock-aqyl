@@ -233,7 +233,7 @@ export function SourcesPanel({
 
       <div className="flex-1 space-y-3 overflow-y-auto px-3 pb-3">
         <div>
-          <p className="flex items-center gap-1.5 px-1 pb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <p className="flex items-center gap-1.5 px-1 pb-1 text-xs font-semibold text-muted-foreground">
             <span aria-hidden className="h-2 w-2 rounded-full bg-src-file" />
             Загруженные файлы
             <Counter value={files.length} />

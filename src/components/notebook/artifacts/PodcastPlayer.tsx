@@ -212,7 +212,7 @@ export function PodcastPlayer({ lines, fullscreen }: { lines: Line[]; fullscreen
                 }`}
               >
                 <span
-                  className={`mr-1.5 text-xs font-bold uppercase tracking-wider ${
+                  className={`mr-1.5 text-xs font-bold ${
                     isActive ? "text-primary" : "text-muted-foreground/60"
                   }`}
                 >

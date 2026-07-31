@@ -16,8 +16,13 @@ const NAV = [
 
 export function Header({ dark, onToggleDark, className }: HeaderProps) {
   return (
-    <header className={cn("sticky top-3 z-40 mt-3 px-3 sm:px-6", className)}>
-      <div className="mx-auto grid max-w-[1600px] grid-cols-[auto_1fr_auto] items-center gap-4 rounded-2xl border border-border/60 bg-card/75 px-4 py-2.5 shadow-soft backdrop-blur-xl">
+    <header
+      className={cn(
+        "sticky top-0 z-40 border-b border-border/60 bg-card/75 backdrop-blur-xl",
+        className,
+      )}
+    >
+      <div className="mx-auto grid max-w-[1600px] grid-cols-[auto_1fr_auto] items-center gap-4 px-4 py-2.5 sm:px-6">
         <Link to="/" className="flex min-w-0 items-center">
           <BiLogo size={30} />
         </Link>

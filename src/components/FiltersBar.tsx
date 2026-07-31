@@ -1,15 +1,8 @@
 import { useState } from "react";
 import { Bookmark } from "lucide-react";
-import { BUSINESS_UNITS, TOPIC_TAGS } from "@/data/mockCards";
+import { TOPIC_TAGS } from "@/data/mockCards";
 import type { Filters } from "@/lib/search";
 import { cn } from "@/lib/utils";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 export type VisibilityFilter = "all" | "private" | "shared";
 
@@ -141,48 +134,29 @@ export function FiltersBar({
           ))}
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            onClick={onToggleOnlyBookmarks}
-            aria-pressed={onlyBookmarks}
-            className={cn(
-              "flex h-10 items-center gap-1.5 rounded-2xl border px-3 text-xs font-semibold transition-colors active:scale-[0.96]",
-              onlyBookmarks
-                ? "border-primary bg-primary text-primary-foreground shadow-brand"
-                : "border-border bg-card text-muted-foreground shadow-soft hover:bg-secondary hover:text-foreground",
-            )}
-          >
-            <Bookmark className="h-4 w-4" fill={onlyBookmarks ? "currentColor" : "none"} />
-            Закладки
-            {bookmarkCount > 0 && (
-              <span
-                className={cn(
-                  "rounded-full px-1.5 text-xs font-bold tabular-nums",
-                  onlyBookmarks ? "bg-primary-foreground/20" : "bg-secondary text-foreground",
-                )}
-              >
-                {bookmarkCount}
-              </span>
-            )}
-          </button>
-
-          <Select
-            value={filters.businessUnit}
-            onValueChange={(v) => onChange({ ...filters, businessUnit: v })}
-          >
-            <SelectTrigger className="h-10 w-fit min-w-[180px] rounded-2xl border-border bg-card text-xs font-semibold shadow-soft">
-              <SelectValue placeholder="Все направления" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Все направления</SelectItem>
-              {BUSINESS_UNITS.map((b) => (
-                <SelectItem key={b} value={b}>
-                  {b}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <button
+          onClick={onToggleOnlyBookmarks}
+          aria-pressed={onlyBookmarks}
+          className={cn(
+            "flex h-10 items-center gap-1.5 rounded-2xl border px-3 text-xs font-semibold transition-colors active:scale-[0.96]",
+            onlyBookmarks
+              ? "border-primary bg-primary text-primary-foreground shadow-brand"
+              : "border-border bg-card text-muted-foreground shadow-soft hover:bg-secondary hover:text-foreground",
+          )}
+        >
+          <Bookmark className="h-4 w-4" fill={onlyBookmarks ? "currentColor" : "none"} />
+          Закладки
+          {bookmarkCount > 0 && (
+            <span
+              className={cn(
+                "rounded-full px-1.5 text-xs font-bold tabular-nums",
+                onlyBookmarks ? "bg-primary-foreground/20" : "bg-secondary text-foreground",
+              )}
+            >
+              {bookmarkCount}
+            </span>
+          )}
+        </button>
       </div>
     </div>
   );

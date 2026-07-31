@@ -99,7 +99,7 @@ export function QuizView({ questions }: { questions: QuizQuestion[] }) {
         const isAnswered = picked !== undefined;
         return (
           <div key={q.q} className="rounded-2xl border border-border bg-card p-3">
-            <p className="text-xs font-bold uppercase tracking-wider text-accent">
+            <p className="text-xs font-bold text-accent">
               Вопрос {qi + 1}
             </p>
             <p className="mt-1 text-sm font-semibold leading-snug text-card-foreground">{q.q}</p>

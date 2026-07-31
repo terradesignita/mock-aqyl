@@ -85,7 +85,7 @@ export function CardsDeck({ cards }: { cards: InsightCard[] }) {
             <span className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-primary-foreground/10 blur-xl transition-transform duration-700 group-hover:scale-150" />
             <span className="pointer-events-none absolute inset-0 translate-x-[-120%] bg-gradient-to-r from-transparent via-primary-foreground/25 to-transparent transition-transform duration-[1100ms] group-hover:translate-x-[120%]" />
             <div className="relative">
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary-foreground/70">
+              <p className="text-xs font-bold text-primary-foreground/70">
                 {c.tag}
               </p>
               <h4 className="mt-2 text-base font-bold leading-tight">{c.title}</h4>

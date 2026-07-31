@@ -67,7 +67,7 @@ export function DeckViewer({ slides, fullscreen }: { slides: Slide[]; fullscreen
     <div className="space-y-3">
       <div className="relative overflow-hidden rounded-2xl border border-border bg-primary text-primary-foreground shadow-xl">
         <div className="aspect-video p-6 sm:p-10">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary-foreground/60">
+          <p className="text-xs font-bold text-primary-foreground/60">
             {s.kicker}
           </p>
           <h3
