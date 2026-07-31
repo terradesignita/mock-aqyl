@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { SearchX } from "lucide-react";
+import { Sparkles, SearchX } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Header } from "@/components/Header";
 import { SearchPanel } from "@/components/SearchPanel";
@@ -141,15 +141,21 @@ function Dashboard() {
                 }}
               />
             ) : (
-              <div className="rounded-card border border-dashed border-border p-8 text-center">
-                <p className="text-sm font-semibold text-foreground">
+              <div className="rounded-card border border-dashed border-primary/25 bg-primary/[0.03] p-6 text-center sm:p-8">
+                <span className="mx-auto grid h-10 w-10 place-items-center rounded-full bg-primary/12">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                </span>
+                <p className="mt-3 text-base font-bold text-foreground">
                   Опишите управленческую ситуацию обычным языком
                 </p>
-                <p className="mx-auto mt-1 max-w-xl text-xs leading-relaxed text-muted-foreground">
+                <p className="mx-auto mt-1.5 max-w-xl text-sm leading-relaxed text-muted-foreground">
                   Советник определит тип решения, задаст 3–4 уточняющих вопроса, найдёт похожие
                   кейсы и предложит рекомендацию с рисками, условиями и источниками.
                 </p>
-                <div className="mt-4 flex flex-wrap justify-center gap-2">
+                <p className="mt-5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Например
+                </p>
+                <div className="mt-2 flex flex-wrap justify-center gap-2">
                   {ADVISOR_EXAMPLES.map((e) => (
                     <button
                       key={e}
