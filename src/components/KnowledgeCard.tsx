@@ -4,6 +4,7 @@ import { ArrowRight, Bookmark, Building2, Files, Globe, Lock, Trash2, Users } fr
 import { motion } from "motion/react";
 import type { KnowledgeCardData } from "@/data/mockCards";
 import { Button } from "@/components/ui/button";
+import { HelpHint } from "@/components/HelpHint";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface KnowledgeCardProps {
@@ -74,7 +75,7 @@ export function KnowledgeCard({
           setOverlayMode("open");
         }
       }}
-      className="group relative flex h-full cursor-pointer flex-col rounded-card border border-border bg-card p-5 shadow-sm transition-[border-color,box-shadow,transform] duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-xl focus-visible:-translate-y-1 focus-visible:border-primary/40 focus-visible:shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+      className="group relative flex h-full cursor-pointer flex-col rounded-card border border-border bg-card p-5 shadow-sm transition-[border-color,box-shadow,transform] duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_20px_45px_-10px_oklch(0.538_0.256_262.4/0.35)] focus-visible:-translate-y-1 focus-visible:border-primary/40 focus-visible:shadow-[0_20px_45px_-10px_oklch(0.538_0.256_262.4/0.35)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
     >
       {/* Card chrome: made inert while an overlay covers it, so Tab can't reach
           controls hidden behind the dimmed backdrop. */}
@@ -97,6 +98,12 @@ export function KnowledgeCard({
                 {isPrivate ? "Приватный" : "Общий"}
               </button>
             </PopoverTrigger>
+            <span onClick={(e) => e.stopPropagation()}>
+              <HelpHint
+                side="bottom"
+                text="Общий — кейс виден всем сотрудникам в общей базе знаний. Приватный — виден только вам."
+              />
+            </span>
             <PopoverContent
               align="start"
               className="w-72 space-y-3 p-4"
