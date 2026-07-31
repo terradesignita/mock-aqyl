@@ -213,6 +213,13 @@
     overflow-y: scroll;
   }
 
+  /* html already reserves the scrollbar gutter above, so Radix's own
+     scroll-lock compensation (added to body when a Select/Popover/Dialog
+     opens) double-counts it and shifts the page left. Zero it out. */
+  html body[data-scroll-locked] {
+    margin-right: 0 !important;
+  }
+
   body {
     font-family: var(--font-sans);
     font-size: 15px;

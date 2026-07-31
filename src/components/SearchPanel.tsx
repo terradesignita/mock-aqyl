@@ -194,7 +194,7 @@ export function SearchPanel({
                 ? "Опишите бизнес-ситуацию или решение, которое нужно принять — советник разберётся и предложит рекомендацию"
                 : "Спросите BI AQYL: найдите материалы, кейсы и презентации"
             }
-            className="h-11 w-full min-w-0 bg-transparent text-base outline-none placeholder:text-muted-foreground sm:text-sm"
+            className="h-11 w-full min-w-0 bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground/70 sm:text-sm"
           />
           <span className="flex items-center gap-1">
             {query && (
