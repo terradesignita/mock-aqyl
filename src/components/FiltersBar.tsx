@@ -34,7 +34,8 @@ export function FiltersBar({ filters, onChange, total }: FiltersBarProps) {
 
   return (
     <div className="mx-auto max-w-[1600px] space-y-3 px-4 py-4 sm:px-6">
-      <div className="flex items-center justify-end">
+      <div className="flex items-end justify-between">
+        <h2 className="text-xl font-extrabold tracking-tight text-foreground">Кейсы</h2>
         <span className="text-xs text-muted-foreground opacity-70">Найдено: {total}</span>
       </div>
 
@@ -42,7 +43,7 @@ export function FiltersBar({ filters, onChange, total }: FiltersBarProps) {
         <div
           className={cn(
             "flex flex-wrap items-center gap-2 overflow-hidden transition-[max-height] duration-300",
-            tagsExpanded ? "max-h-[999px]" : "max-h-[68px]",
+            tagsExpanded ? "max-h-[999px]" : "max-h-[30px]",
           )}
         >
           <button
