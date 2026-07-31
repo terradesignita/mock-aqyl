@@ -9,7 +9,14 @@ import { KnowledgeCard } from "@/components/KnowledgeCard";
 import { CardSkeleton } from "@/components/CardSkeleton";
 import { Footer } from "@/components/Footer";
 import { emptyFilters, searchCards, type Filters } from "@/lib/search";
-import { useBookmarks, useDismissed, useHistory, useScope, useTheme } from "@/hooks/useAppState";
+import {
+  useBookmarks,
+  useDismissed,
+  useHistory,
+  usePrivateCards,
+  useScope,
+  useTheme,
+} from "@/hooks/useAppState";
 import { AdvisorFlow } from "@/components/advisor/AdvisorFlow";
 import { ADVISOR_EXAMPLES } from "@/data/advisor";
 
@@ -40,6 +47,7 @@ function Dashboard() {
   const { dark, toggle } = useTheme();
   const { bookmarks, toggle: toggleBookmark } = useBookmarks();
   const { dismissed, dismiss } = useDismissed();
+  const { privateIds, toggle: togglePrivate } = usePrivateCards();
   const [scope, setScope] = useScope();
   const { history, push, clear } = useHistory();
 
@@ -206,6 +214,8 @@ function Dashboard() {
                   bookmarked={bookmarks.includes(card.id)}
                   onToggleBookmark={toggleBookmark}
                   onDelete={dismiss}
+                  isPrivate={privateIds.includes(card.id)}
+                  onTogglePrivate={togglePrivate}
                 />
               ))}
             </div>

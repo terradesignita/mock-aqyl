@@ -32,6 +32,17 @@ export function useDismissed() {
   return { dismissed, dismiss };
 }
 
+/** Card visibility toggle (Общий/Приватный) — separate from `scope` (internal/external origin). */
+export function usePrivateCards() {
+  const [privateIds, setPrivateIds] = useLocalStorage<string[]>("biaqyl:private-cards", []);
+  const toggle = useCallback(
+    (id: string) =>
+      setPrivateIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id])),
+    [setPrivateIds],
+  );
+  return { privateIds, toggle };
+}
+
 export function useScope() {
   return useLocalStorage<ScopeFilter>("biaqyl:mode", "ALL");
 }
