@@ -115,7 +115,7 @@ export function FiltersBar({
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex w-fit items-center gap-1 rounded-2xl border border-border bg-card p-1 shadow-soft">
           {VISIBILITY_MODES.map((m) => (
             <button
