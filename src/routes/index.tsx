@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Sparkles, SearchX } from "lucide-react";
+import { Sparkles, SearchX, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Header } from "@/components/Header";
 import { SearchPanel } from "@/components/SearchPanel";
@@ -59,6 +59,7 @@ function Dashboard() {
   const [advisor, setAdvisor] = useState(true);
   const [advisorQuery, setAdvisorQuery] = useState<string | null>(null);
   const [searchFocused, setSearchFocused] = useState(false);
+  const [hintDismissed, setHintDismissed] = useState(false);
   const firstRender = useRef(true);
 
   const focusOnAdvisor = advisor && (searchFocused || query.trim().length > 0);
@@ -148,8 +149,15 @@ function Dashboard() {
                   setAdvisorQuery(q);
                 }}
               />
-            ) : (
-              <div className="rounded-card border border-dashed border-primary/25 bg-primary/[0.03] p-6 text-center sm:p-8">
+            ) : !hintDismissed ? (
+              <div className="relative rounded-card border border-dashed border-primary/25 bg-primary/[0.03] p-6 text-center sm:p-8">
+                <button
+                  onClick={() => setHintDismissed(true)}
+                  aria-label="Закрыть подсказку"
+                  className="absolute right-3 top-3 -m-1 rounded-full p-1 text-muted-foreground transition-colors active:scale-[0.96] hover:text-foreground"
+                >
+                  <X className="h-4 w-4" />
+                </button>
                 <span className="mx-auto grid h-10 w-10 place-items-center rounded-full bg-primary/12">
                   <Sparkles className="h-5 w-5 text-primary" />
                 </span>
@@ -178,7 +186,7 @@ function Dashboard() {
                   ))}
                 </div>
               </div>
-            )}
+            ) : null}
           </div>
         )}
 
