@@ -1,35 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import {
-  ArrowRight,
-  Bookmark,
-  FileText,
-  Files,
-  Lock,
-  Mic,
-  Presentation,
-  Trash2,
-  Users,
-  Video,
-} from "lucide-react";
+import { ArrowRight, Bookmark, Files, Lock, Trash2, Users } from "lucide-react";
 import { motion } from "motion/react";
-import type { KnowledgeCardData, MediaType } from "@/data/mockCards";
+import type { KnowledgeCardData } from "@/data/mockCards";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-
-const MEDIA_ICON: Record<MediaType, typeof FileText> = {
-  document: FileText,
-  video: Video,
-  podcast: Mic,
-  presentation: Presentation,
-};
-
-const MEDIA_LABEL: Record<MediaType, string> = {
-  document: "Документ",
-  video: "Видео",
-  podcast: "Подкаст",
-  presentation: "Презентация",
-};
 
 interface KnowledgeCardProps {
   card: KnowledgeCardData & { matchScore?: number };
@@ -53,7 +28,6 @@ export function KnowledgeCard({
   onTogglePrivate,
 }: KnowledgeCardProps) {
   const isInternal = card.scope === "INTERNAL";
-  const MediaIcon = MEDIA_ICON[card.media_type];
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [overlayMode, setOverlayMode] = useState<OverlayMode>(null);
   const articleRef = useRef<HTMLElement>(null);
@@ -177,7 +151,7 @@ export function KnowledgeCard({
           </p>
         </div>
 
-        {/* Footer: scope, media type, file count & delete */}
+        {/* Footer: scope, file count & delete */}
         <div className="mt-auto flex items-center justify-between gap-3 border-t border-border pt-4">
           <span className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-xs font-medium text-muted-foreground">
             <span
@@ -189,9 +163,6 @@ export function KnowledgeCard({
             <span className="whitespace-nowrap">
               {isInternal ? "Внутренний опыт" : "Мировой опыт"}
             </span>
-            <span aria-hidden>·</span>
-            <MediaIcon className="h-3.5 w-3.5 shrink-0" />
-            <span className="whitespace-nowrap">{MEDIA_LABEL[card.media_type]}</span>
             <span aria-hidden>·</span>
             <Files className="h-3.5 w-3.5 shrink-0" />
             <span className="whitespace-nowrap">{card.citations.length} файлов</span>
