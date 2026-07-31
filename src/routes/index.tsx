@@ -58,7 +58,7 @@ function Dashboard() {
   const [filters, setFilters] = useState<Filters>(emptyFilters);
   const [onlyBookmarks, setOnlyBookmarks] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [advisor, setAdvisor] = useState(true);
+  const [advisor, setAdvisor] = useState(false);
   const [advisorQuery, setAdvisorQuery] = useState<string | null>(null);
   const [searchFocused, setSearchFocused] = useState(false);
   const [hintDismissed, setHintDismissed] = useState(false);
