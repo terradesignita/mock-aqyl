@@ -18,7 +18,7 @@ export function Header({ dark, onToggleDark, className }: HeaderProps) {
   return (
     <header
       className={cn(
-        "sticky top-0 z-40 border-b border-border/60 bg-card/75 backdrop-blur-xl",
+        "sticky top-0 z-40 border-b border-border/60 bg-card/60 backdrop-blur-xl",
         className,
       )}
     >
