@@ -185,7 +185,7 @@ export function KnowledgeCard({
       {/* Open-confirmation overlay */}
       {overlayMode === "open" && (
         <div
-          className="absolute inset-0 z-10 grid place-items-center rounded-card bg-foreground/55 backdrop-blur-[2px] animate-in fade-in duration-150"
+          className="absolute inset-0 z-10 grid place-items-center rounded-card bg-primary/70 backdrop-blur-[2px] animate-in fade-in duration-150"
           onClick={(e) => {
             e.stopPropagation();
             setOverlayMode(null);
@@ -196,7 +196,7 @@ export function KnowledgeCard({
             to="/card/$id"
             params={{ id: card.id }}
             onClick={(e) => e.stopPropagation()}
-            className="inline-flex items-center gap-1.5 rounded-full bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground shadow-brand transition-transform active:scale-[0.96] hover:bg-primary-hover"
+            className="inline-flex items-center gap-1.5 rounded-full bg-card px-5 py-2.5 text-sm font-bold text-primary shadow-lg transition-transform active:scale-[0.96] hover:bg-card/90"
           >
             Открыть <ArrowRight className="h-4 w-4" />
           </Link>
