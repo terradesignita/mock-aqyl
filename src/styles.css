@@ -119,8 +119,8 @@
   --success: oklch(0.541 0.149 162.5);
   --success-foreground: oklch(1 0 0);
   --warning: oklch(0.769 0.165 70.1);
-  --scope-internal: oklch(0.596 0.140 175.2);
-  --scope-external: oklch(0.640 0.180 40.5);
+  --scope-internal: oklch(0.540 0.100 175.2);
+  --scope-external: oklch(0.572 0.180 40.5);
   --src-file: oklch(0.538 0.256 262.4);
   --src-link: oklch(0.600 0.140 195.0);
   --art-quiz: oklch(0.580 0.200 300.0);
