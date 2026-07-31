@@ -1,10 +1,35 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Bookmark, Files, Lock, Trash2, Users } from "lucide-react";
+import {
+  ArrowRight,
+  Bookmark,
+  FileText,
+  Files,
+  Lock,
+  Mic,
+  Presentation,
+  Trash2,
+  Users,
+  Video,
+} from "lucide-react";
 import { motion } from "motion/react";
-import type { KnowledgeCardData } from "@/data/mockCards";
+import type { KnowledgeCardData, MediaType } from "@/data/mockCards";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+
+const MEDIA_ICON: Record<MediaType, typeof FileText> = {
+  document: FileText,
+  video: Video,
+  podcast: Mic,
+  presentation: Presentation,
+};
+
+const MEDIA_LABEL: Record<MediaType, string> = {
+  document: "Документ",
+  video: "Видео",
+  podcast: "Подкаст",
+  presentation: "Презентация",
+};
 
 interface KnowledgeCardProps {
   card: KnowledgeCardData & { matchScore?: number };
@@ -28,6 +53,7 @@ export function KnowledgeCard({
   onTogglePrivate,
 }: KnowledgeCardProps) {
   const isInternal = card.scope === "INTERNAL";
+  const MediaIcon = MEDIA_ICON[card.media_type];
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [overlayMode, setOverlayMode] = useState<OverlayMode>(null);
   const articleRef = useRef<HTMLElement>(null);
@@ -87,13 +113,13 @@ export function KnowledgeCard({
                 type="button"
                 aria-expanded={confirmOpen}
                 onClick={(e) => e.stopPropagation()}
-                className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide transition-colors active:scale-[0.96] ${
+                className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold transition-colors active:scale-[0.96] ${
                   isPrivate
                     ? "border-warning/40 bg-warning/10 text-warning hover:bg-warning/16"
                     : "border-border bg-secondary text-muted-foreground hover:bg-secondary/70"
                 }`}
               >
-                {isPrivate ? <Lock className="h-3 w-3" /> : <Users className="h-3 w-3" />}
+                {isPrivate ? <Lock className="h-2.5 w-2.5" /> : <Users className="h-2.5 w-2.5" />}
                 {isPrivate ? "Приватный" : "Общий"}
               </button>
             </PopoverTrigger>
@@ -141,7 +167,7 @@ export function KnowledgeCard({
           </button>
         </div>
 
-        {/* Title, summary & metadata */}
+        {/* Title & summary */}
         <div className="mb-4">
           <p className="text-base font-bold leading-snug text-card-foreground transition-colors group-hover:text-primary">
             {card.title}
@@ -149,22 +175,26 @@ export function KnowledgeCard({
           <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
             {card.executive_summary}
           </p>
-          <p className="mt-2.5 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+        </div>
+
+        {/* Footer: scope, media type, file count & delete */}
+        <div className="mt-auto flex items-center justify-between gap-3 border-t border-border pt-4">
+          <span className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-xs font-medium text-muted-foreground">
             <span
               aria-hidden
-              className={`h-1.5 w-1.5 rounded-full ${
+              className={`h-1.5 w-1.5 shrink-0 rounded-full ${
                 isInternal ? "bg-scope-internal" : "bg-scope-external"
               }`}
             />
-            {isInternal ? "Внутренний опыт" : "Мировой опыт"}
-          </p>
-        </div>
-
-        {/* Footer: file count & delete */}
-        <div className="mt-auto flex items-center justify-between gap-3 border-t border-border pt-4">
-          <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-            <Files className="h-4 w-4" />
-            {card.citations.length} файлов
+            <span className="whitespace-nowrap">
+              {isInternal ? "Внутренний опыт" : "Мировой опыт"}
+            </span>
+            <span aria-hidden>·</span>
+            <MediaIcon className="h-3.5 w-3.5 shrink-0" />
+            <span className="whitespace-nowrap">{MEDIA_LABEL[card.media_type]}</span>
+            <span aria-hidden>·</span>
+            <Files className="h-3.5 w-3.5 shrink-0" />
+            <span className="whitespace-nowrap">{card.citations.length} файлов</span>
           </span>
 
           <button

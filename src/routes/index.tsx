@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Sparkles, SearchX, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Sparkles, SearchX, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Header } from "@/components/Header";
 import { SearchPanel } from "@/components/SearchPanel";
@@ -19,6 +19,8 @@ import {
 } from "@/hooks/useAppState";
 import { AdvisorFlow } from "@/components/advisor/AdvisorFlow";
 import { ADVISOR_EXAMPLES } from "@/data/advisor";
+
+const PAGE_SIZE = 12;
 
 
 export const Route = createFileRoute("/")({
@@ -60,6 +62,7 @@ function Dashboard() {
   const [advisorQuery, setAdvisorQuery] = useState<string | null>(null);
   const [searchFocused, setSearchFocused] = useState(false);
   const [hintDismissed, setHintDismissed] = useState(false);
+  const [page, setPage] = useState(0);
   const firstRender = useRef(true);
 
   const focusOnAdvisor = advisor && (searchFocused || query.trim().length > 0);
@@ -83,6 +86,10 @@ function Dashboard() {
     if (debounced.trim()) push(debounced);
   }, [debounced, push]);
 
+  useEffect(() => {
+    setPage(0);
+  }, [debounced, scope, filters, onlyBookmarks]);
+
   const results = useMemo(
     () =>
       searchCards(debounced, scope, filters, onlyBookmarks ? bookmarks : null).filter(
@@ -90,6 +97,10 @@ function Dashboard() {
       ),
     [debounced, scope, filters, onlyBookmarks, bookmarks, dismissed],
   );
+
+  const pageCount = Math.max(1, Math.ceil(results.length / PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount - 1);
+  const pageResults = results.slice(currentPage * PAGE_SIZE, currentPage * PAGE_SIZE + PAGE_SIZE);
 
   const submit = () => {
     if (!advisor) return;
@@ -213,20 +224,61 @@ function Dashboard() {
               </p>
             </div>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-              {results.map((card, i) => (
-                <KnowledgeCard
-                  key={card.id}
-                  card={card}
-                  index={i}
-                  bookmarked={bookmarks.includes(card.id)}
-                  onToggleBookmark={toggleBookmark}
-                  onDelete={dismiss}
-                  isPrivate={privateIds.includes(card.id)}
-                  onTogglePrivate={togglePrivate}
-                />
-              ))}
-            </div>
+            <>
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+                {pageResults.map((card, i) => (
+                  <KnowledgeCard
+                    key={card.id}
+                    card={card}
+                    index={i}
+                    bookmarked={bookmarks.includes(card.id)}
+                    onToggleBookmark={toggleBookmark}
+                    onDelete={dismiss}
+                    isPrivate={privateIds.includes(card.id)}
+                    onTogglePrivate={togglePrivate}
+                  />
+                ))}
+              </div>
+
+              {pageCount > 1 && (
+                <nav
+                  aria-label="Страницы результатов"
+                  className="mt-6 flex flex-wrap items-center justify-center gap-1.5"
+                >
+                  <button
+                    onClick={() => setPage((p) => Math.max(0, p - 1))}
+                    disabled={currentPage === 0}
+                    aria-label="Предыдущая страница"
+                    className="grid h-9 w-9 place-items-center rounded-xl border border-border bg-card text-muted-foreground transition-colors active:scale-[0.96] hover:border-primary hover:text-primary disabled:pointer-events-none disabled:opacity-40"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                  {Array.from({ length: pageCount }).map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setPage(i)}
+                      aria-current={i === currentPage ? "page" : undefined}
+                      className={cn(
+                        "h-9 min-w-9 rounded-xl border px-3 text-sm font-semibold transition-colors active:scale-[0.96]",
+                        i === currentPage
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border bg-card text-muted-foreground hover:border-primary hover:text-primary",
+                      )}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+                    disabled={currentPage === pageCount - 1}
+                    aria-label="Следующая страница"
+                    className="grid h-9 w-9 place-items-center rounded-xl border border-border bg-card text-muted-foreground transition-colors active:scale-[0.96] hover:border-primary hover:text-primary disabled:pointer-events-none disabled:opacity-40"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </nav>
+              )}
+            </>
           )}
           </div>
         </div>
