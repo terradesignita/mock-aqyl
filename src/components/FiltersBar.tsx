@@ -1,12 +1,29 @@
 import { useState } from "react";
-import { TOPIC_TAGS } from "@/data/mockCards";
+import { BUSINESS_UNITS, TOPIC_TAGS } from "@/data/mockCards";
 import type { Filters } from "@/lib/search";
 import { cn } from "@/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+export type VisibilityFilter = "all" | "private" | "shared";
+
+const VISIBILITY_MODES: { key: VisibilityFilter; label: string }[] = [
+  { key: "all", label: "Все" },
+  { key: "private", label: "Приватные" },
+  { key: "shared", label: "Общие" },
+];
 
 interface FiltersBarProps {
   filters: Filters;
   onChange: (f: Filters) => void;
   total: number;
+  visibility: VisibilityFilter;
+  onVisibilityChange: (v: VisibilityFilter) => void;
 }
 
 // ponytail: 8-color cycle, not one class per tag — literal Tailwind classes so the JIT scanner picks them up
@@ -21,7 +38,13 @@ const TAG_COLORS = [
   { text: "text-fuchsia-700 dark:text-fuchsia-300", border: "border-fuchsia-200 dark:border-fuchsia-800", activeBorder: "border-fuchsia-500 dark:border-fuchsia-400", activeBg: "bg-fuchsia-500/10 dark:bg-fuchsia-400/10" },
 ];
 
-export function FiltersBar({ filters, onChange, total }: FiltersBarProps) {
+export function FiltersBar({
+  filters,
+  onChange,
+  total,
+  visibility,
+  onVisibilityChange,
+}: FiltersBarProps) {
   const [tagsExpanded, setTagsExpanded] = useState(false);
 
   function toggleTopic(label: string) {
@@ -90,6 +113,43 @@ export function FiltersBar({ filters, onChange, total }: FiltersBarProps) {
             </button>
           )}
         </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex w-fit items-center gap-1 rounded-2xl border border-border bg-card p-1 shadow-soft">
+          {VISIBILITY_MODES.map((m) => (
+            <button
+              key={m.key}
+              onClick={() => onVisibilityChange(m.key)}
+              aria-pressed={visibility === m.key}
+              className={cn(
+                "h-8 rounded-xl px-3 text-xs font-semibold transition-colors active:scale-[0.96]",
+                visibility === m.key
+                  ? "bg-primary text-primary-foreground shadow-brand"
+                  : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+              )}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
+
+        <Select
+          value={filters.businessUnit}
+          onValueChange={(v) => onChange({ ...filters, businessUnit: v })}
+        >
+          <SelectTrigger className="h-10 w-fit min-w-[180px] rounded-2xl border-border bg-card text-xs font-semibold shadow-soft">
+            <SelectValue placeholder="Все направления" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Все направления</SelectItem>
+            {BUSINESS_UNITS.map((b) => (
+              <SelectItem key={b} value={b}>
+                {b}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );

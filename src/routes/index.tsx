@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight, Sparkles, SearchX, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Header } from "@/components/Header";
 import { SearchPanel } from "@/components/SearchPanel";
-import { FiltersBar } from "@/components/FiltersBar";
+import { FiltersBar, type VisibilityFilter } from "@/components/FiltersBar";
 import { KnowledgeCard } from "@/components/KnowledgeCard";
 import { CardSkeleton } from "@/components/CardSkeleton";
 import { Footer } from "@/components/Footer";
@@ -62,6 +62,7 @@ function Dashboard() {
   const [advisorQuery, setAdvisorQuery] = useState<string | null>(null);
   const [searchFocused, setSearchFocused] = useState(false);
   const [hintDismissed, setHintDismissed] = useState(false);
+  const [visibility, setVisibility] = useState<VisibilityFilter>("all");
   const [page, setPage] = useState(0);
   const firstRender = useRef(true);
 
@@ -88,14 +89,17 @@ function Dashboard() {
 
   useEffect(() => {
     setPage(0);
-  }, [debounced, scope, filters, onlyBookmarks]);
+  }, [debounced, scope, filters, onlyBookmarks, visibility]);
 
   const results = useMemo(
     () =>
       searchCards(debounced, scope, filters, onlyBookmarks ? bookmarks : null).filter(
-        (c) => !dismissed.includes(c.id),
+        (c) =>
+          !dismissed.includes(c.id) &&
+          (visibility === "all" ||
+            (visibility === "private") === privateIds.includes(c.id)),
       ),
-    [debounced, scope, filters, onlyBookmarks, bookmarks, dismissed],
+    [debounced, scope, filters, onlyBookmarks, bookmarks, dismissed, visibility, privateIds],
   );
 
   const pageCount = Math.max(1, Math.ceil(results.length / PAGE_SIZE));
@@ -202,7 +206,13 @@ function Dashboard() {
         )}
 
         <div className={cn("transition-opacity duration-300", focusOnAdvisor && "opacity-70")}>
-          <FiltersBar filters={filters} onChange={setFilters} total={results.length} />
+          <FiltersBar
+            filters={filters}
+            onChange={setFilters}
+            total={results.length}
+            visibility={visibility}
+            onVisibilityChange={setVisibility}
+          />
 
           <div className="mx-auto max-w-[1600px] px-4 pb-8 sm:px-6">
           {loading ? (
