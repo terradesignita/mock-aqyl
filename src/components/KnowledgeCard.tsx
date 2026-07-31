@@ -25,12 +25,12 @@ export function KnowledgeCard({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.28, delay: Math.min(index, 9) * 0.05 }}
-      className="group relative flex h-full flex-col rounded-card border border-border bg-card p-5 shadow-sm transition-all duration-300 hover:border-primary/40 hover:shadow-md"
+      className="group relative flex h-full flex-col rounded-card border border-border bg-card p-5 shadow-sm transition-[border-color,box-shadow] duration-300 hover:border-primary/40 hover:shadow-md"
     >
       {/* Header: scope badge & bookmark */}
       <div className="mb-4 flex items-center justify-between gap-3">
         <span
-          className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${
+          className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide ${
             isInternal
               ? "border-scope-internal/25 bg-scope-internal/10 text-scope-internal"
               : "border-scope-external/25 bg-scope-external/10 text-scope-external"
@@ -42,12 +42,12 @@ export function KnowledgeCard({
               isInternal ? "bg-scope-internal" : "bg-scope-external"
             }`}
           />
-          {isInternal ? "Общий" : "Приватный"}
+          {isInternal ? "Внутренний опыт" : "Мировой опыт"}
         </span>
         <button
           onClick={() => onToggleBookmark(card.id)}
           aria-label={bookmarked ? "Убрать из закладок" : "В закладки"}
-          className={`shrink-0 transition-colors active:scale-[0.96] ${
+          className={`-m-1 shrink-0 rounded-full p-1 transition-colors active:scale-[0.96] ${
             bookmarked ? "text-accent" : "text-muted-foreground hover:text-accent"
           }`}
         >
@@ -74,7 +74,7 @@ export function KnowledgeCard({
 
       {/* Footer: file count & delete-on-hover */}
       <div className="mt-auto flex items-center justify-between gap-3 border-t border-border pt-4">
-        <span className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
+        <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
           <Files className="h-4 w-4" />
           {card.citations.length} файлов
         </span>
@@ -86,7 +86,7 @@ export function KnowledgeCard({
           }}
           aria-label="Удалить кейс"
           title="Удалить кейс"
-          className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wide text-muted-foreground opacity-0 transition-[opacity,color] active:scale-[0.96] hover:text-destructive focus-visible:opacity-100 group-hover:opacity-100"
+          className="-m-1 inline-flex items-center gap-1 rounded-md p-1 text-xs font-bold uppercase tracking-wide text-muted-foreground/50 transition-colors active:scale-[0.96] hover:text-destructive focus-visible:text-destructive group-hover:text-muted-foreground"
         >
           <Trash2 className="h-4 w-4" />
         </button>

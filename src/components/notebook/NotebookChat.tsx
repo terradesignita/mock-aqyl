@@ -263,22 +263,22 @@ export function NotebookChat({
           <HoverCardTrigger asChild>
             <button
               onClick={() => openCitation(anchor)}
-              className="mx-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded border border-primary/35 bg-primary/10 px-1 align-super text-[10px] font-semibold leading-none text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+              className="mx-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded border border-primary/35 bg-primary/10 px-1 align-super text-xs font-semibold leading-none text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
               aria-label={`Источник ${n}`}
             >
               {n}
             </button>
           </HoverCardTrigger>
           <HoverCardContent align="start" className="w-80 p-3">
-            <p className="flex items-center gap-1.5 text-[11px] font-semibold text-card-foreground">
+            <p className="flex items-center gap-1.5 text-xs font-semibold text-card-foreground">
               <Quote className="h-3 w-3 text-primary" /> Источник [{n}]
             </p>
             <p className="mt-1.5 text-[12px] leading-relaxed text-muted-foreground">«{quote}»</p>
-            <p className="mt-2 truncate text-[11px] font-medium text-primary">
+            <p className="mt-2 truncate text-xs font-medium text-primary">
               {src?.title ?? anchor}
             </p>
-            <p className="text-[10px] text-muted-foreground">{src?.meta}</p>
-            <p className="mt-2 text-[10px] text-muted-foreground opacity-70">
+            <p className="text-xs text-muted-foreground">{src?.meta}</p>
+            <p className="mt-2 text-xs text-muted-foreground opacity-70">
               Нажмите, чтобы открыть в читалке
             </p>
           </HoverCardContent>
@@ -294,7 +294,7 @@ export function NotebookChat({
           <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1.5 text-xs font-semibold text-card-foreground shadow-sm">
             <Sparkle className="h-3.5 w-3.5 text-primary" /> AQYL ассистент
           </span>
-          <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+          <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
             Контекст: {selectedCitations.length} из {sources.length} источников
             <HelpHint
               side="left"
@@ -326,7 +326,7 @@ export function NotebookChat({
                   <p className="rounded-2xl rounded-br-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground">
                     {m.text}
                   </p>
-                  <p className="mt-1 text-right text-[10px] text-muted-foreground">{m.time}</p>
+                  <p className="mt-1 text-right text-xs text-muted-foreground">{m.time}</p>
                 </div>
               </div>
             ) : (
@@ -341,7 +341,7 @@ export function NotebookChat({
                       <li key={c}>
                         <button
                           onClick={() => openCitation(c)}
-                          className="inline-flex max-w-[280px] items-center gap-1.5 rounded-md bg-secondary px-2 py-1 text-[11px] text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                          className="inline-flex max-w-[280px] items-center gap-1.5 rounded-md bg-secondary px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
                           title={c}
                         >
                           <Quote className="h-3 w-3 shrink-0 text-primary" />
@@ -376,7 +376,7 @@ export function NotebookChat({
                   <span className="mx-1 h-4 w-px bg-border" />
                   <button
                     onClick={() => copy(m)}
-                    className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] transition-colors hover:bg-secondary hover:text-foreground"
+                    className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-secondary hover:text-foreground"
                   >
                     {copiedId === m.id ? (
                       <Check className="h-3.5 w-3.5 text-success" />
@@ -387,22 +387,22 @@ export function NotebookChat({
                   </button>
                   <button
                     onClick={() => onSaveNote(m.text)}
-                    className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] transition-colors hover:bg-secondary hover:text-foreground"
+                    className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-secondary hover:text-foreground"
                   >
                     <StickyNote className="h-3.5 w-3.5" /> В заметки
                   </button>
                   <button
                     onClick={() => setReportFor(reportFor === m.id ? null : m.id)}
-                    className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] transition-colors hover:bg-secondary hover:text-destructive"
+                    className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-secondary hover:text-destructive"
                   >
                     <Flag className="h-3.5 w-3.5" /> Сообщить об ошибке
                   </button>
-                  <span className="ml-auto text-[10px]">{m.time}</span>
+                  <span className="ml-auto text-xs">{m.time}</span>
                 </div>
 
                 {reportFor === m.id && (
                   <div className="mt-3 rounded-xl border border-border bg-secondary/50 p-3">
-                    <p className="text-[11px] font-semibold text-card-foreground">
+                    <p className="text-xs font-semibold text-card-foreground">
                       Что не так с ответом?
                     </p>
                     <div className="mt-2 flex flex-wrap gap-1.5">
@@ -420,7 +420,7 @@ export function NotebookChat({
                             onFeedback("report", questionFor(i), reason);
                             toast.success(`Отправлено редакторам: «${reason}»`);
                           }}
-                          className="rounded-full border border-border bg-card px-2.5 py-1 text-[11px] transition-colors hover:border-destructive hover:text-destructive"
+                          className="rounded-full border border-border bg-card px-2.5 py-1 text-xs transition-colors hover:border-destructive hover:text-destructive"
                         >
                           {reason}
                         </button>
@@ -463,14 +463,14 @@ export function NotebookChat({
               <button
                 key={s}
                 onClick={() => ask(s)}
-                className="rounded-full border border-border bg-card px-3 py-1.5 text-[11px] text-muted-foreground transition-[color,border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-primary hover:text-primary hover:shadow-sm"
+                className="rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground transition-[color,border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-primary hover:text-primary hover:shadow-sm"
               >
                 {s}
               </button>
             ))}
             <button
               onClick={() => setPillOffset((o) => o + 6)}
-              className="inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[11px] font-medium text-primary transition-colors hover:bg-primary/10"
+              className="inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/10"
             >
               <Shuffle className="h-3 w-3 transition-transform duration-300 group-hover:rotate-180" /> Ещё варианты
             </button>
@@ -478,7 +478,11 @@ export function NotebookChat({
 
 
           <div className="flex items-end gap-2 rounded-2xl border border-border bg-card p-2 shadow-sm focus-within:border-primary">
+            <label htmlFor="notebook-chat-question" className="sr-only">
+              Вопрос по выбранным источникам
+            </label>
             <textarea
+              id="notebook-chat-question"
               ref={inputRef}
               rows={1}
               value={input}
@@ -494,7 +498,7 @@ export function NotebookChat({
                   ? "Слушаю..."
                   : `Задайте вопрос по ${selectedCitations.length} выбранным источникам...`
               }
-              className="min-h-[40px] flex-1 resize-none bg-transparent px-3 py-2.5 text-sm outline-none placeholder:text-muted-foreground"
+              className="min-h-[40px] flex-1 resize-none bg-transparent px-3 py-2.5 text-base outline-none placeholder:text-muted-foreground sm:text-sm"
             />
             <button
               onClick={toggleVoice}
@@ -517,7 +521,7 @@ export function NotebookChat({
             </button>
           </div>
 
-          <p className="mt-2 text-center text-[10px] leading-relaxed text-muted-foreground/60">
+          <p className="mt-2 text-center text-xs leading-relaxed text-muted-foreground/60">
             AQYL — ИИ и может ошибаться. Пожалуйста, перепроверяйте факты и цитируемые источники.
           </p>
 

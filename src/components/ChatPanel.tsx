@@ -127,7 +127,11 @@ export function ChatPanel({ card, open, onClose }: ChatPanelProps) {
 
         <div className="border-t border-border p-3">
           <div className="flex items-end gap-2">
+            <label htmlFor="chat-panel-question" className="sr-only">
+              Ваш вопрос по карточке
+            </label>
             <textarea
+              id="chat-panel-question"
               ref={inputRef}
               rows={2}
               value={input}
@@ -139,7 +143,7 @@ export function ChatPanel({ card, open, onClose }: ChatPanelProps) {
                 }
               }}
               placeholder="Ваш вопрос..."
-              className="min-h-[44px] flex-1 resize-none rounded-xl border border-input bg-background p-2.5 text-sm outline-none focus:border-primary"
+              className="min-h-[44px] flex-1 resize-none rounded-xl border border-input bg-background p-2.5 text-base outline-none focus:border-primary sm:text-sm"
             />
             <Button size="icon" onClick={send} disabled={!input.trim() || thinking}>
               <Send className="h-4 w-4" />

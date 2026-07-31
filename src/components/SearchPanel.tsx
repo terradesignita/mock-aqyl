@@ -110,7 +110,11 @@ export function SearchPanel({
           </div>
 
 
+          <label htmlFor="main-search-query" className="sr-only">
+            {advisor ? "Опишите бизнес-ситуацию для AI-советника" : "Поиск по материалам BI AQYL"}
+          </label>
           <input
+            id="main-search-query"
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
             onKeyDown={(e) => {
@@ -123,7 +127,7 @@ export function SearchPanel({
                 ? "Опишите бизнес-ситуацию или решение, которое нужно принять — советник разберётся и предложит рекомендацию"
                 : "Спросите BI AQYL: найдите материалы, кейсы и презентации"
             }
-            className="h-11 w-full min-w-0 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+            className="h-11 w-full min-w-0 bg-transparent text-base outline-none placeholder:text-muted-foreground sm:text-sm"
           />
           <span className="flex items-center gap-1">
             {query && (
@@ -150,7 +154,7 @@ export function SearchPanel({
 
       {advisor && history.length > 0 && (
         <div className="mt-3 rounded-2xl border border-border bg-card p-4 shadow-soft">
-          <p className="flex items-center gap-1.5 pb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          <p className="flex items-center gap-1.5 pb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             <History className="h-3.5 w-3.5" /> Недавние вопросы
             <Button
               variant="ghost"
@@ -220,7 +224,7 @@ export function SearchPanel({
                   <SlidersHorizontal className="h-4 w-4" />
                   Фильтры
                   {activeFilterCount > 0 && (
-                    <span className="grid h-4 w-4 place-items-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                    <span className="grid h-4 w-4 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
                       {activeFilterCount}
                     </span>
                   )}

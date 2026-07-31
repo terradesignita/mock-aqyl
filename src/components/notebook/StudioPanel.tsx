@@ -509,7 +509,7 @@ ${content.items
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuLabel className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                    <DropdownMenuLabel className="text-xs uppercase tracking-wider text-muted-foreground">
                       {a.title}
                     </DropdownMenuLabel>
                     <DropdownMenuItem onSelect={() => generate(a.id)}>
@@ -607,14 +607,14 @@ ${content.items
       </div>
 
       <div className="border-t border-border p-3">
-        <p className="flex items-center gap-1.5 pb-2 text-[11px] text-muted-foreground">
+        <p className="flex items-center gap-1.5 pb-2 text-xs text-muted-foreground">
           <Sparkle className="h-3 w-3 text-accent" /> Создано с помощью ИИ
         </p>
         <blockquote className="rounded-xl border border-border bg-secondary/50 p-3">
           <p className="text-xs font-medium leading-relaxed text-secondary-foreground">
             {quote.text}
           </p>
-          <footer className="mt-1 text-[11px] text-muted-foreground">— {quote.author}</footer>
+          <footer className="mt-1 text-xs text-muted-foreground">— {quote.author}</footer>
         </blockquote>
       </div>
     </div>

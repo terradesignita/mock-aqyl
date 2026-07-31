@@ -67,7 +67,7 @@ export function DeckViewer({ slides, fullscreen }: { slides: Slide[]; fullscreen
     <div className="space-y-3">
       <div className="relative overflow-hidden rounded-2xl border border-border bg-primary text-primary-foreground shadow-xl">
         <div className="aspect-video p-6 sm:p-10">
-          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-primary-foreground/60">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary-foreground/60">
             {s.kicker}
           </p>
           <h3
@@ -96,7 +96,7 @@ export function DeckViewer({ slides, fullscreen }: { slides: Slide[]; fullscreen
               ))}
             </ul>
           )}
-          <p className="absolute bottom-4 right-6 text-[11px] font-semibold text-primary-foreground/50">
+          <p className="absolute bottom-4 right-6 text-xs font-semibold text-primary-foreground/50">
             {i + 1} / {slides.length}
           </p>
         </div>
@@ -109,7 +109,7 @@ export function DeckViewer({ slides, fullscreen }: { slides: Slide[]; fullscreen
         <Button
           size="sm"
           variant="ghost"
-          className="gap-1.5 text-[11px]"
+          className="gap-1.5 text-xs"
           onClick={() => setNotes((v) => !v)}
         >
           <Play className="h-3 w-3" /> {notes ? "Скрыть заметки" : "Спикер-ноты"}
@@ -132,7 +132,7 @@ export function DeckViewer({ slides, fullscreen }: { slides: Slide[]; fullscreen
             key={sl.title + idx}
             onClick={() => setI(idx)}
             aria-label={`Слайд ${idx + 1}`}
-            className={`h-14 w-24 shrink-0 rounded-lg border p-1.5 text-left text-[9px] leading-tight transition-all ${
+            className={`h-14 w-24 shrink-0 rounded-lg border p-1.5 text-left text-[9px] leading-tight transition-[color,border-color,background-color,box-shadow] ${
               idx === i
                 ? "border-primary bg-primary/10 text-card-foreground ring-2 ring-primary/30"
                 : "border-border bg-secondary/40 text-muted-foreground hover:border-primary/40"

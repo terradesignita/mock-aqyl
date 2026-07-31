@@ -135,7 +135,7 @@ export function ArtifactDialog({
                 <DialogPrimitive.Title className="truncate text-sm font-bold text-card-foreground">
                   {title}
                 </DialogPrimitive.Title>
-                <DialogPrimitive.Description className="truncate text-[11px] text-muted-foreground">
+                <DialogPrimitive.Description className="truncate text-xs text-muted-foreground">
                   {subtitle ?? "Сгенерировано из выбранных источников"}
                 </DialogPrimitive.Description>
               </div>
@@ -187,7 +187,7 @@ export function ArtifactDialog({
                           className="rounded-xl border border-border bg-secondary/40 p-3"
                         >
                           <p className="text-base font-bold text-primary">{m.value}</p>
-                          <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">
+                          <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
                             {m.label}
                           </p>
                         </div>
@@ -204,7 +204,7 @@ export function ArtifactDialog({
                         }`}
                       >
                         {item.label && (
-                          <span className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-accent">
+                          <span className="mb-1 block text-xs font-bold uppercase tracking-wider text-accent">
                             {item.label}
                           </span>
                         )}
@@ -218,7 +218,7 @@ export function ArtifactDialog({
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border p-3">
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Esc — {fullscreen ? "выйти из полного экрана" : "закрыть"} · F — полный экран
             </p>
             <div className="flex flex-wrap items-center gap-1.5">

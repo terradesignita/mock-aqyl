@@ -18,7 +18,7 @@ export function UnderstandingCard({
 }: Props) {
   return (
     <section className="rounded-card border-2 border-primary/35 bg-primary/5 p-5 shadow-soft">
-      <h3 className="text-sm font-bold text-card-foreground">Вот как я понял вашу ситуацию</h3>
+      <h2 className="text-sm font-bold text-card-foreground">Вот как я понял вашу ситуацию</h2>
       <p className="mt-2 text-sm leading-relaxed text-card-foreground">{text}</p>
 
       <label htmlFor="advisor-extra-context" className="sr-only">
@@ -40,7 +40,7 @@ export function UnderstandingCard({
         <Button size="sm" variant="outline" className="gap-1.5" onClick={onEdit}>
           <Undo2 className="h-4 w-4" /> Изменить ответы
         </Button>
-        <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+        <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <PenLine className="h-3.5 w-3.5" /> До подтверждения рекомендация не формируется
         </span>
       </div>

@@ -88,7 +88,7 @@ export function QuizView({ questions }: { questions: QuizQuestion[] }) {
         </div>
         <div className="mt-2 h-2 overflow-hidden rounded-full bg-border">
           <div
-            className="h-2 rounded-full bg-primary transition-all duration-500"
+            className="h-2 rounded-full bg-primary transition-[width] duration-500"
             style={{ width: `${(answered / questions.length) * 100}%` }}
           />
         </div>
@@ -99,7 +99,7 @@ export function QuizView({ questions }: { questions: QuizQuestion[] }) {
         const isAnswered = picked !== undefined;
         return (
           <div key={q.q} className="rounded-2xl border border-border bg-card p-3">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-accent">
+            <p className="text-xs font-bold uppercase tracking-wider text-accent">
               Вопрос {qi + 1}
             </p>
             <p className="mt-1 text-sm font-semibold leading-snug text-card-foreground">{q.q}</p>
@@ -119,7 +119,7 @@ export function QuizView({ questions }: { questions: QuizQuestion[] }) {
                     key={opt}
                     disabled={isAnswered}
                     onClick={() => setAnswers((p) => ({ ...p, [qi]: oi }))}
-                    className={`grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-xl border px-3 py-2 text-left text-xs leading-relaxed text-card-foreground transition-all ${state}`}
+                    className={`grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-xl border px-3 py-2 text-left text-xs leading-relaxed text-card-foreground transition-[border-color,background-color,opacity] ${state}`}
                   >
                     <span>{opt}</span>
                     {isAnswered && isCorrect && <Check className="h-4 w-4 shrink-0 text-success" />}
@@ -131,7 +131,7 @@ export function QuizView({ questions }: { questions: QuizQuestion[] }) {
               })}
             </div>
             {isAnswered && (
-              <p className="mt-2 rounded-lg bg-secondary/50 p-2 text-[11px] leading-relaxed text-muted-foreground animate-fade-in">
+              <p className="mt-2 rounded-lg bg-secondary/50 p-2 text-xs leading-relaxed text-muted-foreground animate-fade-in">
                 {q.why}
               </p>
             )}

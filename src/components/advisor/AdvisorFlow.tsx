@@ -47,7 +47,7 @@ function Stepper({ stage, onGoTo }: { stage: Stage; onGoTo: (s: Stage) => void }
                 disabled={!done}
                 onClick={() => done && onGoTo(s.id)}
                 aria-label={s.label}
-                className={`flex items-center gap-1.5 rounded-full border px-1.5 py-1 text-[11px] font-bold uppercase tracking-wide transition-all sm:px-2.5 ${
+                className={`flex items-center gap-1.5 rounded-full border px-1.5 py-1 text-xs font-bold uppercase tracking-wide transition-colors sm:px-2.5 ${
                   active
                     ? "border-primary bg-primary text-primary-foreground shadow-soft"
                     : done
@@ -167,7 +167,7 @@ export function AdvisorFlow({ query, onReset, onFollowUp }: Props) {
               </Button>
             ) : (
               <Button size="sm" disabled={!enough} onClick={() => setStage("understanding")}>
-                Продолжить
+                Далее
               </Button>
             )}
             {!enough && qIndex === questions.length - 1 && (
@@ -195,7 +195,7 @@ export function AdvisorFlow({ query, onReset, onFollowUp }: Props) {
         <div className="rounded-card border border-border bg-card p-5 shadow-soft">
           <div className="mb-3 h-1 w-full overflow-hidden rounded-full bg-secondary">
             <div
-              className="h-full rounded-full bg-primary transition-all duration-500"
+              className="h-full rounded-full bg-primary transition-[width] duration-500"
               style={{ width: `${((step + 1) / THINKING_STEPS.length) * 100}%` }}
             />
           </div>
@@ -254,7 +254,7 @@ export function AdvisorFlow({ query, onReset, onFollowUp }: Props) {
                 <button
                   key={q}
                   onClick={() => onFollowUp(q)}
-                  className="rounded-full border border-border bg-secondary/30 px-3 py-1.5 text-xs text-muted-foreground transition-all hover:-translate-y-px hover:border-primary hover:bg-primary/8 hover:text-primary"
+                  className="rounded-full border border-border bg-secondary/30 px-3 py-1.5 text-xs text-muted-foreground transition-[color,border-color,background-color,transform] hover:-translate-y-px hover:border-primary hover:bg-primary/8 hover:text-primary"
                 >
                   {q}
                 </button>
@@ -275,7 +275,7 @@ export function AdvisorFlow({ query, onReset, onFollowUp }: Props) {
                   }
                 }}
                 placeholder="Задайте уточняющий вопрос по этой рекомендации"
-                className="h-10 w-full min-w-0 rounded-control border border-border bg-secondary/40 px-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-primary"
+                className="h-10 w-full min-w-0 rounded-control border border-border bg-secondary/40 px-3 text-base outline-none transition-colors placeholder:text-muted-foreground focus:border-primary sm:text-sm"
               />
               <Button
                 size="icon"
@@ -289,7 +289,7 @@ export function AdvisorFlow({ query, onReset, onFollowUp }: Props) {
                 <Send className="h-4 w-4" />
               </Button>
             </div>
-            <p className="mt-2 text-[11px] text-muted-foreground/60">
+            <p className="mt-2 text-xs text-muted-foreground/60">
               AQYL — ИИ и может ошибаться. Пожалуйста, перепроверяйте факты и цитируемые источники.
             </p>
           </div>

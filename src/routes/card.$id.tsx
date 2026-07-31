@@ -97,7 +97,7 @@ function CardWorkspace() {
             <span className="flex min-w-0 items-center gap-2">
               <h1 className="truncate text-sm font-bold text-card-foreground">{card.title}</h1>
               <span
-                className={`hidden shrink-0 items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-semibold sm:inline-flex ${
+                className={`hidden shrink-0 items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-semibold sm:inline-flex ${
                   isInternal
                     ? "bg-scope-internal/15 text-scope-internal"
                     : "bg-scope-external/15 text-scope-external"
@@ -109,10 +109,10 @@ function CardWorkspace() {
                     isInternal ? "bg-scope-internal" : "bg-scope-external"
                   }`}
                 />
-                {isInternal ? "INTERNAL" : "EXTERNAL"}
+                {isInternal ? "Внутренний опыт" : "Мировой опыт"}
               </span>
             </span>
-            <span className="hidden truncate text-[11px] text-muted-foreground sm:block">
+            <span className="hidden truncate text-xs text-muted-foreground sm:block">
               {card.source} · {card.author} · {card.language} · {card.date} · {card.business_unit}
             </span>
           </span>

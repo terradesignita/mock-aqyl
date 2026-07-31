@@ -1,5 +1,5 @@
 import { HelpHint } from "@/components/HelpHint";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   Download,
   FileText,
@@ -40,7 +40,7 @@ interface Props {
 function Counter({ value, tone = "muted" }: { value: number; tone?: "muted" | "primary" }) {
   return (
     <span
-      className={`inline-grid h-[18px] min-w-[18px] place-items-center rounded-full px-1 text-[10px] font-bold tabular-nums ${
+      className={`inline-grid h-[18px] min-w-[18px] place-items-center rounded-full px-1 text-xs font-bold tabular-nums ${
         tone === "primary" ? "bg-primary/12 text-primary" : "bg-secondary text-muted-foreground"
       }`}
     >
@@ -63,6 +63,7 @@ export function SourcesPanel({
   const [drag, setDrag] = useState(false);
   const [renames, setRenames] = useState<Record<string, string>>({});
   const [removed, setRemoved] = useState<string[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const visible = sources.filter((s) => !removed.includes(s.id));
   const allSelected = selected.length === visible.length && visible.length > 0;
@@ -119,7 +120,7 @@ export function SourcesPanel({
             <span className="block truncate text-[12px] font-medium leading-tight text-card-foreground">
               {titleOf(s)}
             </span>
-            <span className="block truncate text-[10px] leading-tight text-muted-foreground">
+            <span className="block truncate text-xs leading-tight text-muted-foreground">
               <span className={`font-semibold ${tone.text}`}>{isLink ? "Ссылка" : s.format}</span>
               {" · "}
               {s.meta.replace(/^(Ссылка|[A-Z]+)\s·\s/, "")}
@@ -137,7 +138,7 @@ export function SourcesPanel({
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-52">
-            <DropdownMenuLabel className="truncate text-[11px]">{titleOf(s)}</DropdownMenuLabel>
+            <DropdownMenuLabel className="truncate text-xs">{titleOf(s)}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => onOpenSource(s)}>
               <MessageSquareText className="h-4 w-4" /> Открыть в читалке
@@ -172,7 +173,7 @@ export function SourcesPanel({
         <p className="flex min-w-0 items-center gap-1.5 truncate text-sm font-bold tracking-tight text-card-foreground">
           Источники
           <Counter value={selected.length} tone="primary" />
-          <span className="text-[11px] font-medium text-muted-foreground">
+          <span className="text-xs font-medium text-muted-foreground">
             из {visible.length}
           </span>
           <HelpHint
@@ -182,7 +183,7 @@ export function SourcesPanel({
         </p>
         <button
           onClick={onToggleAll}
-          className="shrink-0 text-[11px] font-medium text-primary hover:underline"
+          className="shrink-0 text-xs font-medium text-primary hover:underline"
         >
           {allSelected ? "Снять все" : "Выбрать все"}
         </button>
@@ -199,7 +200,16 @@ export function SourcesPanel({
       </div>
 
       <div className="px-3 pb-2">
-        <div
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          className="sr-only"
+          onChange={() => toast.success("Файлы добавлены")}
+        />
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
           onDragOver={(e) => {
             e.preventDefault();
             setDrag(true);
@@ -209,35 +219,35 @@ export function SourcesPanel({
             e.preventDefault();
             setDrag(false);
           }}
-          className={`flex flex-col items-center gap-1 rounded-xl border-2 border-dashed px-3 py-3 text-center transition-colors ${
+          className={`flex w-full flex-col items-center gap-1 rounded-xl border-2 border-dashed px-3 py-3 text-center transition-colors ${
             drag
               ? "border-primary bg-primary/10 text-primary"
               : "border-border text-muted-foreground hover:border-primary/60 hover:text-primary"
           }`}
         >
           <Plus className="h-4 w-4" />
-          <p className="text-[11px] font-medium leading-tight">Перетащите файлы сюда</p>
-          <p className="text-[10px] leading-tight opacity-80">PDF, DOCX, PPTX, MP3 или ссылка</p>
-        </div>
+          <p className="text-xs font-medium leading-tight">Перетащите файлы сюда или нажмите, чтобы выбрать</p>
+          <p className="text-xs leading-tight opacity-80">PDF, DOCX, PPTX, MP3 или ссылка</p>
+        </button>
       </div>
 
       <div className="flex-1 space-y-3 overflow-y-auto px-3 pb-3">
         <div>
-          <p className="flex items-center gap-1.5 px-1 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          <p className="flex items-center gap-1.5 px-1 pb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             <span aria-hidden className="h-2 w-2 rounded-full bg-src-file" />
             Загруженные файлы
             <Counter value={files.length} />
           </p>
           <ul className="space-y-0.5">{files.map(row)}</ul>
           {files.length === 0 && (
-            <p className="px-1 py-1 text-[11px] text-muted-foreground">Ничего не найдено</p>
+            <p className="px-1 py-1 text-xs text-muted-foreground">Ничего не найдено</p>
           )}
         </div>
 
       </div>
 
       <div className="max-h-[45%] overflow-y-auto border-t border-border p-3">
-        <p className="flex items-center gap-1.5 pb-1.5 text-[11px] font-semibold text-card-foreground">
+        <p className="flex items-center gap-1.5 pb-1.5 text-xs font-semibold text-card-foreground">
           <NotebookPen className="h-3.5 w-3.5 text-primary" /> Заметки
           <Counter value={notes.length} />
           <HelpHint
@@ -246,7 +256,7 @@ export function SourcesPanel({
           />
         </p>
         {notes.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-border p-2.5 text-[11px] leading-relaxed text-muted-foreground">
+          <p className="rounded-lg border border-dashed border-border p-2.5 text-xs leading-relaxed text-muted-foreground">
             Сохраняйте ответы из диалога — они появятся здесь.
           </p>
         ) : (
@@ -257,10 +267,10 @@ export function SourcesPanel({
                 className="grid grid-cols-[minmax(0,1fr)_auto] gap-2 rounded-lg border border-border bg-background p-2.5"
               >
                 <span className="min-w-0">
-                  <span className="block whitespace-pre-line text-[11px] leading-relaxed text-card-foreground">
+                  <span className="block whitespace-pre-line text-xs leading-relaxed text-card-foreground">
                     {n.text}
                   </span>
-                  <span className="mt-1 block text-[10px] text-muted-foreground opacity-70">
+                  <span className="mt-1 block text-xs text-muted-foreground opacity-70">
                     {n.date}
                   </span>
                 </span>

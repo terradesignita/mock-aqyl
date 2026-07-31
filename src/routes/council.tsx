@@ -36,7 +36,7 @@ function AvatarStack({ personaIds }: { personaIds: string[] }) {
             key={id}
             aria-hidden
             className={cn(
-              "grid h-6 w-6 place-items-center rounded-full border-2 border-card text-[10px] font-bold text-white",
+              "grid h-6 w-6 place-items-center rounded-full border-2 border-card text-xs font-bold text-white",
               p.color,
             )}
           >
@@ -47,7 +47,7 @@ function AvatarStack({ personaIds }: { personaIds: string[] }) {
       {rest > 0 && (
         <span
           aria-hidden
-          className="grid h-6 w-6 place-items-center rounded-full border-2 border-card bg-secondary text-[10px] font-bold text-muted-foreground"
+          className="grid h-6 w-6 place-items-center rounded-full border-2 border-card bg-secondary text-xs font-bold text-muted-foreground"
         >
           +{rest}
         </span>
@@ -107,14 +107,14 @@ function NewCouncilPanel({
         >
           1. Выберите кейс
         </label>
-        <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-3">
+        <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 transition-colors focus-within:border-primary">
           <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
           <input
             id="council-case-search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Найдите кейс по названию"
-            className="h-10 w-full min-w-0 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+            className="h-10 w-full min-w-0 bg-transparent text-base outline-none placeholder:text-muted-foreground sm:text-sm"
           />
         </div>
         <div className="mt-2 max-h-56 space-y-1 overflow-y-auto">
@@ -284,7 +284,7 @@ function SessionView({ session }: { session: CouncilSession }) {
             </div>
           ) : (
             <div key={i} className="flex gap-3">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-secondary text-[10px] font-bold uppercase text-muted-foreground">
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-secondary text-xs font-bold uppercase text-muted-foreground">
                 Итог
               </span>
               <div className="min-w-0 flex-1 rounded-2xl rounded-tl-sm border border-dashed border-border bg-secondary/40 p-3 text-sm leading-relaxed text-card-foreground">
@@ -305,7 +305,7 @@ function SessionView({ session }: { session: CouncilSession }) {
           onChange={(e) => setFollowUp(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && send()}
           placeholder="Задайте уточняющий вопрос совету"
-          className="h-10 w-full min-w-0 rounded-control border border-border bg-secondary/40 px-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-primary"
+          className="h-10 w-full min-w-0 rounded-control border border-border bg-secondary/40 px-3 text-base outline-none transition-colors placeholder:text-muted-foreground focus:border-primary sm:text-sm"
         />
         <Button size="icon" disabled={!followUp.trim()} onClick={send} aria-label="Отправить">
           <Send className="h-4 w-4" />
@@ -352,7 +352,7 @@ function CouncilPage() {
           <div className="mt-4 flex-1 space-y-4">
             {today.length > 0 && (
               <div>
-                <p className="px-1 pb-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                <p className="px-1 pb-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   Сегодня
                 </p>
                 <div className="space-y-1.5">
@@ -364,7 +364,7 @@ function CouncilPage() {
             )}
             {earlier.length > 0 && (
               <div>
-                <p className="px-1 pb-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                <p className="px-1 pb-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   Ранее
                 </p>
                 <div className="space-y-1.5">
@@ -426,7 +426,7 @@ function SessionRow({
       </div>
       <div className="mt-1.5 flex items-center justify-between">
         <AvatarStack personaIds={session.personaIds} />
-        <span className="text-[11px] text-muted-foreground">{session.date}</span>
+        <span className="text-xs text-muted-foreground">{session.date}</span>
       </div>
     </button>
   );

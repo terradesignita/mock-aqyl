@@ -11,8 +11,8 @@ export function Footer() {
         </span>
 
         <div className="flex flex-wrap items-center gap-4">
-          <span className="cursor-default transition-colors hover:text-foreground">Документация</span>
-          <span className="cursor-default transition-colors hover:text-foreground">Поддержка</span>
+          <span>Документация</span>
+          <span>Поддержка</span>
           <span className="opacity-70">MVP v0.1 · demo mode</span>
         </div>
       </div>

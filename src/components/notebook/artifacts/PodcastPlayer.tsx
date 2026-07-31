@@ -109,7 +109,7 @@ export function PodcastPlayer({ lines, fullscreen }: { lines: Line[]; fullscreen
           </span>
           <div className="min-w-0">
             <p className="truncate text-sm font-bold">AQYL Разбор · выпуск дня</p>
-            <p className="truncate text-[11px] text-primary-foreground/70">
+            <p className="truncate text-xs text-primary-foreground/70">
               Алия и Данияр · {lines.length} реплик
             </p>
           </div>
@@ -138,7 +138,7 @@ export function PodcastPlayer({ lines, fullscreen }: { lines: Line[]; fullscreen
           />
         </div>
 
-        <div className="mt-2 flex items-center justify-between text-[11px] tabular-nums text-primary-foreground/70">
+        <div className="mt-2 flex items-center justify-between text-xs tabular-nums text-primary-foreground/70">
           <span>{fmt(time)}</span>
           <span>{fmt(duration)}</span>
         </div>
@@ -171,7 +171,7 @@ export function PodcastPlayer({ lines, fullscreen }: { lines: Line[]; fullscreen
               setRate(next);
               if (audioRef.current) audioRef.current.playbackRate = next;
             }}
-            className="ml-2 rounded-full bg-primary-foreground/10 px-2.5 py-1 text-[11px] font-bold tabular-nums"
+            className="ml-2 rounded-full bg-primary-foreground/10 px-2.5 py-1 text-xs font-bold tabular-nums"
           >
             {rate}×
           </button>
@@ -191,12 +191,12 @@ export function PodcastPlayer({ lines, fullscreen }: { lines: Line[]; fullscreen
               key={`${l.t}-${i}`}
               data-line={i}
               onClick={() => seek(l.t)}
-              className={`grid w-full grid-cols-[52px_minmax(0,1fr)] gap-2 rounded-lg px-2 py-1.5 text-left transition-all ${
+              className={`grid w-full grid-cols-[52px_minmax(0,1fr)] gap-2 rounded-lg px-2 py-1.5 text-left transition-colors ${
                 isActive ? "bg-accent/10" : "hover:bg-secondary/60"
               }`}
             >
               <span
-                className={`pt-0.5 text-[11px] tabular-nums ${
+                className={`pt-0.5 text-xs tabular-nums ${
                   isActive ? "font-bold text-accent" : "text-muted-foreground/70"
                 }`}
               >
@@ -212,7 +212,7 @@ export function PodcastPlayer({ lines, fullscreen }: { lines: Line[]; fullscreen
                 }`}
               >
                 <span
-                  className={`mr-1.5 text-[11px] font-bold uppercase tracking-wider ${
+                  className={`mr-1.5 text-xs font-bold uppercase tracking-wider ${
                     isActive ? "text-primary" : "text-muted-foreground/60"
                   }`}
                 >
@@ -224,7 +224,7 @@ export function PodcastPlayer({ lines, fullscreen }: { lines: Line[]; fullscreen
           );
         })}
       </div>
-      <p className="text-[11px] text-muted-foreground">
+      <p className="text-xs text-muted-foreground">
         Клик по реплике — перемотка. Текст подсвечивается синхронно с аудио.
       </p>
     </div>

@@ -147,7 +147,7 @@ export function SourceReaderDialog({
                 <DialogPrimitive.Title className="truncate text-sm font-bold text-card-foreground">
                   {source.title}
                 </DialogPrimitive.Title>
-                <DialogPrimitive.Description className="mt-0.5 truncate text-[11px] text-muted-foreground">
+                <DialogPrimitive.Description className="mt-0.5 truncate text-xs text-muted-foreground">
                   {source.meta}
                   {source.pages ? ` · ${source.pages} стр.` : ""} · {source.id}
                 </DialogPrimitive.Description>
@@ -223,7 +223,7 @@ export function SourceReaderDialog({
                 </a>
               )}
             </div>
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               {highlight ? "Цитата подсвечена в тексте · " : ""}Esc — закрыть · Aa — размер текста
             </p>
           </div>
