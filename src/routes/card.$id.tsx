@@ -89,7 +89,7 @@ function CardWorkspace() {
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-background">
-      <Header dark={dark} onToggleDark={toggle} bookmarkCount={bookmarks.length} />
+      <Header dark={dark} onToggleDark={toggle} />
 
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-border bg-card px-4 py-2.5">
         <div className="flex min-w-0 items-center gap-3">

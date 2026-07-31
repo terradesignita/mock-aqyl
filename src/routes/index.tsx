@@ -115,12 +115,7 @@ function Dashboard() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <div className={cn("transition-opacity duration-300", focusOnAdvisor && "opacity-70")}>
-        <Header
-          dark={dark}
-          onToggleDark={toggle}
-          bookmarkCount={bookmarks.length}
-          onOpenBookmarks={() => setOnlyBookmarks((v) => !v)}
-        />
+        <Header dark={dark} onToggleDark={toggle} />
       </div>
 
       <main className="flex-1">
@@ -212,6 +207,9 @@ function Dashboard() {
             total={results.length}
             visibility={visibility}
             onVisibilityChange={setVisibility}
+            bookmarkCount={bookmarks.length}
+            onlyBookmarks={onlyBookmarks}
+            onToggleOnlyBookmarks={() => setOnlyBookmarks((v) => !v)}
           />
 
           <div className="mx-auto max-w-[1600px] px-4 pb-8 sm:px-6">

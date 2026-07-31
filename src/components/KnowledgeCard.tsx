@@ -74,7 +74,7 @@ export function KnowledgeCard({
           setOverlayMode("open");
         }
       }}
-      className="group relative flex h-full cursor-pointer flex-col rounded-card border border-border bg-card p-5 shadow-sm transition-[border-color,box-shadow] duration-300 hover:border-primary/40 hover:shadow-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+      className="group relative flex h-full cursor-pointer flex-col rounded-card border border-border bg-card p-5 shadow-sm transition-[border-color,box-shadow,transform] duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-xl focus-visible:-translate-y-1 focus-visible:border-primary/40 focus-visible:shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
     >
       {/* Card chrome: made inert while an overlay covers it, so Tab can't reach
           controls hidden behind the dimmed backdrop. */}
@@ -160,7 +160,9 @@ export function KnowledgeCard({
                 isInternal ? "bg-scope-internal" : "bg-scope-external"
               }`}
             />
-            <span className="whitespace-nowrap">
+            <span
+              className={`whitespace-nowrap ${isInternal ? "text-scope-internal" : "text-scope-external"}`}
+            >
               {isInternal ? "Внутренний опыт" : "Мировой опыт"}
             </span>
             <span aria-hidden>·</span>

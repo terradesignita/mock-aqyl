@@ -1,14 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import { Bookmark, Home, Moon, Sun, Users } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Home, Moon, Sun, Users } from "lucide-react";
 import { BiLogo } from "@/components/BiLogo";
 import { cn } from "@/lib/utils";
 
 interface HeaderProps {
   dark: boolean;
   onToggleDark: () => void;
-  bookmarkCount?: number;
-  onOpenBookmarks?: () => void;
 }
 
 const NAV = [
@@ -16,12 +13,7 @@ const NAV = [
   { id: "council", label: "Консилиум", icon: Users, to: "/council" as const, exact: false },
 ];
 
-export function Header({
-  dark,
-  onToggleDark,
-  bookmarkCount = 0,
-  onOpenBookmarks,
-}: HeaderProps) {
+export function Header({ dark, onToggleDark }: HeaderProps) {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-card/85 backdrop-blur-xl">
       <div className="mx-auto grid max-w-[1600px] grid-cols-[auto_1fr_auto] items-center gap-4 px-4 py-2.5 sm:px-6">
@@ -53,18 +45,6 @@ export function Header({
         </nav>
 
         <div className="flex items-center gap-2 justify-self-end">
-          {onOpenBookmarks && (
-            <Button variant="ghost" size="sm" onClick={onOpenBookmarks} className="gap-1.5">
-              <Bookmark className="h-4 w-4" />
-              <span className="hidden lg:inline">Закладки</span>
-              {bookmarkCount > 0 && (
-                <span className="rounded-full bg-accent px-1.5 text-xs font-semibold text-accent-foreground">
-                  {bookmarkCount}
-                </span>
-              )}
-            </Button>
-          )}
-
           <div className="flex items-center rounded-full border border-border bg-background p-0.5">
             <button
               onClick={() => dark && onToggleDark()}

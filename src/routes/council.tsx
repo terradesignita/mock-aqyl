@@ -4,7 +4,7 @@ import { Plus, Search, Send } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useBookmarks, useCouncilSessions, useTheme } from "@/hooks/useAppState";
+import { useCouncilSessions, useTheme } from "@/hooks/useAppState";
 import { mockCards, type KnowledgeCardData } from "@/data/mockCards";
 import {
   COUNCIL_PERSONAS,
@@ -317,7 +317,6 @@ function SessionView({ session }: { session: CouncilSession }) {
 
 function CouncilPage() {
   const { dark, toggle } = useTheme();
-  const { bookmarks } = useBookmarks();
   const { sessions, create, markRead } = useCouncilSessions();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
@@ -334,7 +333,7 @@ function CouncilPage() {
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-background">
-      <Header dark={dark} onToggleDark={toggle} bookmarkCount={bookmarks.length} />
+      <Header dark={dark} onToggleDark={toggle} />
       <h1 className="sr-only">Консилиум</h1>
 
       <div className="flex min-h-0 flex-1 flex-col md:flex-row">

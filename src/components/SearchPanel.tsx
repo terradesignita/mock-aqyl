@@ -1,5 +1,16 @@
 import { HelpHint } from "@/components/HelpHint";
-import { ArrowRight, History, Search, SlidersHorizontal, Sparkles, X } from "lucide-react";
+import { useRef, useState } from "react";
+import {
+  ArrowRight,
+  History,
+  Mic,
+  MicOff,
+  Search,
+  SlidersHorizontal,
+  Sparkles,
+  X,
+} from "lucide-react";
+import { toast } from "sonner";
 import type { Filters, ScopeFilter } from "@/lib/search";
 import { LANGUAGES, MEDIA_LABELS, emptyFilters } from "@/lib/search";
 import { BUSINESS_UNITS } from "@/data/mockCards";
@@ -55,13 +66,63 @@ export function SearchPanel({
     (v) => v !== "all",
   ).length;
 
+  const [listening, setListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
+
+  const toggleVoice = () => {
+    const SR = (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition ?? null;
+    if (!SR) {
+      toast.error("Голосовой ввод не поддерживается в этом браузере");
+      return;
+    }
+    if (listening) {
+      recognitionRef.current?.stop();
+      return;
+    }
+    const rec = new SR();
+    rec.lang = "ru-RU";
+    rec.interimResults = true;
+    rec.continuous = false;
+    let finalText = "";
+    rec.onresult = (event: any) => {
+      let interim = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const chunk = event.results[i][0].transcript;
+        if (event.results[i].isFinal) finalText += chunk;
+        else interim += chunk;
+      }
+      onQueryChange((finalText + interim).trim());
+    };
+    rec.onerror = (event: any) => {
+      setListening(false);
+      toast.error(
+        event.error === "not-allowed"
+          ? "Нет доступа к микрофону"
+          : "Не удалось распознать речь, попробуйте ещё раз",
+      );
+    };
+    rec.onend = () => {
+      setListening(false);
+      const value = finalText.trim();
+      if (value) onQueryChange(value);
+    };
+    recognitionRef.current = rec;
+    setListening(true);
+    rec.start();
+    toast.info("Говорите — я записываю вопрос");
+  };
+
   return (
     <section className="mx-auto w-full max-w-[1600px] px-4 pb-2 pt-6 sm:px-6">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">
         <h1 className="truncate text-2xl font-extrabold tracking-tight text-foreground sm:text-[28px]">
           Добрый день, Марат
         </h1>
-        {totalLabel && <p className="text-sm text-muted-foreground">{totalLabel}</p>}
+        {totalLabel && (
+          <p className={cn("text-sm", advisor ? "font-semibold text-primary" : "text-muted-foreground")}>
+            {totalLabel}
+          </p>
+        )}
       </div>
 
       <div className="mt-4 grid gap-3">
@@ -139,6 +200,18 @@ export function SearchPanel({
                 <X className="h-4 w-4" />
               </button>
             )}
+            <button
+              onClick={toggleVoice}
+              aria-label={listening ? "Остановить запись" : "Голосовой ввод"}
+              className={cn(
+                "grid h-8 w-8 shrink-0 place-items-center rounded-full transition-colors active:scale-[0.96]",
+                listening
+                  ? "animate-pulse text-destructive"
+                  : "text-muted-foreground hover:text-primary",
+              )}
+            >
+              {listening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+            </button>
             <button
               onClick={onSubmit}
               aria-label="Отправить запрос"
