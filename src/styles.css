@@ -118,7 +118,7 @@
   --accent-foreground: oklch(1 0 0);
   --success: oklch(0.541 0.149 162.5);
   --success-foreground: oklch(1 0 0);
-  --warning: oklch(0.769 0.165 70.1);
+  --warning: oklch(0.559 0.120 70.1);
   --scope-internal: oklch(0.540 0.100 175.2);
   --scope-external: oklch(0.572 0.180 40.5);
   --src-file: oklch(0.538 0.256 262.4);
