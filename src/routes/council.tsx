@@ -326,21 +326,19 @@ function EmptyState({ onNew }: { onNew: () => void }) {
   );
 }
 
-function SessionView({ session }: { session: CouncilSession }) {
+function SessionView({
+  session,
+  onFollowUp,
+}: {
+  session: CouncilSession;
+  onFollowUp: (text: string) => void;
+}) {
   const [followUp, setFollowUp] = useState("");
-  const [thread, setThread] = useState<{ author: "user" | "synthesis"; text: string }[]>([]);
 
   const send = () => {
     const text = followUp.trim();
     if (!text) return;
-    setThread((prev) => [
-      ...prev,
-      { author: "user", text },
-      {
-        author: "synthesis",
-        text: `Мнения разошлись, но все сходятся в одном: ${session.topic.insight} Дальнейшее решение зависит от того, какой риск компания готова принять.`,
-      },
-    ]);
+    onFollowUp(text);
     setFollowUp("");
   };
 
@@ -379,22 +377,14 @@ function SessionView({ session }: { session: CouncilSession }) {
           );
         })}
 
-        {thread.map((m, i) =>
-          m.author === "user" ? (
-            <div key={i} className="ml-12 rounded-2xl rounded-tr-sm border border-primary/30 bg-primary/6 p-3 text-sm text-card-foreground">
-              {m.text}
-            </div>
-          ) : (
-            <div key={i} className="flex gap-3">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-secondary text-xs font-bold text-muted-foreground">
-                Итог
-              </span>
-              <div className="min-w-0 flex-1 rounded-2xl rounded-tl-sm border border-dashed border-border bg-secondary/40 p-3 text-sm leading-relaxed text-card-foreground">
-                {m.text}
-              </div>
-            </div>
-          ),
-        )}
+        {session.followUps.map((text, i) => (
+          <div
+            key={i}
+            className="ml-12 rounded-2xl rounded-tr-sm border border-primary/30 bg-primary/6 p-3 text-sm text-card-foreground"
+          >
+            {text}
+          </div>
+        ))}
       </div>
 
       <div className="flex gap-2 border-t border-border pt-4">
