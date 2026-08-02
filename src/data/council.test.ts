@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { COUNCIL_PERSONAS, SEED_COUNCIL_SESSIONS } from "./council";
+import { COUNCIL_PERSONAS, SEED_COUNCIL_SESSIONS, suggestPersonas } from "./council";
 
 describe("COUNCIL_PERSONAS", () => {
   it("has 12 personas with unique ids", () => {
@@ -27,5 +27,26 @@ describe("SEED_COUNCIL_SESSIONS", () => {
         expect(validIds.has(id)).toBe(true);
       }
     }
+  });
+});
+
+describe("suggestPersonas", () => {
+  const topic = {
+    title: "SpinBrush",
+    summary: "Маленькая компания выбирает между ростом, партнёрством и продажей.",
+    insight: "Переговорная сила растёт после подтверждения спроса.",
+    businessUnit: "Товары для дома",
+  };
+
+  it("is deterministic for the same topic", () => {
+    expect(suggestPersonas(topic)).toEqual(suggestPersonas(topic));
+  });
+
+  it("returns 3 unique valid persona ids", () => {
+    const ids = suggestPersonas(topic);
+    const validIds = new Set(COUNCIL_PERSONAS.map((p) => p.id));
+    expect(ids).toHaveLength(3);
+    expect(new Set(ids).size).toBe(3);
+    for (const id of ids) expect(validIds.has(id)).toBe(true);
   });
 });

@@ -35,6 +35,25 @@ export interface CouncilTopic {
   businessUnit: string;
 }
 
+function hashString(value: string): number {
+  let hash = 0;
+  for (let i = 0; i < value.length; i++) {
+    hash = (hash * 31 + value.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash);
+}
+
+/**
+ * ponytail: детерминированный подбор по хэшу заголовка+бизнес-юнита,
+ * не семантическое сопоставление темы и архетипа. Заменить на более
+ * умную логику, если подбор будет систематически невпопад.
+ */
+export function suggestPersonas(topic: CouncilTopic): string[] {
+  const ids = COUNCIL_PERSONAS.map((p) => p.id);
+  const start = hashString(topic.title + topic.businessUnit) % ids.length;
+  return [0, 5, 10].map((offset) => ids[(start + offset) % ids.length]);
+}
+
 export interface CouncilSession {
   id: string;
   title: string;
