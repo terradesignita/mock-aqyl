@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Plus, Search, Send } from "lucide-react";
 import { Header } from "@/components/Header";
+import { PersonaAvatar } from "@/components/PersonaAvatar";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -58,16 +59,14 @@ function AvatarStack({ personaIds }: { personaIds: string[] }) {
       {shown.map((id) => {
         const p = getPersona(id);
         return (
-          <span
+          <PersonaAvatar
             key={id}
             aria-hidden
-            className={cn(
-              "grid h-6 w-6 place-items-center rounded-full border-2 border-card text-xs font-bold text-white",
-              p.color,
-            )}
-          >
-            {p.initials}
-          </span>
+            initials={p.initials}
+            size="xs"
+            ring
+            className={p.color}
+          />
         );
       })}
       {rest > 0 && (
@@ -288,14 +287,7 @@ function PersonaPicker({
                     : "border-border hover:border-primary/30 hover:bg-secondary/30",
                 )}
               >
-                <span
-                  className={cn(
-                    "grid h-9 w-9 shrink-0 place-items-center rounded-full text-xs font-bold text-white",
-                    p.color,
-                  )}
-                >
-                  {p.initials}
-                </span>
+                <PersonaAvatar initials={p.initials} size="md" className={p.color} />
                 <span className="min-w-0">
                   <span className="block truncate text-sm font-semibold text-card-foreground">
                     {p.name}
@@ -324,16 +316,13 @@ function EmptyState({ onNew }: { onNew: () => void }) {
         {heroIds.map((id, i) => {
           const p = getPersona(id);
           return (
-            <span
+            <PersonaAvatar
               key={id}
+              initials={p.initials}
+              size="lg"
               style={{ zIndex: heroIds.length - i }}
-              className={cn(
-                "grid h-14 w-14 place-items-center rounded-full border-4 border-background text-sm font-bold text-white",
-                p.color,
-              )}
-            >
-              {p.initials}
-            </span>
+              className={cn(p.color, "border-4 border-background")}
+            />
           );
         })}
       </div>
@@ -384,14 +373,7 @@ function SessionView({
                 style={{ animationDelay: `${Math.min(i, 9) * 80}ms` }}
                 className="flex animate-in gap-3 fade-in slide-in-from-bottom-2 duration-300"
               >
-                <span
-                  className={cn(
-                    "grid h-9 w-9 shrink-0 place-items-center rounded-full text-xs font-bold text-white",
-                    p.color,
-                  )}
-                >
-                  {p.initials}
-                </span>
+                <PersonaAvatar initials={p.initials} size="md" className={p.color} />
                 <div
                   className={cn(
                     "min-w-0 flex-1 rounded-2xl rounded-tl-sm border border-border border-l-4 bg-card p-3",
@@ -576,15 +558,7 @@ function CouncilPage() {
                 {active.personaIds.map((id) => {
                   const p = getPersona(id);
                   return (
-                    <span
-                      key={id}
-                      className={cn(
-                        "grid h-7 w-7 place-items-center rounded-full text-[11px] font-bold text-white",
-                        p.color,
-                      )}
-                    >
-                      {p.initials}
-                    </span>
+                    <PersonaAvatar key={id} initials={p.initials} size="sm" className={p.color} />
                   );
                 })}
               </div>
