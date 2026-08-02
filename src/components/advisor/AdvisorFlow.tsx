@@ -1,10 +1,11 @@
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import {
   Check,
   ClipboardList,
   Loader2,
   MessageSquarePlus,
   Presentation,
+  Save,
   Send,
   Sparkle,
   Sparkles,
@@ -26,6 +27,7 @@ import {
   type AdvisorSelection,
   type FollowUpFlags,
 } from "@/data/advisor";
+import type { AdvisorSession } from "@/hooks/useAppState";
 import { ClarifyBlock } from "@/components/advisor/ClarifyBlock";
 import { UnderstandingCard } from "@/components/advisor/UnderstandingCard";
 import { AdvisorAnswer } from "@/components/advisor/AdvisorAnswer";
@@ -42,6 +44,9 @@ const STAGES: { id: Stage; label: string }[] = [
 interface Props {
   query: string;
   onReset: () => void;
+  /** §34 ТЗ — продолжить ранее сохранённый разбор вместо нового. */
+  initialSession?: AdvisorSession;
+  onSave: (session: Omit<AdvisorSession, "id" | "date">) => void;
 }
 
 interface FollowUpMessage {
@@ -98,19 +103,24 @@ function Stepper({ stage, onGoTo }: { stage: Stage; onGoTo: (s: Stage) => void }
   );
 }
 
-export function AdvisorFlow({ query, onReset }: Props) {
+export function AdvisorFlow({ query, onReset, initialSession, onSave }: Props) {
   const dilemma = useMemo(() => classify(query), [query]);
   const known = useMemo(() => extractKnown(query), [query]);
-  const [selection, setSelection] = useState<AdvisorSelection>({ choices: {}, own: {} });
-  const [stage, setStage] = useState<Stage>("clarify");
+  const [selection, setSelection] = useState<AdvisorSelection>(
+    () => initialSession?.selection ?? { choices: {}, own: {} },
+  );
+  const [stage, setStage] = useState<Stage>(() => (initialSession ? "answer" : "clarify"));
   const [qIndex, setQIndex] = useState(0);
   const [step, setStep] = useState(0);
   const [followUp, setFollowUp] = useState("");
-  const [thread, setThread] = useState<FollowUpMessage[]>([]);
+  const [thread, setThread] = useState<FollowUpMessage[]>(() => initialSession?.thread ?? []);
   const [thinkingFollowUp, setThinkingFollowUp] = useState(false);
-  const [followUpFlags, setFollowUpFlags] = useState<FollowUpFlags>({});
+  const [followUpFlags, setFollowUpFlags] = useState<FollowUpFlags>(
+    () => initialSession?.followUpFlags ?? {},
+  );
   const [showNegotiation, setShowNegotiation] = useState(false);
   const [showShareholder, setShowShareholder] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   const questions = visibleQuestions(dilemma, selection);
   const enough = contextIsSufficient(dilemma, selection);
@@ -122,11 +132,17 @@ export function AdvisorFlow({ query, onReset }: Props) {
   const negotiationQuestions = useMemo(() => buildNegotiationQuestions(dilemma), [dilemma]);
   const shareholderSummary = useMemo(() => buildShareholderSummary(answer), [answer]);
 
-  useEffect(() => {
-    setThread([]);
-    setThinkingFollowUp(false);
-    setFollowUpFlags({});
-  }, [query]);
+  const handleSave = () => {
+    onSave({
+      title: query.length > 60 ? `${query.slice(0, 57)}…` : query,
+      query,
+      selection,
+      thread,
+      followUpFlags,
+    });
+    setSaved(true);
+    window.setTimeout(() => setSaved(false), 2000);
+  };
 
   const askFollowUp = (text: string) => {
     const value = text.trim();
@@ -297,6 +313,10 @@ export function AdvisorFlow({ query, onReset }: Props) {
               onClick={() => setShowShareholder((v) => !v)}
             >
               <Presentation className="h-3.5 w-3.5" /> Сделать версию для акционера
+            </Button>
+            <Button size="sm" variant="outline" className="gap-1.5" onClick={handleSave}>
+              {saved ? <Check className="h-3.5 w-3.5" /> : <Save className="h-3.5 w-3.5" />}
+              {saved ? "Сохранено" : "Сохранить анализ"}
             </Button>
           </div>
 

@@ -10,12 +10,14 @@ import { CardSkeleton } from "@/components/CardSkeleton";
 import { Footer } from "@/components/Footer";
 import { emptyFilters, searchCards, type Filters } from "@/lib/search";
 import {
+  useAdvisorSessions,
   useBookmarks,
   useDismissed,
   useHistory,
   usePrivateCards,
   useScope,
   useTheme,
+  type AdvisorSession,
 } from "@/hooks/useAppState";
 import { AdvisorFlow } from "@/components/advisor/AdvisorFlow";
 import { ADVISOR_EXAMPLES } from "@/data/advisor";
@@ -52,6 +54,11 @@ function Dashboard() {
   const { privateIds, toggle: togglePrivate } = usePrivateCards();
   const [scope, setScope] = useScope();
   const { history, push, clear } = useHistory();
+  const {
+    sessions: advisorSessions,
+    save: saveAdvisorSession,
+    remove: removeAdvisorSession,
+  } = useAdvisorSessions();
 
   const [query, setQuery] = useState("");
   const [debounced, setDebounced] = useState("");
@@ -60,6 +67,7 @@ function Dashboard() {
   const [loading, setLoading] = useState(false);
   const [advisor, setAdvisor] = useState(false);
   const [advisorQuery, setAdvisorQuery] = useState<string | null>(null);
+  const [resumeSession, setResumeSession] = useState<AdvisorSession | null>(null);
   const [searchFocused, setSearchFocused] = useState(false);
   const [hintDismissed, setHintDismissed] = useState(false);
   const [visibility, setVisibility] = useState<VisibilityFilter>("all");
@@ -112,6 +120,12 @@ function Dashboard() {
     if (q) setAdvisorQuery(q);
   };
 
+  const openSavedSession = (s: AdvisorSession) => {
+    setQuery(s.query);
+    setAdvisorQuery(s.query);
+    setResumeSession(s);
+  };
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <Header
@@ -149,10 +163,14 @@ function Dashboard() {
           <div className="mx-auto max-w-[1600px] px-4 pt-4 pb-6 sm:px-6">
             {advisorQuery ? (
               <AdvisorFlow
+                key={advisorQuery}
                 query={advisorQuery}
+                initialSession={resumeSession?.query === advisorQuery ? resumeSession : undefined}
+                onSave={saveAdvisorSession}
                 onReset={() => {
                   setAdvisorQuery(null);
                   setQuery("");
+                  setResumeSession(null);
                 }}
               />
             ) : !hintDismissed ? (
@@ -174,6 +192,37 @@ function Dashboard() {
                   Советник определит тип решения, задаст 3–4 уточняющих вопроса, найдёт похожие
                   кейсы и предложит рекомендацию с рисками, условиями и источниками.
                 </p>
+                {advisorSessions.length > 0 && (
+                  <div className="mx-auto mt-5 max-w-xl text-left">
+                    <p className="text-xs font-semibold text-muted-foreground">
+                      Сохранённые сессии
+                    </p>
+                    <ul className="mt-2 space-y-1.5">
+                      {advisorSessions.map((s) => (
+                        <li
+                          key={s.id}
+                          className="flex items-center gap-2 rounded-control border border-border bg-card px-3 py-2"
+                        >
+                          <button
+                            onClick={() => openSavedSession(s)}
+                            className="min-w-0 flex-1 truncate text-left text-xs text-card-foreground hover:text-primary"
+                          >
+                            {s.title}
+                            <span className="ml-2 text-muted-foreground/60">{s.date}</span>
+                          </button>
+                          <button
+                            onClick={() => removeAdvisorSession(s.id)}
+                            aria-label="Удалить сохранённую сессию"
+                            className="shrink-0 rounded-full p-1 text-muted-foreground transition-colors hover:text-destructive"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
                 <p className="mt-5 text-xs font-semibold text-muted-foreground">
                   Например
                 </p>

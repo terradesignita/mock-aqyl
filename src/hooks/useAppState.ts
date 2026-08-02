@@ -2,6 +2,7 @@ import { useCallback, useEffect } from "react";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import type { ScopeFilter } from "@/lib/search";
 import { SEED_COUNCIL_SESSIONS, type CouncilSession } from "@/data/council";
+import type { AdvisorSelection, FollowUpFlags } from "@/data/advisor";
 
 export function useTheme() {
   const [dark, setDark] = useLocalStorage<boolean>("biaqyl:dark", false);
@@ -65,6 +66,41 @@ export function useCouncilSessions() {
   );
 
   return { sessions, create, markRead };
+}
+
+/** §32-34 ТЗ AI-советника — сохранённый разбор ситуации, чтобы вернуться к нему после переговоров. */
+export interface AdvisorSession {
+  id: string;
+  title: string;
+  date: string;
+  query: string;
+  selection: AdvisorSelection;
+  thread: { author: "user" | "advisor"; text: string }[];
+  followUpFlags: FollowUpFlags;
+}
+
+export function useAdvisorSessions() {
+  const [sessions, setSessions] = useLocalStorage<AdvisorSession[]>("biaqyl:advisor-sessions", []);
+
+  const save = useCallback(
+    (session: Omit<AdvisorSession, "id" | "date">) => {
+      const entry: AdvisorSession = {
+        ...session,
+        id: `advisor-${Date.now()}`,
+        date: new Date().toLocaleString("ru-RU"),
+      };
+      setSessions((prev) => [entry, ...prev]);
+      return entry;
+    },
+    [setSessions],
+  );
+
+  const remove = useCallback(
+    (id: string) => setSessions((prev) => prev.filter((s) => s.id !== id)),
+    [setSessions],
+  );
+
+  return { sessions, save, remove };
 }
 
 export function useHistory() {
