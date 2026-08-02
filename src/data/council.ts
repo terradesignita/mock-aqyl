@@ -3,17 +3,25 @@ export interface CouncilPersona {
   name: string;
   initials: string;
   role: string;
+  /** Реальный лидер — только как отсылка к стилю в bio. Никогда не источник цитаты. */
+  inspiredBy: string;
   color: string;
 }
 
 export const COUNCIL_PERSONAS: CouncilPersona[] = [
   // Цвета подобраны на контраст ≥4.5:1 с белым текстом инициалов (WCAG AA).
-  { id: "cfo", name: "Санжар Ахметов", initials: "SA", role: "Финансовый директор", color: "bg-amber-700" },
-  { id: "legal", name: "Дана Бекова", initials: "DB", role: "Юрист", color: "bg-violet-600" },
-  { id: "ops", name: "Ержан Мадиев", initials: "EM", role: "Операционный директор", color: "bg-blue-600" },
-  { id: "hr", name: "Жанна Хан", initials: "JH", role: "HR-директор", color: "bg-teal-700" },
-  { id: "strategy", name: "Самал Зейнеп", initials: "SZ", role: "Стратегический советник", color: "bg-orange-700" },
-  { id: "external", name: "Марк Абрамс", initials: "MA", role: "Внешний консультант", color: "bg-fuchsia-600" },
+  { id: "founder", name: "Артур Ким", initials: "AK", role: "Визионер-фаундер", inspiredBy: "Илона Маска", color: "bg-amber-700" },
+  { id: "operator", name: "Роза Ниязова", initials: "RN", role: "Операционный директор", inspiredBy: "Тима Кука", color: "bg-violet-600" },
+  { id: "engineer", name: "Виктор Тен", initials: "VT", role: "Инженер-прагматик", inspiredBy: "Стива Возняка", color: "bg-blue-600" },
+  { id: "contrarian", name: "Лейла Асанова", initials: "LA", role: "Контрарианка-инвестор", inspiredBy: "Джорджа Сороса", color: "bg-teal-700" },
+  { id: "industrialist", name: "Данияр Оспанов", initials: "DO", role: "Промышленник", inspiredBy: "Уоррена Баффета", color: "bg-orange-700" },
+  { id: "product", name: "Мила Ержанова", initials: "ME", role: "Продакт-лидер", inspiredBy: "Джеффа Безоса", color: "bg-fuchsia-600" },
+  { id: "brand", name: "Николь Багрова", initials: "NB", role: "Бренд-стратег", inspiredBy: "Ричарда Брэнсона", color: "bg-rose-700" },
+  { id: "platform", name: "Самат Ержигитов", initials: "SE", role: "Платформенный стратег", inspiredBy: "Сатьи Наделлы", color: "bg-indigo-600" },
+  { id: "competitor", name: "Алина Достаева", initials: "AD", role: "Директор по M&A", inspiredBy: "Ларри Эллисона", color: "bg-red-700" },
+  { id: "resilience", name: "Тимур Нурланов", initials: "TN", role: "Директор по устойчивости", inspiredBy: "Джека Ма", color: "bg-cyan-700" },
+  { id: "scale", name: "Диана Рахимова", initials: "DR", role: "Операционная эффективность", inspiredBy: "Сэма Уолтона", color: "bg-emerald-700" },
+  { id: "transform", name: "Ержан Тулегенов", initials: "ET", role: "Директор по трансформации", inspiredBy: "Мэри Барра", color: "bg-stone-600" },
 ];
 
 export function getPersona(id: string): CouncilPersona {
@@ -41,7 +49,7 @@ export const SEED_COUNCIL_SESSIONS: CouncilSession[] = [
     id: "seed-1",
     title: "Iz Lynn Chan at Far East Organization (Abridged)",
     date: "30.07.2026",
-    personaIds: ["strategy", "legal", "external"],
+    personaIds: ["founder", "contrarian", "transform"],
     topic: {
       title: "Iz Lynn Chan at Far East Organization (Abridged)",
       summary:
@@ -55,7 +63,7 @@ export const SEED_COUNCIL_SESSIONS: CouncilSession[] = [
     id: "seed-2",
     title: "SpinBrush",
     date: "28.07.2026",
-    personaIds: ["ops", "hr", "external"],
+    personaIds: ["operator", "competitor", "resilience"],
     unread: true,
     topic: {
       title: "SpinBrush",
