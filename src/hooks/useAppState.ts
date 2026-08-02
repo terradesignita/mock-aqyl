@@ -64,7 +64,21 @@ export function useCouncilSessions() {
     [setSessions],
   );
 
-  return { sessions, create, markRead };
+  const updatePersonas = useCallback(
+    (id: string, personaIds: string[]) =>
+      setSessions((prev) => prev.map((s) => (s.id === id ? { ...s, personaIds } : s))),
+    [setSessions],
+  );
+
+  const addFollowUp = useCallback(
+    (id: string, text: string) =>
+      setSessions((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, followUps: [...s.followUps, text] } : s)),
+      ),
+    [setSessions],
+  );
+
+  return { sessions, create, markRead, updatePersonas, addFollowUp };
 }
 
 export function useHistory() {

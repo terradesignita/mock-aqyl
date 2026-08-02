@@ -62,6 +62,7 @@ export interface CouncilSession {
   title: string;
   date: string;
   personaIds: string[];
+  followUps: string[];
   unread?: boolean;
   topic: CouncilTopic;
 }
@@ -72,6 +73,7 @@ export const SEED_COUNCIL_SESSIONS: CouncilSession[] = [
     title: "Iz Lynn Chan at Far East Organization (Abridged)",
     date: "30.07.2026",
     personaIds: ["founder", "contrarian", "transform"],
+    followUps: [],
     topic: {
       title: "Iz Lynn Chan at Far East Organization (Abridged)",
       summary:
@@ -86,6 +88,7 @@ export const SEED_COUNCIL_SESSIONS: CouncilSession[] = [
     title: "SpinBrush",
     date: "28.07.2026",
     personaIds: ["operator", "competitor", "resilience"],
+    followUps: [],
     unread: true,
     topic: {
       title: "SpinBrush",
