@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Home, Moon, Sun, Users } from "lucide-react";
 import { BiLogo } from "@/components/BiLogo";
+import { PersonaAvatar } from "@/components/PersonaAvatar";
 import { cn } from "@/lib/utils";
 
 interface HeaderProps {
@@ -74,9 +75,7 @@ export function Header({ dark, onToggleDark, className }: HeaderProps) {
             </button>
           </div>
 
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-            МА
-          </span>
+          <PersonaAvatar initials="МА" size="md" className="bg-primary text-primary-foreground" />
         </div>
       </div>
     </header>
