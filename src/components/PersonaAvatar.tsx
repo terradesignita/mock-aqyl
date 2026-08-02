@@ -2,7 +2,7 @@ import type { HTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
 const SIZE_CLASS = {
-  xs: "h-6 w-6 text-[11px]",
+  xs: "h-6 w-6 text-xs",
   sm: "h-7 w-7 text-[11px]",
   md: "h-9 w-9 text-xs",
   lg: "h-14 w-14 text-sm",
