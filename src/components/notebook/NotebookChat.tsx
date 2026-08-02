@@ -334,7 +334,7 @@ export function NotebookChat({
               <MessageBubble
                 key={m.id}
                 variant="entity"
-                bubbleClassName="p-5"
+                bubbleClassName="p-5 rounded-tl-2xl"
                 bodyClassName="leading-7 whitespace-pre-line"
                 footer={
                   <>
