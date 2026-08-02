@@ -3,6 +3,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Plus, Search, Send } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { useCouncilSessions, useTheme } from "@/hooks/useAppState";
 import { mockCards, type KnowledgeCardData } from "@/data/mockCards";
@@ -89,6 +96,7 @@ function NewCouncilPanel({
       title: card.title,
       date: TODAY,
       personaIds,
+      followUps: [],
       topic: {
         title: card.title,
         summary: card.executive_summary,
@@ -189,6 +197,96 @@ function NewCouncilPanel({
         </Button>
       </div>
     </div>
+  );
+}
+
+function PersonaPicker({
+  selected,
+  onChange,
+  onClose,
+}: {
+  selected: string[];
+  onChange: (ids: string[]) => void;
+  onClose: () => void;
+}) {
+  const [query, setQuery] = useState("");
+  const q = query.trim().toLowerCase();
+  const results = COUNCIL_PERSONAS.filter(
+    (p) =>
+      !q ||
+      p.name.toLowerCase().includes(q) ||
+      p.role.toLowerCase().includes(q) ||
+      p.inspiredBy.toLowerCase().includes(q),
+  );
+
+  const toggle = (id: string) =>
+    onChange(
+      selected.includes(id)
+        ? selected.filter((x) => x !== id)
+        : selected.length >= MAX_PERSONAS
+          ? selected
+          : [...selected, id],
+    );
+
+  return (
+    <Dialog open onOpenChange={(next) => !next && onClose()}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>
+            Состав совета ({selected.length}/{MAX_PERSONAS})
+          </DialogTitle>
+        </DialogHeader>
+        <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-3">
+          <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Найдите персону по имени или стилю"
+            className="h-10 w-full min-w-0 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+          />
+        </div>
+        <div className="mt-2 max-h-80 space-y-1.5 overflow-y-auto">
+          {results.map((p) => {
+            const isSelected = selected.includes(p.id);
+            const disabled = !isSelected && selected.length >= MAX_PERSONAS;
+            return (
+              <button
+                key={p.id}
+                onClick={() => toggle(p.id)}
+                disabled={disabled}
+                aria-pressed={isSelected}
+                className={cn(
+                  "flex w-full items-center gap-2.5 rounded-xl border p-2.5 text-left transition-colors disabled:opacity-40",
+                  isSelected
+                    ? "border-primary bg-primary/8"
+                    : "border-border hover:border-primary/30 hover:bg-secondary/30",
+                )}
+              >
+                <span
+                  className={cn(
+                    "grid h-9 w-9 shrink-0 place-items-center rounded-full text-xs font-bold text-white",
+                    p.color,
+                  )}
+                >
+                  {p.initials}
+                </span>
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-semibold text-card-foreground">
+                    {p.name}
+                  </span>
+                  <span className="block truncate text-xs text-muted-foreground">
+                    {p.role} · в духе {p.inspiredBy}
+                  </span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        <DialogFooter>
+          <Button onClick={onClose}>Готово</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
