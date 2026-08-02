@@ -413,7 +413,7 @@ function VerdictPanel({ session }: { session: CouncilSession }) {
   return (
     <aside
       aria-label="Вердикт совета"
-      className="flex w-full shrink-0 flex-col gap-3 overflow-y-auto border-t border-border bg-card p-4 lg:w-[260px] lg:border-l lg:border-t-0"
+      className="flex max-h-[45vh] w-full shrink-0 flex-col gap-3 overflow-y-auto border-t border-border bg-card p-4 lg:max-h-none lg:w-[260px] lg:border-l lg:border-t-0"
     >
       <div className="flex items-center gap-1.5">
         <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-success" />
