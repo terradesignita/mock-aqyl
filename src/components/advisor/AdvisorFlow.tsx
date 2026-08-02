@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { HelpHint } from "@/components/HelpHint";
+import { MessageBubble } from "@/components/MessageBubble";
 import {
   buildAnswer,
   buildFollowUpReply,
@@ -355,21 +356,27 @@ export function AdvisorFlow({ query, onReset }: Props) {
               <div className="mt-3 space-y-2.5">
                 {thread.map((m, i) =>
                   m.author === "user" ? (
-                    <div
+                    <MessageBubble
                       key={i}
-                      className="ml-8 rounded-2xl rounded-tr-sm border border-primary/30 bg-primary/6 px-3 py-2 text-sm text-card-foreground"
+                      variant="user"
+                      className="ml-8"
+                      bubbleClassName="px-3 py-2"
                     >
                       {m.text}
-                    </div>
+                    </MessageBubble>
                   ) : (
-                    <div key={i} className="flex gap-2">
-                      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-primary/12">
-                        <Sparkle className="h-3.5 w-3.5 text-primary" />
-                      </span>
-                      <div className="min-w-0 flex-1 rounded-2xl rounded-tl-sm border border-border bg-secondary/40 px-3 py-2 text-sm leading-relaxed text-card-foreground">
-                        {m.text}
-                      </div>
-                    </div>
+                    <MessageBubble
+                      key={i}
+                      variant="entity"
+                      avatar={
+                        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-primary/12">
+                          <Sparkle className="h-3.5 w-3.5 text-primary" />
+                        </span>
+                      }
+                      bubbleClassName="bg-secondary/40 px-3 py-2"
+                    >
+                      {m.text}
+                    </MessageBubble>
                   ),
                 )}
                 {thinkingFollowUp && (
