@@ -358,10 +358,14 @@ function SessionView({
       </div>
 
       <div className="space-y-3">
-        {session.personaIds.map((id) => {
+        {session.personaIds.map((id, i) => {
           const p = getPersona(id);
           return (
-            <div key={id} className="flex gap-3">
+            <div
+              key={id}
+              style={{ animationDelay: `${Math.min(i, 9) * 80}ms` }}
+              className="flex animate-in gap-3 fade-in slide-in-from-bottom-2 duration-300"
+            >
               <span
                 className={cn(
                   "grid h-9 w-9 shrink-0 place-items-center rounded-full text-xs font-bold text-white",
@@ -385,7 +389,7 @@ function SessionView({
         {session.followUps.map((text, i) => (
           <div
             key={i}
-            className="ml-12 rounded-2xl rounded-tr-sm border border-primary/30 bg-primary/6 p-3 text-sm text-card-foreground"
+            className="ml-12 animate-in rounded-2xl rounded-tr-sm border border-primary/30 bg-primary/6 p-3 text-sm text-card-foreground fade-in slide-in-from-bottom-2 duration-300"
           >
             {text}
           </div>
@@ -412,7 +416,13 @@ function SessionView({
   );
 }
 
-function VerdictPanel({ session }: { session: CouncilSession }) {
+function VerdictPanel({
+  session,
+  onAsk,
+}: {
+  session: CouncilSession;
+  onAsk: (text: string) => void;
+}) {
   const verdict = buildVerdict(session.topic, session.personaIds, session.followUps);
 
   return (
@@ -424,18 +434,24 @@ function VerdictPanel({ session }: { session: CouncilSession }) {
         <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-success" />
         <p className="text-xs font-bold text-primary">Вердикт совета</p>
       </div>
-      <div className="rounded-xl border border-primary/30 bg-primary/6 p-3 text-sm leading-relaxed text-card-foreground">
+      <div
+        key={session.followUps.length}
+        className="animate-in rounded-xl border border-primary/30 bg-primary/6 p-3 text-sm leading-relaxed text-card-foreground fade-in duration-300"
+      >
         {verdict.synthesis}
       </div>
       <div>
         <p className="mb-1.5 text-xs font-bold text-muted-foreground">Открытые вопросы</p>
         <ul className="space-y-1.5">
           {verdict.openQuestions.map((question, i) => (
-            <li
-              key={i}
-              className="rounded-lg border border-border bg-secondary/30 p-2 text-xs text-card-foreground"
-            >
-              {question}
+            <li key={i}>
+              <button
+                type="button"
+                onClick={() => onAsk(question)}
+                className="w-full rounded-lg border border-border bg-secondary/30 p-2 text-left text-xs text-card-foreground transition-[color,border-color,background-color,transform] hover:-translate-y-0.5 hover:border-primary hover:bg-primary/8 hover:text-primary"
+              >
+                {question}
+              </button>
             </li>
           ))}
         </ul>
@@ -576,7 +592,9 @@ function CouncilPage() {
               <EmptyState onNew={() => setCreating(true)} />
             )}
           </main>
-          {active && <VerdictPanel session={active} />}
+          {active && (
+            <VerdictPanel session={active} onAsk={(text) => addFollowUp(active.id, text)} />
+          )}
         </div>
       </div>
 
