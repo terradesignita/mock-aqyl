@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {
   AlertTriangle,
-  ArrowRight,
   BookOpen,
   ChevronDown,
   CircleHelp,
@@ -11,7 +10,6 @@ import {
   ShieldQuestion,
   Target,
 } from "lucide-react";
-import { Link } from "@tanstack/react-router";
 import type { Answer } from "@/data/advisor";
 
 const APPLICABILITY_TONE: Record<Answer["caseRef"]["applicability"], string> = {
@@ -64,7 +62,6 @@ function Section({
   );
 }
 
-
 function Bullets({ items }: { items: string[] }) {
   return (
     <ul className="space-y-1.5">
@@ -79,17 +76,24 @@ function Bullets({ items }: { items: string[] }) {
 }
 
 export function AdvisorAnswer({ answer }: { answer: Answer }) {
+  const refusal = answer.evidenceLevel === "недостаточно данных";
   return (
     <div className="space-y-3">
       {/* Первый экран: вывод + инсайт + доказательность */}
-      <section className="rounded-card border-2 border-primary/50 bg-gradient-to-br from-primary/10 via-primary/[0.04] to-transparent p-6 shadow-brand">
-        <p className="text-xs font-bold text-primary">Краткий вывод</p>
+      <section
+        className={`rounded-card border-2 p-6 shadow-brand ${
+          refusal
+            ? "border-destructive/50 bg-gradient-to-br from-destructive/10 via-destructive/[0.04] to-transparent"
+            : "border-primary/50 bg-gradient-to-br from-primary/10 via-primary/[0.04] to-transparent"
+        }`}
+      >
+        <p className={`text-xs font-bold ${refusal ? "text-destructive" : "text-primary"}`}>
+          {refusal ? "Честный отказ" : "Краткий вывод"}
+        </p>
         <h2 className="mt-1.5 text-xl font-extrabold leading-snug text-card-foreground">
           {answer.verdict}
         </h2>
-        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-          {answer.verdictDetail}
-        </p>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{answer.verdictDetail}</p>
 
         <div className="mt-4 rounded-control border-l-4 border-accent bg-accent/10 p-4">
           <p className="flex items-center gap-2 text-xs font-bold text-accent">
@@ -138,17 +142,13 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
           </p>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             <div className="rounded-control border border-scope-internal/40 bg-scope-internal/8 p-3">
-              <p className="text-xs font-bold text-scope-internal">
-                Что совпадает
-              </p>
+              <p className="text-xs font-bold text-scope-internal">Что совпадает</p>
               <div className="mt-1.5">
                 <Bullets items={answer.caseRef.matches} />
               </div>
             </div>
             <div className="rounded-control border border-destructive/40 bg-destructive/8 p-3">
-              <p className="text-xs font-bold text-destructive">
-                Что различается
-              </p>
+              <p className="text-xs font-bold text-destructive">Что различается</p>
               <div className="mt-1.5">
                 <Bullets items={answer.caseRef.differences} />
               </div>
@@ -159,9 +159,7 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
         <Section title="Что можно и что нельзя переносить" icon={Target}>
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <p className="mb-1.5 text-xs font-bold text-primary">
-                Можно перенести
-              </p>
+              <p className="mb-1.5 text-xs font-bold text-primary">Можно перенести</p>
               <Bullets items={answer.transferable} />
             </div>
             <div>
@@ -173,7 +171,7 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
           </div>
         </Section>
 
-        <Section title="Рекомендация и предлагаемые условия" icon={Target}>
+        <Section title="Рекомендация и предлагаемые условия" icon={Target} defaultOpen>
           <p className="rounded-control border-l-4 border-primary bg-primary/6 p-3 text-sm font-semibold leading-relaxed text-card-foreground">
             {answer.recommendation}
           </p>
@@ -222,7 +220,7 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
       </Section>
 
       <div className="grid items-start gap-3 xl:grid-cols-2">
-        <Section title="Риски" icon={AlertTriangle}>
+        <Section title="Риски" icon={AlertTriangle} defaultOpen>
           <Bullets items={answer.risks} />
         </Section>
 
@@ -232,7 +230,11 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
       </div>
 
       <div className="grid items-start gap-3 xl:grid-cols-2">
-        <Section title="Чего не хватает для окончательного решения" icon={ShieldQuestion} defaultOpen>
+        <Section
+          title="Чего не хватает для окончательного решения"
+          icon={ShieldQuestion}
+          defaultOpen
+        >
           <Bullets items={answer.missing} />
         </Section>
 
@@ -266,13 +268,6 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
               </li>
             ))}
           </ul>
-          <Link
-            to="/card/$id"
-            params={{ id: "card_001" }}
-            className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-primary transition-[gap] hover:gap-2"
-          >
-            Открыть кейс в рабочем столе <ArrowRight className="h-4 w-4" />
-          </Link>
         </Section>
       </div>
     </div>
