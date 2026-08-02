@@ -49,7 +49,7 @@ export function useScope() {
 
 export function useCouncilSessions() {
   const [sessions, setSessions] = useLocalStorage<CouncilSession[]>(
-    "biaqyl:council-sessions",
+    "biaqyl:council-sessions:v2",
     SEED_COUNCIL_SESSIONS,
   );
 
