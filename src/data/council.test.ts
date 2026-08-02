@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { COUNCIL_PERSONAS, SEED_COUNCIL_SESSIONS, suggestPersonas } from "./council";
+import { COUNCIL_PERSONAS, SEED_COUNCIL_SESSIONS, suggestPersonas, buildVerdict } from "./council";
 
 describe("COUNCIL_PERSONAS", () => {
   it("has 12 personas with unique ids", () => {
@@ -80,5 +80,33 @@ describe("suggestPersonas", () => {
     // Also verify the function itself with the actual roster
     const result = suggestPersonas(testTopic);
     expect(new Set(result).size).toBe(3);
+  });
+});
+
+describe("buildVerdict", () => {
+  const topic = {
+    title: "SpinBrush",
+    summary: "Маленькая компания выбирает между ростом, партнёрством и продажей.",
+    insight: "Переговорная сила растёт после подтверждения спроса.",
+    businessUnit: "Товары для дома",
+  };
+
+  it("uses the topic insight as synthesis before any follow-up", () => {
+    expect(buildVerdict(topic, ["operator"], []).synthesis).toBe(topic.insight);
+  });
+
+  it("folds the latest follow-up into the synthesis", () => {
+    const verdict = buildVerdict(topic, ["operator"], ["А если спрос не подтвердится?"]);
+    expect(verdict.synthesis).toContain("А если спрос не подтвердится?");
+  });
+
+  it("returns one open question per persona", () => {
+    const verdict = buildVerdict(topic, ["operator", "competitor"], []);
+    expect(verdict.openQuestions).toHaveLength(2);
+  });
+
+  it("adds a risk tag only when a risk-voiced persona is present", () => {
+    expect(buildVerdict(topic, ["operator"], []).agreements.some((a) => a.kind === "risk")).toBe(false);
+    expect(buildVerdict(topic, ["competitor"], []).agreements.some((a) => a.kind === "risk")).toBe(true);
   });
 });

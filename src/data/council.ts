@@ -116,3 +116,59 @@ export function buildPersonaTake(personaId: string, topic: CouncilTopic): string
       return topic.insight;
   }
 }
+
+export interface CouncilVerdict {
+  synthesis: string;
+  openQuestions: string[];
+  agreements: { label: string; kind: "agree" | "risk" }[];
+}
+
+const PERSONA_QUESTIONS: Record<string, string> = {
+  founder: "Меняет ли это правила игры для компании на годы вперёд?",
+  operator: "Кто станет владельцем процесса после запуска?",
+  engineer: "Что произойдёт при провале ключевого допущения?",
+  contrarian: "Где консенсус рынка может ошибаться?",
+  industrialist: "Стоит ли краткосрочная выгода долгосрочной репутации?",
+  product: "Как это меняет жизнь конечного клиента?",
+  brand: "Как мы объясним это решение публично?",
+  platform: "Кто ещё выигрывает от этого решения?",
+  competitor: "Кто сделает этот шаг, если не мы?",
+  resilience: "Что если регуляторная ситуация изменится?",
+  scale: "Где здесь скрытые издержки на масштабе?",
+  transform: "Готова ли культура компании к этому изменению?",
+};
+
+const RISK_PERSONAS = new Set(["contrarian", "competitor", "resilience"]);
+
+function buildAgreements(
+  personaIds: string[],
+  topic: CouncilTopic,
+): { label: string; kind: "agree" | "risk" }[] {
+  const agreements: { label: string; kind: "agree" | "risk" }[] = [
+    {
+      label: topic.insight.length > 40 ? `${topic.insight.slice(0, 40)}…` : topic.insight,
+      kind: "agree",
+    },
+  ];
+  if (personaIds.some((id) => RISK_PERSONAS.has(id))) {
+    agreements.push({ label: `Риск: сроки и допущения по «${topic.businessUnit}»`, kind: "risk" });
+  }
+  return agreements;
+}
+
+export function buildVerdict(
+  topic: CouncilTopic,
+  personaIds: string[],
+  followUps: string[],
+): CouncilVerdict {
+  const latest = followUps[followUps.length - 1];
+  const synthesis = latest
+    ? `${topic.insight} По вопросу «${latest}» совет расходится в деталях, но не в сути: решение зависит от того, какой риск готова принять компания.`
+    : topic.insight;
+
+  return {
+    synthesis,
+    openQuestions: personaIds.map((id) => PERSONA_QUESTIONS[id] ?? topic.insight),
+    agreements: buildAgreements(personaIds, topic),
+  };
+}
