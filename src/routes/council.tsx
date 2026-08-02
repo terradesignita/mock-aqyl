@@ -226,7 +226,9 @@ function PersonaPicker({
   const toggle = (id: string) =>
     onChange(
       selected.includes(id)
-        ? selected.filter((x) => x !== id)
+        ? selected.length > 1
+          ? selected.filter((x) => x !== id)
+          : selected
         : selected.length >= MAX_PERSONAS
           ? selected
           : [...selected, id],
@@ -253,7 +255,9 @@ function PersonaPicker({
         <div className="mt-2 max-h-80 space-y-1.5 overflow-y-auto">
           {results.map((p) => {
             const isSelected = selected.includes(p.id);
-            const disabled = !isSelected && selected.length >= MAX_PERSONAS;
+            const disabled =
+              (!isSelected && selected.length >= MAX_PERSONAS) ||
+              (isSelected && selected.length <= 1);
             return (
               <button
                 key={p.id}
