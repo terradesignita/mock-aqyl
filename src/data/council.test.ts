@@ -1,5 +1,56 @@
 import { describe, expect, it } from "vitest";
-import { COUNCIL_PERSONAS, SEED_COUNCIL_SESSIONS, suggestPersonas, buildVerdict, buildPersonaTake } from "./council";
+import {
+  COUNCIL_PERSONAS,
+  SEED_COUNCIL_SESSIONS,
+  suggestPersonas,
+  buildVerdict,
+  buildPersonaTake,
+} from "./council";
+
+describe("real leader names never leak into generated text", () => {
+  // "Джек Ма" is deliberately excluded from this stem list — "Ма" is too short
+  // a substring to test in Russian text without false positives (it appears
+  // inside unrelated words). Manually verified clean during code review instead.
+  const LEADER_SURNAME_STEMS = [
+    "Маск",
+    "Кук",
+    "Возняк",
+    "Сорос",
+    "Баффет",
+    "Безос",
+    "Брэнсон",
+    "Наделл",
+    "Эллисон",
+    "Уолтон",
+    "Барра",
+  ];
+  const topic = {
+    title: "T",
+    summary: "S",
+    insight: "I",
+    businessUnit: "B",
+  };
+
+  function assertClean(text: string) {
+    for (const stem of LEADER_SURNAME_STEMS) {
+      expect(text).not.toContain(stem);
+    }
+  }
+
+  it("buildPersonaTake never attributes a quote to a real leader", () => {
+    for (const p of COUNCIL_PERSONAS) {
+      assertClean(buildPersonaTake(p.id, topic));
+    }
+  });
+
+  it("buildVerdict never attributes synthesis, questions, or tags to a real leader", () => {
+    const allIds = COUNCIL_PERSONAS.map((p) => p.id);
+    const verdict = buildVerdict(topic, allIds, ["follow-up?"]);
+    assertClean(verdict.synthesis);
+    verdict.openQuestions.forEach(assertClean);
+    verdict.agreements.forEach((a) => assertClean(a.label));
+  });
+});
 
 describe("COUNCIL_PERSONAS", () => {
   it("has 12 personas with unique ids", () => {
@@ -50,36 +101,19 @@ describe("suggestPersonas", () => {
     for (const id of ids) expect(validIds.has(id)).toBe(true);
   });
 
-  it("guarantees 3 unique offsets for any roster size >= 3", () => {
-    // This test verifies that the offset calculation logic
-    // (step = floor(length / 3), offsets [0, step, 2*step])
-    // always produces 3 unique indices when applied modulo to any roster size >= 3.
-    // Without length-derived step size, hardcoded [0, 5, 10] would fail for
-    // roster sizes like 5 or 10 (collisions when offset >= length).
-    const testTopic = {
-      title: "test",
-      summary: "test summary",
-      insight: "test insight",
-      businessUnit: "test unit",
-    };
-
-    for (const rosterSize of [3, 4, 5, 6, 7, 10, 12, 20]) {
-      // Simulate offset calculation for different roster sizes
-      const step = Math.max(1, Math.floor(rosterSize / 3));
-      const offsets = [0, step, 2 * step];
-      const indices = offsets.map((o) => o % rosterSize);
-
-      // Verify all 3 indices are unique (no collisions).
-      // This would fail with hardcoded [0, 5, 10] for roster sizes like 5 or 10.
-      expect(new Set(indices).size).toBe(3);
-      expect(indices[0]).not.toBe(indices[1]);
-      expect(indices[1]).not.toBe(indices[2]);
-      expect(indices[0]).not.toBe(indices[2]);
+  it("returns 3 unique valid ids across a variety of topics", () => {
+    const topics = [
+      { title: "A", summary: "s", insight: "i", businessUnit: "u1" },
+      { title: "B", summary: "s", insight: "i", businessUnit: "u2" },
+      { title: "SpinBrush", summary: "s", insight: "i", businessUnit: "Товары для дома" },
+      { title: "Iz Lynn Chan", summary: "s", insight: "i", businessUnit: "Дальний Восток" },
+    ];
+    const validIds = new Set(COUNCIL_PERSONAS.map((p) => p.id));
+    for (const t of topics) {
+      const ids = suggestPersonas(t);
+      expect(new Set(ids).size).toBe(3);
+      for (const id of ids) expect(validIds.has(id)).toBe(true);
     }
-
-    // Also verify the function itself with the actual roster
-    const result = suggestPersonas(testTopic);
-    expect(new Set(result).size).toBe(3);
   });
 });
 
@@ -106,8 +140,19 @@ describe("buildVerdict", () => {
   });
 
   it("adds a risk tag only when a risk-voiced persona is present", () => {
-    expect(buildVerdict(topic, ["operator"], []).agreements.some((a) => a.kind === "risk")).toBe(false);
-    expect(buildVerdict(topic, ["competitor"], []).agreements.some((a) => a.kind === "risk")).toBe(true);
+    expect(buildVerdict(topic, ["operator"], []).agreements.some((a) => a.kind === "risk")).toBe(
+      false,
+    );
+    expect(buildVerdict(topic, ["competitor"], []).agreements.some((a) => a.kind === "risk")).toBe(
+      true,
+    );
+  });
+
+  it("has a mapped open question for every persona (no silent insight fallback)", () => {
+    for (const p of COUNCIL_PERSONAS) {
+      const verdict = buildVerdict(topic, [p.id], []);
+      expect(verdict.openQuestions[0]).not.toBe(topic.insight);
+    }
   });
 });
 
