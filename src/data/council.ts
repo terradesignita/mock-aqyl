@@ -51,7 +51,10 @@ function hashString(value: string): number {
 export function suggestPersonas(topic: CouncilTopic): string[] {
   const ids = COUNCIL_PERSONAS.map((p) => p.id);
   const start = hashString(topic.title + topic.businessUnit) % ids.length;
-  return [0, 5, 10].map((offset) => ids[(start + offset) % ids.length]);
+  // Use step size derived from roster length to guarantee 3 unique offsets
+  // for any roster size >= 3, not just the current length of 12.
+  const step = Math.max(1, Math.floor(ids.length / 3));
+  return [0, step, 2 * step].map((offset) => ids[(start + offset) % ids.length]);
 }
 
 export interface CouncilSession {
