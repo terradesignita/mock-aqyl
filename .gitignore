@@ -36,3 +36,6 @@ graphify-out/
 
 # brainstorming visual companion
 .superpowers/
+
+# Playwright MCP verification artifacts
+.playwright-mcp/
