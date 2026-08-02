@@ -295,7 +295,7 @@ function PersonaPicker({
 }
 
 function EmptyState({ onNew }: { onNew: () => void }) {
-  const heroIds = ["external", "cfo", "legal"];
+  const heroIds = ["founder", "operator", "resilience"];
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
       <div aria-hidden className="flex items-center -space-x-3">
