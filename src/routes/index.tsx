@@ -125,10 +125,7 @@ function Dashboard() {
           scope={scope}
           onScopeChange={setScope}
           query={query}
-          onQueryChange={(q) => {
-            setQuery(q);
-            if (advisorQuery) setAdvisorQuery(null);
-          }}
+          onQueryChange={setQuery}
           history={history}
           onClearHistory={clear}
           advisor={advisor}

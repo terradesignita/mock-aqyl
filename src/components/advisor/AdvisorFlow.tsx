@@ -1,10 +1,21 @@
 import { Fragment, useEffect, useMemo, useState } from "react";
-import { Check, Loader2, MessageSquarePlus, Send, Sparkle, Sparkles } from "lucide-react";
+import {
+  Check,
+  ClipboardList,
+  Loader2,
+  MessageSquarePlus,
+  Presentation,
+  Send,
+  Sparkle,
+  Sparkles,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { HelpHint } from "@/components/HelpHint";
 import {
   buildAnswer,
   buildFollowUpReply,
+  buildNegotiationQuestions,
+  buildShareholderSummary,
   buildUnderstanding,
   classify,
   contextIsSufficient,
@@ -13,6 +24,7 @@ import {
   THINKING_STEPS,
   visibleQuestions,
   type AdvisorSelection,
+  type FollowUpFlags,
 } from "@/data/advisor";
 import { ClarifyBlock } from "@/components/advisor/ClarifyBlock";
 import { UnderstandingCard } from "@/components/advisor/UnderstandingCard";
@@ -63,11 +75,7 @@ function Stepper({ stage, onGoTo }: { stage: Stage; onGoTo: (s: Stage) => void }
                 <span
                   aria-hidden
                   className={`grid h-4 w-4 shrink-0 place-items-center rounded-full text-[9px] ${
-                    active
-                      ? "bg-primary-foreground/20"
-                      : done
-                        ? "bg-primary/20"
-                        : "bg-border/60"
+                    active ? "bg-primary-foreground/20" : done ? "bg-primary/20" : "bg-border/60"
                   }`}
                 >
                   {done ? <Check className="h-2.5 w-2.5" /> : i + 1}
@@ -100,15 +108,24 @@ export function AdvisorFlow({ query, onReset }: Props) {
   const [followUp, setFollowUp] = useState("");
   const [thread, setThread] = useState<FollowUpMessage[]>([]);
   const [thinkingFollowUp, setThinkingFollowUp] = useState(false);
+  const [followUpFlags, setFollowUpFlags] = useState<FollowUpFlags>({});
+  const [showNegotiation, setShowNegotiation] = useState(false);
+  const [showShareholder, setShowShareholder] = useState(false);
 
   const questions = visibleQuestions(dilemma, selection);
   const enough = contextIsSufficient(dilemma, selection);
   const understanding = buildUnderstanding(dilemma, selection, query);
-  const answer = useMemo(() => buildAnswer(dilemma, selection), [dilemma, selection]);
+  const answer = useMemo(
+    () => buildAnswer(dilemma, selection, followUpFlags),
+    [dilemma, selection, followUpFlags],
+  );
+  const negotiationQuestions = useMemo(() => buildNegotiationQuestions(dilemma), [dilemma]);
+  const shareholderSummary = useMemo(() => buildShareholderSummary(answer), [answer]);
 
   useEffect(() => {
     setThread([]);
     setThinkingFollowUp(false);
+    setFollowUpFlags({});
   }, [query]);
 
   const askFollowUp = (text: string) => {
@@ -118,8 +135,10 @@ export function AdvisorFlow({ query, onReset }: Props) {
     setFollowUp("");
     setThinkingFollowUp(true);
     window.setTimeout(() => {
+      const reply = buildFollowUpReply(value, answer);
       setThinkingFollowUp(false);
-      setThread((t) => [...t, { author: "advisor", text: buildFollowUpReply(value, answer) }]);
+      setThread((t) => [...t, { author: "advisor", text: reply.text }]);
+      if (reply.flags) setFollowUpFlags((f) => ({ ...f, ...reply.flags }));
     }, 650);
   };
 
@@ -255,14 +274,76 @@ export function AdvisorFlow({ query, onReset }: Props) {
             onClick={() => setStage("understanding")}
             className="flex w-full items-start gap-2 rounded-card border border-dashed border-border bg-secondary/30 px-3.5 py-2.5 text-left text-xs leading-relaxed text-muted-foreground transition-colors hover:border-primary/50 hover:text-card-foreground"
           >
-            <span className="mt-px shrink-0 font-bold text-primary">
-              Ситуация
-            </span>
+            <span className="mt-px shrink-0 font-bold text-primary">Ситуация</span>
             <span className="flex-1 line-clamp-2">{understanding}</span>
             <span className="shrink-0 font-bold text-primary">изменить</span>
           </button>
 
           <AdvisorAnswer answer={answer} />
+
+          <div className="flex flex-wrap gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5"
+              onClick={() => setShowNegotiation((v) => !v)}
+            >
+              <ClipboardList className="h-3.5 w-3.5" /> Подготовить вопросы партнёру
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5"
+              onClick={() => setShowShareholder((v) => !v)}
+            >
+              <Presentation className="h-3.5 w-3.5" /> Сделать версию для акционера
+            </Button>
+          </div>
+
+          {showNegotiation && (
+            <div className="rounded-card border border-border bg-card p-4 shadow-soft">
+              <p className="text-xs font-bold text-muted-foreground">Вопросы для переговоров</p>
+              <div className="mt-3 space-y-3">
+                {negotiationQuestions.groups.map((g) => (
+                  <div key={g.title}>
+                    <p className="text-xs font-bold text-primary">{g.title}</p>
+                    <ul className="mt-1 space-y-1">
+                      {g.questions.map((q) => (
+                        <li
+                          key={q}
+                          className="flex gap-2 text-sm leading-relaxed text-card-foreground"
+                        >
+                          <span
+                            aria-hidden
+                            className="mt-2 h-1 w-1 shrink-0 rounded-full bg-primary"
+                          />
+                          {q}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {showShareholder && (
+            <div className="rounded-card border border-border bg-card p-4 shadow-soft">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs font-bold text-muted-foreground">Версия для акционера</p>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => navigator.clipboard?.writeText(shareholderSummary)}
+                >
+                  Скопировать
+                </Button>
+              </div>
+              <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-card-foreground">
+                {shareholderSummary}
+              </p>
+            </div>
+          )}
 
           <div className="rounded-card border border-border bg-card p-4 shadow-soft">
             <p className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
