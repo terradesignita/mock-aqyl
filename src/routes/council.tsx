@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Plus, Search, Send } from "lucide-react";
 import { Header } from "@/components/Header";
+import { MessageBubble } from "@/components/MessageBubble";
 import { PersonaAvatar } from "@/components/PersonaAvatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -371,32 +372,29 @@ function SessionView({
               <div
                 key={id}
                 style={{ animationDelay: `${Math.min(i, 9) * 80}ms` }}
-                className="flex animate-in gap-3 fade-in slide-in-from-bottom-2 duration-300"
+                className="animate-in fade-in slide-in-from-bottom-2 duration-300"
               >
-                <PersonaAvatar initials={p.initials} size="md" className={p.color} />
-                <div
-                  className={cn(
-                    "min-w-0 flex-1 rounded-2xl rounded-tl-sm border border-border border-l-4 bg-card p-3",
-                    PERSONA_BORDER_CLASS[p.color],
-                  )}
+                <MessageBubble
+                  variant="entity"
+                  avatar={<PersonaAvatar initials={p.initials} size="md" className={p.color} />}
+                  title={
+                    <>
+                      {p.name} <span className="font-normal text-muted-foreground">· {p.role}</span>
+                    </>
+                  }
+                  accentClassName={cn("border-l-4", PERSONA_BORDER_CLASS[p.color])}
                 >
-                  <p className="text-xs font-bold text-card-foreground">
-                    {p.name} <span className="font-normal text-muted-foreground">· {p.role}</span>
-                  </p>
-                  <p className="mt-1 text-sm leading-relaxed text-card-foreground">
-                    {buildPersonaTake(id, session.topic)}
-                  </p>
-                </div>
+                  {buildPersonaTake(id, session.topic)}
+                </MessageBubble>
               </div>
             );
           })}
 
           {session.followUps.map((text, i) => (
-            <div
-              key={i}
-              className="ml-12 animate-in rounded-2xl rounded-tr-sm border border-primary/30 bg-primary/6 p-3 text-sm text-card-foreground fade-in slide-in-from-bottom-2 duration-300"
-            >
-              {text}
+            <div key={i} className="ml-12 animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <MessageBubble variant="user" bubbleClassName="p-3">
+                {text}
+              </MessageBubble>
             </div>
           ))}
         </div>
@@ -448,19 +446,18 @@ function VerdictPanel({
       </div>
       <div>
         <p className="mb-1.5 text-xs font-bold text-muted-foreground">Открытые вопросы</p>
-        <ul className="space-y-1.5">
+        <div className="flex flex-wrap gap-1.5">
           {verdict.openQuestions.map((question, i) => (
-            <li key={i}>
-              <button
-                type="button"
-                onClick={() => onAsk(question)}
-                className="w-full rounded-lg border border-border bg-secondary/30 p-2 text-left text-xs text-card-foreground transition-[color,border-color,background-color,transform] hover:-translate-y-0.5 hover:border-primary hover:bg-primary/8 hover:text-primary"
-              >
-                {question}
-              </button>
-            </li>
+            <button
+              key={i}
+              type="button"
+              onClick={() => onAsk(question)}
+              className="rounded-full border border-border bg-secondary/30 px-3 py-1.5 text-left text-xs text-card-foreground transition-[color,border-color,background-color,transform] hover:-translate-y-0.5 hover:border-primary hover:bg-primary/8 hover:text-primary"
+            >
+              {question}
+            </button>
           ))}
-        </ul>
+        </div>
       </div>
       <div>
         <p className="mb-1.5 text-xs font-bold text-muted-foreground">Согласны / расходятся</p>
