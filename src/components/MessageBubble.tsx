@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 interface MessageBubbleBaseProps {
+  /** Merges onto the base classes via cn() — doesn't fully replace them. A base `p-3` isn't evicted by only passing `pt-2`; pass a `p-*` value to override padding fully. */
   bubbleClassName?: string;
   className?: string;
   children: ReactNode;
@@ -20,6 +21,7 @@ interface MessageBubbleEntityProps extends MessageBubbleBaseProps {
   title?: ReactNode;
   /** Только entity — например "border-l-4 border-l-emerald-700". */
   accentClassName?: string;
+  /** Merges onto the base classes via cn() — doesn't fully replace them. A base `p-3` isn't evicted by only passing `pt-2`; pass a `p-*` value to override padding fully. */
   bodyClassName?: string;
   /** Цитаты/действия — остаются целиком на стороне вызывающей фичи. */
   footer?: ReactNode;
