@@ -414,7 +414,7 @@ function VerdictPanel({ session }: { session: CouncilSession }) {
   return (
     <aside
       aria-label="Вердикт совета"
-      className="flex max-h-[45vh] w-full shrink-0 flex-col gap-3 overflow-y-auto border-t border-border bg-card p-4 lg:max-h-none lg:w-[260px] lg:border-l lg:border-t-0"
+      className="flex w-full flex-col gap-3 border-t border-border bg-card p-4 lg:max-h-none lg:w-[260px] lg:shrink-0 lg:overflow-y-auto lg:border-l lg:border-t-0"
     >
       <div className="flex items-center gap-1.5">
         <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-success" />
@@ -476,12 +476,12 @@ function CouncilPage() {
   };
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-background">
+    <div className="flex min-h-screen flex-col bg-background md:h-screen md:overflow-hidden">
       <Header dark={dark} onToggleDark={toggle} />
       <h1 className="sr-only">Консилиум</h1>
 
-      <div className="flex min-h-0 flex-1 flex-col md:flex-row">
-        <aside className="flex max-h-[40vh] w-full shrink-0 flex-col overflow-y-auto border-b border-border bg-card p-3 md:max-h-none md:w-[320px] md:border-b-0 md:border-r">
+      <div className="flex flex-1 flex-col md:min-h-0 md:flex-row">
+        <aside className="flex w-full shrink-0 flex-col border-b border-border bg-card p-3 md:max-h-none md:w-[320px] md:overflow-y-auto md:border-b-0 md:border-r">
           <Button
             className="h-11 w-full gap-1.5 rounded-2xl text-sm"
             onClick={() => {
@@ -555,8 +555,8 @@ function CouncilPage() {
           )}
         </aside>
 
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col lg:flex-row">
-          <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto">
+        <div className="flex flex-1 flex-col lg:min-h-0 lg:min-w-0 lg:flex-row">
+          <main className="flex flex-1 flex-col lg:min-h-0 lg:min-w-0 lg:overflow-y-auto">
             {creating ? (
               <NewCouncilPanel
                 onCancel={() => setCreating(false)}
