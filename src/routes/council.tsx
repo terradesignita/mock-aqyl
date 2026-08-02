@@ -14,9 +14,11 @@ import { cn } from "@/lib/utils";
 import { useCouncilSessions, useTheme } from "@/hooks/useAppState";
 import { mockCards, type KnowledgeCardData } from "@/data/mockCards";
 import {
-  COUNCIL_PERSONAS,
   buildPersonaTake,
+  buildVerdict,
+  COUNCIL_PERSONAS,
   getPersona,
+  suggestPersonas,
   type CouncilSession,
 } from "@/data/council";
 
@@ -73,6 +75,7 @@ function NewCouncilPanel({
   const [query, setQuery] = useState("");
   const [card, setCard] = useState<KnowledgeCardData | null>(null);
   const [personaIds, setPersonaIds] = useState<string[]>([]);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -80,14 +83,17 @@ function NewCouncilPanel({
     return mockCards.filter((c) => c.title.toLowerCase().includes(q)).slice(0, 8);
   }, [query]);
 
-  const togglePersona = (id: string) =>
-    setPersonaIds((prev) =>
-      prev.includes(id)
-        ? prev.filter((x) => x !== id)
-        : prev.length >= MAX_PERSONAS
-          ? prev
-          : [...prev, id],
+  const selectCard = (c: KnowledgeCardData) => {
+    setCard(c);
+    setPersonaIds(
+      suggestPersonas({
+        title: c.title,
+        summary: c.executive_summary,
+        insight: c.core_insight,
+        businessUnit: c.business_unit,
+      }),
     );
+  };
 
   const start = () => {
     if (!card || personaIds.length === 0) return;
@@ -113,7 +119,7 @@ function NewCouncilPanel({
           htmlFor="council-case-search"
           className="mb-2 block text-xs font-bold text-muted-foreground"
         >
-          1. Выберите кейс
+          Выберите кейс
         </label>
         <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 transition-colors focus-within:border-primary">
           <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
@@ -129,7 +135,7 @@ function NewCouncilPanel({
           {results.map((c) => (
             <button
               key={c.id}
-              onClick={() => setCard(c)}
+              onClick={() => selectCard(c)}
               className={cn(
                 "w-full rounded-lg border px-3 py-2 text-left text-sm transition-colors",
                 card?.id === c.id
@@ -143,46 +149,36 @@ function NewCouncilPanel({
         </div>
       </div>
 
-      <div>
-        <p className="mb-2 text-xs font-bold text-muted-foreground">
-          2. Соберите до трёх персон ({personaIds.length}/{MAX_PERSONAS})
-        </p>
-        <div className="grid grid-cols-2 gap-2">
-          {COUNCIL_PERSONAS.map((p) => {
-            const selected = personaIds.includes(p.id);
-            const disabled = !selected && personaIds.length >= MAX_PERSONAS;
-            return (
-              <button
-                key={p.id}
-                onClick={() => togglePersona(p.id)}
-                disabled={disabled}
-                aria-pressed={selected}
-                className={cn(
-                  "flex items-center gap-2.5 rounded-xl border p-2.5 text-left transition-colors disabled:opacity-40",
-                  selected
-                    ? "border-primary bg-primary/8"
-                    : "border-border hover:border-primary/30 hover:bg-secondary/30",
-                )}
-              >
+      {card && (
+        <div>
+          <p className="mb-2 text-xs font-bold text-muted-foreground">
+            Совет ({personaIds.length}/{MAX_PERSONAS})
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            {personaIds.map((id) => {
+              const p = getPersona(id);
+              return (
                 <span
+                  key={id}
                   className={cn(
-                    "grid h-9 w-9 shrink-0 place-items-center rounded-full text-xs font-bold text-white",
+                    "flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold text-white",
                     p.color,
                   )}
                 >
-                  {p.initials}
+                  {p.initials} {p.name.split(" ")[0]}
                 </span>
-                <span className="min-w-0">
-                  <span className="block truncate text-sm font-semibold text-card-foreground">
-                    {p.name}
-                  </span>
-                  <span className="block truncate text-xs text-muted-foreground">{p.role}</span>
-                </span>
-              </button>
-            );
-          })}
+              );
+            })}
+            <button
+              type="button"
+              onClick={() => setPickerOpen(true)}
+              className="text-xs font-semibold text-primary underline-offset-2 hover:underline"
+            >
+              Изменить состав
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="flex items-center gap-2">
         <Button variant="ghost" onClick={onCancel}>
@@ -196,6 +192,14 @@ function NewCouncilPanel({
           <Plus className="h-4 w-4" /> Начать совет
         </Button>
       </div>
+
+      {pickerOpen && (
+        <PersonaPicker
+          selected={personaIds}
+          onChange={setPersonaIds}
+          onClose={() => setPickerOpen(false)}
+        />
+      )}
     </div>
   );
 }
