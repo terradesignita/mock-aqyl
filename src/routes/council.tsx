@@ -32,6 +32,23 @@ export const Route = createFileRoute("/council")({
 const TODAY = "30.07.2026";
 const MAX_PERSONAS = 3;
 
+// Static map so Tailwind's JIT scanner sees every class literally — a
+// runtime `p.color.replace("bg-", "border-l-")` would never be picked up.
+const PERSONA_BORDER_CLASS: Record<string, string> = {
+  "bg-amber-700": "border-l-amber-700",
+  "bg-violet-600": "border-l-violet-600",
+  "bg-blue-600": "border-l-blue-600",
+  "bg-teal-700": "border-l-teal-700",
+  "bg-orange-700": "border-l-orange-700",
+  "bg-fuchsia-600": "border-l-fuchsia-600",
+  "bg-rose-700": "border-l-rose-700",
+  "bg-indigo-600": "border-l-indigo-600",
+  "bg-red-700": "border-l-red-700",
+  "bg-cyan-700": "border-l-cyan-700",
+  "bg-emerald-700": "border-l-emerald-700",
+  "bg-stone-600": "border-l-stone-600",
+};
+
 function AvatarStack({ personaIds }: { personaIds: string[] }) {
   const shown = personaIds.slice(0, 2);
   const rest = personaIds.length - shown.length;
@@ -348,55 +365,62 @@ function SessionView({
   };
 
   return (
-    <div className="mx-auto w-full max-w-2xl space-y-5 px-6 py-8">
-      <div>
-        <p className="text-xs font-bold text-primary">Кейс</p>
-        <h2 className="mt-1 text-lg font-bold text-foreground">{session.topic.title}</h2>
-        <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-          {session.topic.summary}
-        </p>
-      </div>
+    <div className="mx-auto flex min-h-full w-full max-w-2xl flex-col px-6 py-8">
+      <div className="flex-1 space-y-5">
+        <div className="rounded-2xl border border-border bg-card p-4">
+          <p className="text-xs font-bold text-primary">Кейс</p>
+          <h2 className="mt-1 text-lg font-bold text-foreground">{session.topic.title}</h2>
+          <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+            {session.topic.summary}
+          </p>
+        </div>
 
-      <div className="space-y-3">
-        {session.personaIds.map((id, i) => {
-          const p = getPersona(id);
-          return (
-            <div
-              key={id}
-              style={{ animationDelay: `${Math.min(i, 9) * 80}ms` }}
-              className="flex animate-in gap-3 fade-in slide-in-from-bottom-2 duration-300"
-            >
-              <span
-                className={cn(
-                  "grid h-9 w-9 shrink-0 place-items-center rounded-full text-xs font-bold text-white",
-                  p.color,
-                )}
+        <div className="space-y-3">
+          {session.personaIds.map((id, i) => {
+            const p = getPersona(id);
+            return (
+              <div
+                key={id}
+                style={{ animationDelay: `${Math.min(i, 9) * 80}ms` }}
+                className="flex animate-in gap-3 fade-in slide-in-from-bottom-2 duration-300"
               >
-                {p.initials}
-              </span>
-              <div className="min-w-0 flex-1 rounded-2xl rounded-tl-sm border border-border bg-card p-3">
-                <p className="text-xs font-bold text-card-foreground">
-                  {p.name} <span className="font-normal text-muted-foreground">· {p.role}</span>
-                </p>
-                <p className="mt-1 text-sm leading-relaxed text-card-foreground">
-                  {buildPersonaTake(id, session.topic)}
-                </p>
+                <span
+                  className={cn(
+                    "grid h-9 w-9 shrink-0 place-items-center rounded-full text-xs font-bold text-white",
+                    p.color,
+                  )}
+                >
+                  {p.initials}
+                </span>
+                <div
+                  className={cn(
+                    "min-w-0 flex-1 rounded-2xl rounded-tl-sm border border-border border-l-4 bg-card p-3",
+                    PERSONA_BORDER_CLASS[p.color],
+                  )}
+                >
+                  <p className="text-xs font-bold text-card-foreground">
+                    {p.name} <span className="font-normal text-muted-foreground">· {p.role}</span>
+                  </p>
+                  <p className="mt-1 text-sm leading-relaxed text-card-foreground">
+                    {buildPersonaTake(id, session.topic)}
+                  </p>
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
 
-        {session.followUps.map((text, i) => (
-          <div
-            key={i}
-            className="ml-12 animate-in rounded-2xl rounded-tr-sm border border-primary/30 bg-primary/6 p-3 text-sm text-card-foreground fade-in slide-in-from-bottom-2 duration-300"
-          >
-            {text}
-          </div>
-        ))}
+          {session.followUps.map((text, i) => (
+            <div
+              key={i}
+              className="ml-12 animate-in rounded-2xl rounded-tr-sm border border-primary/30 bg-primary/6 p-3 text-sm text-card-foreground fade-in slide-in-from-bottom-2 duration-300"
+            >
+              {text}
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div className="flex gap-2 border-t border-border pt-4">
+      <div className="mt-6 flex gap-2 border-t border-border pt-4">
         <label htmlFor="council-follow-up" className="sr-only">
           Уточняющий вопрос совету
         </label>
