@@ -2,35 +2,34 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-export interface MessageBubbleProps {
-  variant: "user" | "entity";
+interface MessageBubbleBaseProps {
+  bubbleClassName?: string;
+  className?: string;
+  children: ReactNode;
+}
+
+interface MessageBubbleUserProps extends MessageBubbleBaseProps {
+  variant: "user";
+}
+
+interface MessageBubbleEntityProps extends MessageBubbleBaseProps {
+  variant: "entity";
   /** Только entity — аватар слева. */
   avatar?: ReactNode;
   /** Только entity — строка имени/роли над текстом. */
   title?: ReactNode;
   /** Только entity — например "border-l-4 border-l-emerald-700". */
   accentClassName?: string;
-  /** Переопределяет фон/паддинг самой карточки (мёржится через cn/tailwind-merge). */
-  bubbleClassName?: string;
-  /** Переопределяет типографику текста тела (leading, whitespace и т.д.). */
   bodyClassName?: string;
   /** Цитаты/действия — остаются целиком на стороне вызывающей фичи. */
   footer?: ReactNode;
-  className?: string;
-  children: ReactNode;
 }
 
-export function MessageBubble({
-  variant,
-  avatar,
-  title,
-  accentClassName,
-  bubbleClassName,
-  bodyClassName,
-  footer,
-  className,
-  children,
-}: MessageBubbleProps) {
+export type MessageBubbleProps = MessageBubbleUserProps | MessageBubbleEntityProps;
+
+export function MessageBubble(props: MessageBubbleProps) {
+  const { variant, bubbleClassName, className, children } = props;
+
   if (variant === "user") {
     return (
       <div
@@ -44,6 +43,8 @@ export function MessageBubble({
       </div>
     );
   }
+
+  const { avatar, title, accentClassName, bodyClassName, footer } = props;
 
   return (
     <div className={cn("flex gap-3", className)}>
