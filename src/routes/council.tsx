@@ -151,7 +151,7 @@ function NewCouncilPanel({
 
       {card && (
         <div>
-          <p className="mb-2 text-xs font-bold text-muted-foreground">
+          <p className="mb-2 text-xs font-bold tabular-nums text-muted-foreground">
             Совет ({personaIds.length}/{MAX_PERSONAS})
           </p>
           <div className="flex flex-wrap items-center gap-2">
@@ -236,17 +236,18 @@ function PersonaPicker({
     <Dialog open onOpenChange={(next) => !next && onClose()}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="tabular-nums">
             Состав совета ({selected.length}/{MAX_PERSONAS})
           </DialogTitle>
         </DialogHeader>
-        <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-3">
+        <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 transition-colors focus-within:border-primary">
           <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Найдите персону по имени или стилю"
-            className="h-10 w-full min-w-0 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+            aria-label="Найдите персону по имени или стилю"
+            className="h-10 w-full min-w-0 bg-transparent text-base outline-none placeholder:text-muted-foreground sm:text-sm"
           />
         </div>
         <div className="mt-2 max-h-80 space-y-1.5 overflow-y-auto">
@@ -260,7 +261,7 @@ function PersonaPicker({
                 disabled={disabled}
                 aria-pressed={isSelected}
                 className={cn(
-                  "flex w-full items-center gap-2.5 rounded-xl border p-2.5 text-left transition-colors disabled:opacity-40",
+                  "flex w-full items-center gap-2.5 rounded-lg border p-2.5 text-left transition-colors disabled:opacity-40",
                   isSelected
                     ? "border-primary bg-primary/8"
                     : "border-border hover:border-primary/30 hover:bg-secondary/30",
@@ -317,10 +318,10 @@ function EmptyState({ onNew }: { onNew: () => void }) {
       </div>
       <h2 className="text-xl font-bold text-foreground">Разберите решение с советом</h2>
       <p className="max-w-md text-sm text-muted-foreground">
-        Выберите кейс и соберите до трёх персон для предметного разговора.
+        Выберите кейс — совет из трёх персон подберётся автоматически.
       </p>
       <Button size="lg" className="gap-1.5" onClick={onNew}>
-        <Plus className="h-4 w-4" /> Новый совет
+        <Plus className="h-4 w-4" /> Создать совет
       </Button>
     </div>
   );
@@ -442,7 +443,7 @@ function VerdictPanel({ session }: { session: CouncilSession }) {
             <span
               key={i}
               className={cn(
-                "rounded-full border px-2 py-0.5 text-xs font-medium",
+                "max-w-full truncate rounded-full border px-2 py-0.5 text-xs font-medium",
                 a.kind === "agree"
                   ? "border-success/40 bg-success/10 text-success"
                   : "border-destructive/40 bg-destructive/10 text-destructive",
@@ -488,7 +489,7 @@ function CouncilPage() {
               setActiveId(null);
             }}
           >
-            <Plus className="h-4 w-4" /> Новый совет
+            <Plus className="h-4 w-4" /> Создать совет
           </Button>
 
           <div className="mt-4 flex-1 space-y-4">
