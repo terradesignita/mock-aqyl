@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { COUNCIL_PERSONAS, SEED_COUNCIL_SESSIONS, suggestPersonas, buildVerdict } from "./council";
+import { COUNCIL_PERSONAS, SEED_COUNCIL_SESSIONS, suggestPersonas, buildVerdict, buildPersonaTake } from "./council";
 
 describe("COUNCIL_PERSONAS", () => {
   it("has 12 personas with unique ids", () => {
@@ -108,5 +108,20 @@ describe("buildVerdict", () => {
   it("adds a risk tag only when a risk-voiced persona is present", () => {
     expect(buildVerdict(topic, ["operator"], []).agreements.some((a) => a.kind === "risk")).toBe(false);
     expect(buildVerdict(topic, ["competitor"], []).agreements.some((a) => a.kind === "risk")).toBe(true);
+  });
+});
+
+describe("buildPersonaTake", () => {
+  const topic = {
+    title: "SpinBrush",
+    summary: "Маленькая компания выбирает между ростом, партнёрством и продажей.",
+    insight: "Переговорная сила растёт после подтверждения спроса.",
+    businessUnit: "Товары для дома",
+  };
+
+  it("has a distinct case for every persona (no silent default fallback)", () => {
+    for (const p of COUNCIL_PERSONAS) {
+      expect(buildPersonaTake(p.id, topic)).not.toBe(topic.insight);
+    }
   });
 });

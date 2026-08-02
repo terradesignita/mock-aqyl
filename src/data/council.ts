@@ -100,18 +100,30 @@ export const SEED_COUNCIL_SESSIONS: CouncilSession[] = [
 
 export function buildPersonaTake(personaId: string, topic: CouncilTopic): string {
   switch (personaId) {
-    case "cfo":
-      return `Финансово: ${topic.insight} Прежде чем двигаться дальше, нужно оценить эффект на денежный поток «${topic.businessUnit}» на горизонте 6–12 месяцев.`;
-    case "legal":
-      return `С юридической стороны: главный риск в «${topic.title}» — нечётко зафиксированные права и обязательства сторон. Это нужно закрыть до подписания.`;
-    case "ops":
-      return `Операционно: ${topic.summary} Без выделенного владельца процесса результат не повторится на масштабе.`;
-    case "hr":
-      return `С точки зрения людей: успех зависит от того, кто в «${topic.businessUnit}» реально возьмёт на себя ответственность и как будет организовано сопровождение команды.`;
-    case "strategy":
-      return `Стратегически: ${topic.insight} Вопрос в том, усиливает ли это долгосрочную позицию компании или создаёт зависимость.`;
-    case "external":
-      return `Взгляд со стороны: похожие ситуации на рынке подтверждают — ${topic.insight.toLowerCase()} Стоит сверить с независимым бенчмарком, прежде чем финализировать.`;
+    case "founder":
+      return `Смело: ${topic.insight} Если это не меняет правила игры на горизонте 10 лет — не стоит тратить на это ресурсы.`;
+    case "operator":
+      return `Операционно: ${topic.summary} Без чёткого владельца процесса и метрик это не повторится на масштабе «${topic.businessUnit}».`;
+    case "engineer":
+      return `Технически: прежде чем говорить про «${topic.title}», нужно проверить, что это вообще реализуемо без скрытых допущений.`;
+    case "contrarian":
+      return `Контрарианский взгляд: рынок наверняка уже заложил обратное — ${topic.insight.toLowerCase()} Стоит поставить на то, где консенсус ошибается.`;
+    case "industrialist":
+      return `Долгий горизонт: репутация «${topic.businessUnit}» стоит дороже быстрой выгоды. ${topic.insight} Спешить не буду.`;
+    case "product":
+      return `С точки зрения клиента: ${topic.summary} Если это не улучшает жизнь конечного пользователя — вопрос ещё не решён.`;
+    case "brand":
+      return `История имеет значение: как мы объясним «${topic.title}» людям внутри и снаружи компании? ${topic.insight}`;
+    case "platform":
+      return `Экосистемно: кто ещё выигрывает, если мы пойдём этим путём? Партнёрства важнее, чем контроль над каждым шагом.`;
+    case "competitor":
+      return `Конкурентно: ${topic.insight} Если мы не сделаем этот шаг первыми, это сделает кто-то другой в «${topic.businessUnit}».`;
+    case "resilience":
+      return `Через призму устойчивости: регуляторная и рыночная турбулентность рано или поздно ударит по «${topic.businessUnit}» — вопрос, готовы ли мы адаптироваться быстрее других.`;
+    case "scale":
+      return `Эффективность прежде всего: ${topic.summary} Каждый лишний доллар издержек на масштабе «${topic.businessUnit}» — упущенная маржа.`;
+    case "transform":
+      return `Трансформационно: старые процессы в «${topic.businessUnit}» не переживут это решение без изменений в культуре. ${topic.insight}`;
     default:
       return topic.insight;
   }
