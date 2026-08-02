@@ -407,11 +407,62 @@ function SessionView({
   );
 }
 
+function VerdictPanel({ session }: { session: CouncilSession }) {
+  const verdict = buildVerdict(session.topic, session.personaIds, session.followUps);
+
+  return (
+    <aside
+      aria-label="Вердикт совета"
+      className="flex w-full shrink-0 flex-col gap-3 overflow-y-auto border-t border-border bg-card p-4 lg:w-[260px] lg:border-l lg:border-t-0"
+    >
+      <div className="flex items-center gap-1.5">
+        <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-success" />
+        <p className="text-xs font-bold text-primary">Вердикт совета</p>
+      </div>
+      <div className="rounded-xl border border-primary/30 bg-primary/6 p-3 text-sm leading-relaxed text-card-foreground">
+        {verdict.synthesis}
+      </div>
+      <div>
+        <p className="mb-1.5 text-xs font-bold text-muted-foreground">Открытые вопросы</p>
+        <ul className="space-y-1.5">
+          {verdict.openQuestions.map((question, i) => (
+            <li
+              key={i}
+              className="rounded-lg border border-border bg-secondary/30 p-2 text-xs text-card-foreground"
+            >
+              {question}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <p className="mb-1.5 text-xs font-bold text-muted-foreground">Согласны / расходятся</p>
+        <div className="flex flex-wrap gap-1.5">
+          {verdict.agreements.map((a, i) => (
+            <span
+              key={i}
+              className={cn(
+                "rounded-full border px-2 py-0.5 text-xs font-medium",
+                a.kind === "agree"
+                  ? "border-success/40 bg-success/10 text-success"
+                  : "border-destructive/40 bg-destructive/10 text-destructive",
+              )}
+            >
+              {a.label}
+            </span>
+          ))}
+        </div>
+      </div>
+    </aside>
+  );
+}
+
 function CouncilPage() {
   const { dark, toggle } = useTheme();
-  const { sessions, create, markRead } = useCouncilSessions();
+  const { sessions, create, markRead, updatePersonas, addFollowUp } = useCouncilSessions();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const active = sessions.find((s) => s.id === activeId) ?? null;
   const today = sessions.filter((s) => s.date === TODAY);
@@ -443,48 +494,94 @@ function CouncilPage() {
           <div className="mt-4 flex-1 space-y-4">
             {today.length > 0 && (
               <div>
-                <p className="px-1 pb-1.5 text-xs font-bold text-muted-foreground">
-                  Сегодня
-                </p>
+                <p className="px-1 pb-1.5 text-xs font-bold text-muted-foreground">Сегодня</p>
                 <div className="space-y-1.5">
                   {today.map((s) => (
-                    <SessionRow key={s.id} session={s} active={s.id === activeId} onClick={openSession} />
+                    <SessionRow
+                      key={s.id}
+                      session={s}
+                      active={s.id === activeId}
+                      onClick={openSession}
+                    />
                   ))}
                 </div>
               </div>
             )}
             {earlier.length > 0 && (
               <div>
-                <p className="px-1 pb-1.5 text-xs font-bold text-muted-foreground">
-                  Ранее
-                </p>
+                <p className="px-1 pb-1.5 text-xs font-bold text-muted-foreground">Ранее</p>
                 <div className="space-y-1.5">
                   {earlier.map((s) => (
-                    <SessionRow key={s.id} session={s} active={s.id === activeId} onClick={openSession} />
+                    <SessionRow
+                      key={s.id}
+                      session={s}
+                      active={s.id === activeId}
+                      onClick={openSession}
+                    />
                   ))}
                 </div>
               </div>
             )}
           </div>
+
+          {active && (
+            <div className="mt-4 border-t border-border pt-3">
+              <p className="mb-1.5 px-1 text-xs font-bold text-muted-foreground">Совет</p>
+              <div className="flex flex-wrap gap-1.5 px-1">
+                {active.personaIds.map((id) => {
+                  const p = getPersona(id);
+                  return (
+                    <span
+                      key={id}
+                      className={cn(
+                        "grid h-7 w-7 place-items-center rounded-full text-[11px] font-bold text-white",
+                        p.color,
+                      )}
+                    >
+                      {p.initials}
+                    </span>
+                  );
+                })}
+              </div>
+              <button
+                type="button"
+                onClick={() => setPickerOpen(true)}
+                className="mt-2 w-full rounded-lg border border-border px-2 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:border-primary/30 hover:text-card-foreground"
+              >
+                Изменить состав
+              </button>
+            </div>
+          )}
         </aside>
 
-        <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto">
-          {creating ? (
-            <NewCouncilPanel
-              onCancel={() => setCreating(false)}
-              onCreate={(session) => {
-                create(session);
-                setCreating(false);
-                setActiveId(session.id);
-              }}
-            />
-          ) : active ? (
-            <SessionView session={active} />
-          ) : (
-            <EmptyState onNew={() => setCreating(true)} />
-          )}
-        </main>
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col lg:flex-row">
+          <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto">
+            {creating ? (
+              <NewCouncilPanel
+                onCancel={() => setCreating(false)}
+                onCreate={(session) => {
+                  create(session);
+                  setCreating(false);
+                  setActiveId(session.id);
+                }}
+              />
+            ) : active ? (
+              <SessionView session={active} onFollowUp={(text) => addFollowUp(active.id, text)} />
+            ) : (
+              <EmptyState onNew={() => setCreating(true)} />
+            )}
+          </main>
+          {active && <VerdictPanel session={active} />}
+        </div>
       </div>
+
+      {active && pickerOpen && (
+        <PersonaPicker
+          selected={active.personaIds}
+          onChange={(ids) => updatePersonas(active.id, ids)}
+          onClose={() => setPickerOpen(false)}
+        />
+      )}
     </div>
   );
 }
