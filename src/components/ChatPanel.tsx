@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Send, X } from "lucide-react";
 import type { KnowledgeCardData } from "@/data/mockCards";
 import { Button } from "@/components/ui/button";
+import { MessageBubble } from "@/components/MessageBubble";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -100,22 +101,28 @@ export function ChatPanel({ card, open, onClose }: ChatPanelProps) {
           {messages.map((m, i) => (
             <div key={i} className={m.role === "user" ? "flex justify-end" : ""}>
               {m.role === "user" ? (
-                <p className="max-w-[85%] rounded-2xl bg-primary px-3 py-2 text-sm text-primary-foreground">
+                <MessageBubble variant="user" className="max-w-[85%]">
                   {m.text}
-                </p>
+                </MessageBubble>
               ) : (
-                <div className="text-sm leading-relaxed text-card-foreground">
-                  <p className="whitespace-pre-line">{m.text}</p>
-                  {m.citations && (
-                    <ul className="mt-2 space-y-1">
-                      {m.citations.map((c) => (
-                        <li key={c} className="text-xs text-muted-foreground opacity-80">
-                          — {c}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
+                <MessageBubble
+                  variant="entity"
+                  bubbleClassName="border-none bg-transparent p-0"
+                  bodyClassName="whitespace-pre-line"
+                  footer={
+                    m.citations && (
+                      <ul className="mt-2 space-y-1">
+                        {m.citations.map((c) => (
+                          <li key={c} className="text-xs text-muted-foreground opacity-80">
+                            — {c}
+                          </li>
+                        ))}
+                      </ul>
+                    )
+                  }
+                >
+                  {m.text}
+                </MessageBubble>
               )}
             </div>
           ))}
