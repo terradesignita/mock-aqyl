@@ -418,7 +418,7 @@ function VerdictPanel({ session }: { session: CouncilSession }) {
   return (
     <aside
       aria-label="Вердикт совета"
-      className="flex w-full flex-col gap-3 border-t border-border bg-card p-4 lg:max-h-none lg:w-[260px] lg:shrink-0 lg:overflow-y-auto lg:border-l lg:border-t-0"
+      className="flex w-full flex-col gap-3 border-t border-border bg-card p-4 md:max-h-[45vh] md:shrink-0 md:overflow-y-auto lg:max-h-none lg:w-[260px] lg:border-l lg:border-t-0"
     >
       <div className="flex items-center gap-1.5">
         <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-success" />
@@ -559,8 +559,8 @@ function CouncilPage() {
           )}
         </aside>
 
-        <div className="flex flex-1 flex-col lg:min-h-0 lg:min-w-0 lg:flex-row">
-          <main className="flex flex-1 flex-col lg:min-h-0 lg:min-w-0 lg:overflow-y-auto">
+        <div className="flex flex-1 flex-col md:min-h-0 md:min-w-0 lg:flex-row">
+          <main className="flex flex-1 flex-col md:min-h-0 md:min-w-0 md:overflow-y-auto">
             {creating ? (
               <NewCouncilPanel
                 onCancel={() => setCreating(false)}
