@@ -11,6 +11,7 @@ import { StudioPanel } from "@/components/notebook/StudioPanel";
 import { Button } from "@/components/ui/button";
 import { getCardById, type KnowledgeCardData } from "@/data/mockCards";
 import { useBookmarks, useCardTitle, useFeedback, useNotes, useTheme } from "@/hooks/useAppState";
+import { useResizablePanel } from "@/hooks/useResizablePanel";
 
 export const Route = createFileRoute("/card/$id")({
   loader: ({ params }) => {
@@ -72,8 +73,14 @@ function CardWorkspace() {
   const [selected, setSelected] = useState<string[]>(() => sources.map((s) => s.id));
   const [showSources, setShowSources] = useState(true);
   const [showStudio, setShowStudio] = useState(true);
-  const [sourcesWidth, setSourcesWidth] = useState(290);
-  const [studioWidth, setStudioWidth] = useState(320);
+  const { width: sourcesWidth, startResize: startSourcesResize } = useResizablePanel(290, {
+    min: 220,
+    max: 520,
+  });
+  const { width: studioWidth, startResize: startStudioResize } = useResizablePanel(320, {
+    min: 220,
+    max: 520,
+  });
 
   const [reader, setReader] = useState<NotebookSource | null>(null);
   const [highlight, setHighlight] = useState<string | null>(null);
@@ -84,28 +91,6 @@ function CardWorkspace() {
   const bookmarked = bookmarks.includes(card.id);
   const isInternal = card.scope === "INTERNAL";
   const selectedCitations = sources.filter((s) => selected.includes(s.id)).map((s) => s.anchor);
-
-  const startResize = (side: "left" | "right") => (e: React.MouseEvent) => {
-    e.preventDefault();
-    const startX = e.clientX;
-    const startW = side === "left" ? sourcesWidth : studioWidth;
-    const onMove = (ev: MouseEvent) => {
-      const delta = side === "left" ? ev.clientX - startX : startX - ev.clientX;
-      const next = Math.min(520, Math.max(220, startW + delta));
-      if (side === "left") setSourcesWidth(next);
-      else setStudioWidth(next);
-    };
-    const onUp = () => {
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup", onUp);
-      document.body.style.cursor = "";
-      document.body.style.userSelect = "";
-    };
-    document.body.style.cursor = "col-resize";
-    document.body.style.userSelect = "none";
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
-  };
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-background">
@@ -216,7 +201,7 @@ function CardWorkspace() {
               onCollapse={() => setShowSources(false)}
             />
             <div
-              onMouseDown={startResize("left")}
+              onMouseDown={startSourcesResize()}
               role="separator"
               aria-orientation="vertical"
               aria-label="Изменить ширину панели источников"
@@ -271,7 +256,7 @@ function CardWorkspace() {
             className="relative hidden shrink-0 border-l border-border bg-card xl:block"
           >
             <div
-              onMouseDown={startResize("right")}
+              onMouseDown={startStudioResize(true)}
               role="separator"
               aria-orientation="vertical"
               aria-label="Изменить ширину панели артефактов"
