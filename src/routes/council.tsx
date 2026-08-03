@@ -2,14 +2,25 @@ import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Plus, Search, Send } from "lucide-react";
 import { Header } from "@/components/Header";
+import { MessageBubble } from "@/components/MessageBubble";
+import { PersonaAvatar } from "@/components/PersonaAvatar";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { useCouncilSessions, useTheme } from "@/hooks/useAppState";
 import { mockCards, type KnowledgeCardData } from "@/data/mockCards";
 import {
-  COUNCIL_PERSONAS,
   buildPersonaTake,
+  buildVerdict,
+  COUNCIL_PERSONAS,
   getPersona,
+  suggestPersonas,
   type CouncilSession,
 } from "@/data/council";
 
@@ -23,6 +34,23 @@ export const Route = createFileRoute("/council")({
 const TODAY = "30.07.2026";
 const MAX_PERSONAS = 3;
 
+// Static map so Tailwind's JIT scanner sees every class literally — a
+// runtime `p.color.replace("bg-", "border-l-")` would never be picked up.
+const PERSONA_BORDER_CLASS: Record<string, string> = {
+  "bg-amber-700": "border-l-amber-700",
+  "bg-violet-600": "border-l-violet-600",
+  "bg-blue-600": "border-l-blue-600",
+  "bg-teal-700": "border-l-teal-700",
+  "bg-orange-700": "border-l-orange-700",
+  "bg-fuchsia-600": "border-l-fuchsia-600",
+  "bg-rose-700": "border-l-rose-700",
+  "bg-indigo-600": "border-l-indigo-600",
+  "bg-red-700": "border-l-red-700",
+  "bg-cyan-700": "border-l-cyan-700",
+  "bg-emerald-700": "border-l-emerald-700",
+  "bg-stone-600": "border-l-stone-600",
+};
+
 function AvatarStack({ personaIds }: { personaIds: string[] }) {
   const shown = personaIds.slice(0, 2);
   const rest = personaIds.length - shown.length;
@@ -32,16 +60,14 @@ function AvatarStack({ personaIds }: { personaIds: string[] }) {
       {shown.map((id) => {
         const p = getPersona(id);
         return (
-          <span
+          <PersonaAvatar
             key={id}
             aria-hidden
-            className={cn(
-              "grid h-6 w-6 place-items-center rounded-full border-2 border-card text-xs font-bold text-white",
-              p.color,
-            )}
-          >
-            {p.initials}
-          </span>
+            initials={p.initials}
+            size="xs"
+            ring
+            className={p.color}
+          />
         );
       })}
       {rest > 0 && (
@@ -66,6 +92,7 @@ function NewCouncilPanel({
   const [query, setQuery] = useState("");
   const [card, setCard] = useState<KnowledgeCardData | null>(null);
   const [personaIds, setPersonaIds] = useState<string[]>([]);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -73,14 +100,17 @@ function NewCouncilPanel({
     return mockCards.filter((c) => c.title.toLowerCase().includes(q)).slice(0, 8);
   }, [query]);
 
-  const togglePersona = (id: string) =>
-    setPersonaIds((prev) =>
-      prev.includes(id)
-        ? prev.filter((x) => x !== id)
-        : prev.length >= MAX_PERSONAS
-          ? prev
-          : [...prev, id],
+  const selectCard = (c: KnowledgeCardData) => {
+    setCard(c);
+    setPersonaIds(
+      suggestPersonas({
+        title: c.title,
+        summary: c.executive_summary,
+        insight: c.core_insight,
+        businessUnit: c.business_unit,
+      }),
     );
+  };
 
   const start = () => {
     if (!card || personaIds.length === 0) return;
@@ -89,6 +119,7 @@ function NewCouncilPanel({
       title: card.title,
       date: TODAY,
       personaIds,
+      followUps: [],
       topic: {
         title: card.title,
         summary: card.executive_summary,
@@ -105,7 +136,7 @@ function NewCouncilPanel({
           htmlFor="council-case-search"
           className="mb-2 block text-xs font-bold text-muted-foreground"
         >
-          1. Выберите кейс
+          Выберите кейс
         </label>
         <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 transition-colors focus-within:border-primary">
           <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
@@ -121,7 +152,7 @@ function NewCouncilPanel({
           {results.map((c) => (
             <button
               key={c.id}
-              onClick={() => setCard(c)}
+              onClick={() => selectCard(c)}
               className={cn(
                 "w-full rounded-lg border px-3 py-2 text-left text-sm transition-colors",
                 card?.id === c.id
@@ -135,46 +166,36 @@ function NewCouncilPanel({
         </div>
       </div>
 
-      <div>
-        <p className="mb-2 text-xs font-bold text-muted-foreground">
-          2. Соберите до трёх персон ({personaIds.length}/{MAX_PERSONAS})
-        </p>
-        <div className="grid grid-cols-2 gap-2">
-          {COUNCIL_PERSONAS.map((p) => {
-            const selected = personaIds.includes(p.id);
-            const disabled = !selected && personaIds.length >= MAX_PERSONAS;
-            return (
-              <button
-                key={p.id}
-                onClick={() => togglePersona(p.id)}
-                disabled={disabled}
-                aria-pressed={selected}
-                className={cn(
-                  "flex items-center gap-2.5 rounded-xl border p-2.5 text-left transition-colors disabled:opacity-40",
-                  selected
-                    ? "border-primary bg-primary/8"
-                    : "border-border hover:border-primary/30 hover:bg-secondary/30",
-                )}
-              >
+      {card && (
+        <div>
+          <p className="mb-2 text-xs font-bold tabular-nums text-muted-foreground">
+            Совет ({personaIds.length}/{MAX_PERSONAS})
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            {personaIds.map((id) => {
+              const p = getPersona(id);
+              return (
                 <span
+                  key={id}
                   className={cn(
-                    "grid h-9 w-9 shrink-0 place-items-center rounded-full text-xs font-bold text-white",
+                    "flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold text-white",
                     p.color,
                   )}
                 >
-                  {p.initials}
+                  {p.initials} {p.name.split(" ")[0]}
                 </span>
-                <span className="min-w-0">
-                  <span className="block truncate text-sm font-semibold text-card-foreground">
-                    {p.name}
-                  </span>
-                  <span className="block truncate text-xs text-muted-foreground">{p.role}</span>
-                </span>
-              </button>
-            );
-          })}
+              );
+            })}
+            <button
+              type="button"
+              onClick={() => setPickerOpen(true)}
+              className="text-xs font-semibold text-primary underline-offset-2 hover:underline"
+            >
+              Изменить состав
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="flex items-center gap-2">
         <Button variant="ghost" onClick={onCancel}>
@@ -188,114 +209,198 @@ function NewCouncilPanel({
           <Plus className="h-4 w-4" /> Начать совет
         </Button>
       </div>
+
+      {pickerOpen && (
+        <PersonaPicker
+          selected={personaIds}
+          onChange={setPersonaIds}
+          onClose={() => setPickerOpen(false)}
+        />
+      )}
     </div>
   );
 }
 
+function PersonaPicker({
+  selected,
+  onChange,
+  onClose,
+}: {
+  selected: string[];
+  onChange: (ids: string[]) => void;
+  onClose: () => void;
+}) {
+  const [query, setQuery] = useState("");
+  const q = query.trim().toLowerCase();
+  const results = COUNCIL_PERSONAS.filter(
+    (p) =>
+      !q ||
+      p.name.toLowerCase().includes(q) ||
+      p.role.toLowerCase().includes(q) ||
+      p.inspiredBy.toLowerCase().includes(q),
+  );
+
+  const toggle = (id: string) =>
+    onChange(
+      selected.includes(id)
+        ? selected.length > 1
+          ? selected.filter((x) => x !== id)
+          : selected
+        : selected.length >= MAX_PERSONAS
+          ? selected
+          : [...selected, id],
+    );
+
+  return (
+    <Dialog open onOpenChange={(next) => !next && onClose()}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="tabular-nums">
+            Состав совета ({selected.length}/{MAX_PERSONAS})
+          </DialogTitle>
+        </DialogHeader>
+        <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 transition-colors focus-within:border-primary">
+          <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Найдите персону по имени или стилю"
+            aria-label="Найдите персону по имени или стилю"
+            className="h-10 w-full min-w-0 bg-transparent text-base outline-none placeholder:text-muted-foreground sm:text-sm"
+          />
+        </div>
+        <div className="mt-2 max-h-80 space-y-1.5 overflow-y-auto">
+          {results.map((p) => {
+            const isSelected = selected.includes(p.id);
+            const disabled =
+              (!isSelected && selected.length >= MAX_PERSONAS) ||
+              (isSelected && selected.length <= 1);
+            return (
+              <button
+                key={p.id}
+                onClick={() => toggle(p.id)}
+                disabled={disabled}
+                aria-pressed={isSelected}
+                className={cn(
+                  "flex w-full items-center gap-2.5 rounded-lg border p-2.5 text-left transition-colors disabled:opacity-40",
+                  isSelected
+                    ? "border-primary bg-primary/8"
+                    : "border-border hover:border-primary/30 hover:bg-secondary/30",
+                )}
+              >
+                <PersonaAvatar initials={p.initials} size="md" className={p.color} />
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-semibold text-card-foreground">
+                    {p.name}
+                  </span>
+                  <span className="block truncate text-xs text-muted-foreground">
+                    {p.role} · в духе {p.inspiredBy}
+                  </span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        <DialogFooter>
+          <Button onClick={onClose}>Готово</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function EmptyState({ onNew }: { onNew: () => void }) {
-  const heroIds = ["external", "cfo", "legal"];
+  const heroIds = ["founder", "operator", "resilience"];
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
       <div aria-hidden className="flex items-center -space-x-3">
         {heroIds.map((id, i) => {
           const p = getPersona(id);
           return (
-            <span
+            <PersonaAvatar
               key={id}
+              initials={p.initials}
+              size="lg"
               style={{ zIndex: heroIds.length - i }}
-              className={cn(
-                "grid h-14 w-14 place-items-center rounded-full border-4 border-background text-sm font-bold text-white",
-                p.color,
-              )}
-            >
-              {p.initials}
-            </span>
+              className={cn(p.color, "border-4 border-background")}
+            />
           );
         })}
       </div>
       <h2 className="text-xl font-bold text-foreground">Разберите решение с советом</h2>
       <p className="max-w-md text-sm text-muted-foreground">
-        Выберите кейс и соберите до трёх персон для предметного разговора.
+        Выберите кейс — совет из трёх персон подберётся автоматически.
       </p>
       <Button size="lg" className="gap-1.5" onClick={onNew}>
-        <Plus className="h-4 w-4" /> Новый совет
+        <Plus className="h-4 w-4" /> Создать совет
       </Button>
     </div>
   );
 }
 
-function SessionView({ session }: { session: CouncilSession }) {
+function SessionView({
+  session,
+  onFollowUp,
+}: {
+  session: CouncilSession;
+  onFollowUp: (text: string) => void;
+}) {
   const [followUp, setFollowUp] = useState("");
-  const [thread, setThread] = useState<{ author: "user" | "synthesis"; text: string }[]>([]);
 
   const send = () => {
     const text = followUp.trim();
     if (!text) return;
-    setThread((prev) => [
-      ...prev,
-      { author: "user", text },
-      {
-        author: "synthesis",
-        text: `Мнения разошлись, но все сходятся в одном: ${session.topic.insight} Дальнейшее решение зависит от того, какой риск компания готова принять.`,
-      },
-    ]);
+    onFollowUp(text);
     setFollowUp("");
   };
 
   return (
-    <div className="mx-auto w-full max-w-2xl space-y-5 px-6 py-8">
-      <div>
-        <p className="text-xs font-bold text-primary">Кейс</p>
-        <h2 className="mt-1 text-lg font-bold text-foreground">{session.topic.title}</h2>
-        <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-          {session.topic.summary}
-        </p>
-      </div>
+    <div className="mx-auto flex min-h-full w-full max-w-2xl flex-col px-6 py-8">
+      <div className="flex-1 space-y-5">
+        <div className="rounded-2xl border border-border bg-card p-4">
+          <p className="text-xs font-bold text-primary">Кейс</p>
+          <h2 className="mt-1 text-lg font-bold text-foreground">{session.topic.title}</h2>
+          <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+            {session.topic.summary}
+          </p>
+        </div>
 
-      <div className="space-y-3">
-        {session.personaIds.map((id) => {
-          const p = getPersona(id);
-          return (
-            <div key={id} className="flex gap-3">
-              <span
-                className={cn(
-                  "grid h-9 w-9 shrink-0 place-items-center rounded-full text-xs font-bold text-white",
-                  p.color,
-                )}
+        <div className="space-y-3">
+          {session.personaIds.map((id, i) => {
+            const p = getPersona(id);
+            return (
+              <div
+                key={id}
+                style={{ animationDelay: `${Math.min(i, 9) * 80}ms` }}
+                className="animate-in fade-in slide-in-from-bottom-2 duration-300"
               >
-                {p.initials}
-              </span>
-              <div className="min-w-0 flex-1 rounded-2xl rounded-tl-sm border border-border bg-card p-3">
-                <p className="text-xs font-bold text-card-foreground">
-                  {p.name} <span className="font-normal text-muted-foreground">· {p.role}</span>
-                </p>
-                <p className="mt-1 text-sm leading-relaxed text-card-foreground">
+                <MessageBubble
+                  variant="entity"
+                  avatar={<PersonaAvatar initials={p.initials} size="md" className={p.color} />}
+                  title={
+                    <>
+                      {p.name} <span className="font-normal text-muted-foreground">· {p.role}</span>
+                    </>
+                  }
+                  accentClassName={cn("border-l-4", PERSONA_BORDER_CLASS[p.color])}
+                >
                   {buildPersonaTake(id, session.topic)}
-                </p>
+                </MessageBubble>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
 
-        {thread.map((m, i) =>
-          m.author === "user" ? (
-            <div key={i} className="ml-12 rounded-2xl rounded-tr-sm border border-primary/30 bg-primary/6 p-3 text-sm text-card-foreground">
-              {m.text}
+          {session.followUps.map((text, i) => (
+            <div key={i} className="ml-12 animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <MessageBubble variant="user" bubbleClassName="p-3">
+                {text}
+              </MessageBubble>
             </div>
-          ) : (
-            <div key={i} className="flex gap-3">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-secondary text-xs font-bold text-muted-foreground">
-                Итог
-              </span>
-              <div className="min-w-0 flex-1 rounded-2xl rounded-tl-sm border border-dashed border-border bg-secondary/40 p-3 text-sm leading-relaxed text-card-foreground">
-                {m.text}
-              </div>
-            </div>
-          ),
-        )}
+          ))}
+        </div>
       </div>
 
-      <div className="flex gap-2 border-t border-border pt-4">
+      <div className="mt-6 flex gap-2 border-t border-border pt-4">
         <label htmlFor="council-follow-up" className="sr-only">
           Уточняющий вопрос совету
         </label>
@@ -315,11 +420,73 @@ function SessionView({ session }: { session: CouncilSession }) {
   );
 }
 
+function VerdictPanel({
+  session,
+  onAsk,
+}: {
+  session: CouncilSession;
+  onAsk: (text: string) => void;
+}) {
+  const verdict = buildVerdict(session.topic, session.personaIds, session.followUps);
+
+  return (
+    <aside
+      aria-label="Вердикт совета"
+      className="flex w-full flex-col gap-3 border-t border-border bg-card p-4 md:max-h-[45vh] md:shrink-0 md:overflow-y-auto lg:max-h-none lg:w-[260px] lg:border-l lg:border-t-0"
+    >
+      <div className="flex items-center gap-1.5">
+        <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-success" />
+        <p className="text-xs font-bold text-primary">Вердикт совета</p>
+      </div>
+      <div
+        key={session.followUps.length}
+        className="animate-in rounded-xl border border-primary/30 bg-primary/6 p-3 text-sm leading-relaxed text-card-foreground fade-in duration-300"
+      >
+        {verdict.synthesis}
+      </div>
+      <div>
+        <p className="mb-1.5 text-xs font-bold text-muted-foreground">Открытые вопросы</p>
+        <div className="flex flex-wrap gap-1.5">
+          {verdict.openQuestions.map((question, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => onAsk(question)}
+              className="rounded-full border border-border bg-secondary/30 px-3 py-1.5 text-left text-xs text-card-foreground transition-[color,border-color,background-color,transform] hover:-translate-y-0.5 hover:border-primary hover:bg-primary/8 hover:text-primary"
+            >
+              {question}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div>
+        <p className="mb-1.5 text-xs font-bold text-muted-foreground">Согласны / расходятся</p>
+        <div className="flex flex-wrap gap-1.5">
+          {verdict.agreements.map((a, i) => (
+            <span
+              key={i}
+              className={cn(
+                "max-w-full truncate rounded-full border px-2 py-0.5 text-xs font-medium",
+                a.kind === "agree"
+                  ? "border-success/40 bg-success/10 text-success"
+                  : "border-destructive/40 bg-destructive/10 text-destructive",
+              )}
+            >
+              {a.label}
+            </span>
+          ))}
+        </div>
+      </div>
+    </aside>
+  );
+}
+
 function CouncilPage() {
   const { dark, toggle } = useTheme();
-  const { sessions, create, markRead } = useCouncilSessions();
+  const { sessions, create, markRead, updatePersonas, addFollowUp } = useCouncilSessions();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const active = sessions.find((s) => s.id === activeId) ?? null;
   const today = sessions.filter((s) => s.date === TODAY);
@@ -332,12 +499,12 @@ function CouncilPage() {
   };
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-background">
+    <div className="flex min-h-screen flex-col bg-background md:h-screen md:overflow-hidden">
       <Header dark={dark} onToggleDark={toggle} />
       <h1 className="sr-only">Консилиум</h1>
 
-      <div className="flex min-h-0 flex-1 flex-col md:flex-row">
-        <aside className="flex max-h-[40vh] w-full shrink-0 flex-col overflow-y-auto border-b border-border bg-card p-3 md:max-h-none md:w-[320px] md:border-b-0 md:border-r">
+      <div className="flex flex-1 flex-col md:min-h-0 md:flex-row">
+        <aside className="flex w-full shrink-0 flex-col border-b border-border bg-card p-3 md:max-h-none md:w-[320px] md:overflow-y-auto md:border-b-0 md:border-r">
           <Button
             className="h-11 w-full gap-1.5 rounded-2xl text-sm"
             onClick={() => {
@@ -345,54 +512,94 @@ function CouncilPage() {
               setActiveId(null);
             }}
           >
-            <Plus className="h-4 w-4" /> Новый совет
+            <Plus className="h-4 w-4" /> Создать совет
           </Button>
 
           <div className="mt-4 flex-1 space-y-4">
             {today.length > 0 && (
               <div>
-                <p className="px-1 pb-1.5 text-xs font-bold text-muted-foreground">
-                  Сегодня
-                </p>
+                <p className="px-1 pb-1.5 text-xs font-bold text-muted-foreground">Сегодня</p>
                 <div className="space-y-1.5">
                   {today.map((s) => (
-                    <SessionRow key={s.id} session={s} active={s.id === activeId} onClick={openSession} />
+                    <SessionRow
+                      key={s.id}
+                      session={s}
+                      active={s.id === activeId}
+                      onClick={openSession}
+                    />
                   ))}
                 </div>
               </div>
             )}
             {earlier.length > 0 && (
               <div>
-                <p className="px-1 pb-1.5 text-xs font-bold text-muted-foreground">
-                  Ранее
-                </p>
+                <p className="px-1 pb-1.5 text-xs font-bold text-muted-foreground">Ранее</p>
                 <div className="space-y-1.5">
                   {earlier.map((s) => (
-                    <SessionRow key={s.id} session={s} active={s.id === activeId} onClick={openSession} />
+                    <SessionRow
+                      key={s.id}
+                      session={s}
+                      active={s.id === activeId}
+                      onClick={openSession}
+                    />
                   ))}
                 </div>
               </div>
             )}
           </div>
+
+          {active && (
+            <div className="mt-4 border-t border-border pt-3">
+              <p className="mb-1.5 px-1 text-xs font-bold text-muted-foreground">Совет</p>
+              <div className="flex flex-wrap gap-1.5 px-1">
+                {active.personaIds.map((id) => {
+                  const p = getPersona(id);
+                  return (
+                    <PersonaAvatar key={id} initials={p.initials} size="sm" className={p.color} />
+                  );
+                })}
+              </div>
+              <button
+                type="button"
+                onClick={() => setPickerOpen(true)}
+                className="mt-2 w-full rounded-lg border border-border px-2 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:border-primary/30 hover:text-card-foreground"
+              >
+                Изменить состав
+              </button>
+            </div>
+          )}
         </aside>
 
-        <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto">
-          {creating ? (
-            <NewCouncilPanel
-              onCancel={() => setCreating(false)}
-              onCreate={(session) => {
-                create(session);
-                setCreating(false);
-                setActiveId(session.id);
-              }}
-            />
-          ) : active ? (
-            <SessionView session={active} />
-          ) : (
-            <EmptyState onNew={() => setCreating(true)} />
+        <div className="flex flex-1 flex-col md:min-h-0 md:min-w-0 lg:flex-row">
+          <main className="flex flex-1 flex-col md:min-h-0 md:min-w-0 md:overflow-y-auto">
+            {creating ? (
+              <NewCouncilPanel
+                onCancel={() => setCreating(false)}
+                onCreate={(session) => {
+                  create(session);
+                  setCreating(false);
+                  setActiveId(session.id);
+                }}
+              />
+            ) : active ? (
+              <SessionView session={active} onFollowUp={(text) => addFollowUp(active.id, text)} />
+            ) : (
+              <EmptyState onNew={() => setCreating(true)} />
+            )}
+          </main>
+          {active && (
+            <VerdictPanel session={active} onAsk={(text) => addFollowUp(active.id, text)} />
           )}
-        </main>
+        </div>
       </div>
+
+      {active && pickerOpen && (
+        <PersonaPicker
+          selected={active.personaIds}
+          onChange={(ids) => updatePersonas(active.id, ids)}
+          onClose={() => setPickerOpen(false)}
+        />
+      )}
     </div>
   );
 }

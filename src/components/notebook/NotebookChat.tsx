@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import type { KnowledgeCardData } from "@/data/mockCards";
 import type { NotebookSource } from "@/lib/sources";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { MessageBubble } from "@/components/MessageBubble";
 
 interface ChatMessage {
   id: string;
@@ -323,112 +324,118 @@ export function NotebookChat({
             m.role === "user" ? (
               <div key={m.id} className="flex justify-end">
                 <div className="max-w-[80%]">
-                  <p className="rounded-2xl rounded-br-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground">
+                  <MessageBubble variant="user" bubbleClassName="px-4 py-2.5 font-medium">
                     {m.text}
-                  </p>
+                  </MessageBubble>
                   <p className="mt-1 text-right text-xs text-muted-foreground">{m.time}</p>
                 </div>
               </div>
             ) : (
-              <div key={m.id} className="rounded-2xl border border-border bg-card p-5">
-                <p className="whitespace-pre-line text-sm leading-7 text-card-foreground">
-                  {renderWithFootnotes(m.text, m.citations ?? [])}
-                </p>
-
-                {m.citations && m.citations.length > 0 && (
-                  <ul className="mt-4 flex flex-wrap gap-1.5 border-t border-border pt-3">
-                    {m.citations.map((c, idx) => (
-                      <li key={c}>
-                        <button
-                          onClick={() => openCitation(c)}
-                          className="inline-flex max-w-[280px] items-center gap-1.5 rounded-md bg-secondary px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
-                          title={c}
-                        >
-                          <Quote className="h-3 w-3 shrink-0 text-primary" />
-                          <span className="truncate">
-                            [{idx + 1}] {c}
-                          </span>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-
-                <div className="mt-3 flex flex-wrap items-center gap-1 border-t border-border pt-2.5 text-muted-foreground">
-                  <button
-                    onClick={() => setFeedback(m.id, i, "up")}
-                    aria-label="Полезный ответ"
-                    className={`grid h-7 w-7 place-items-center rounded-md transition-colors hover:bg-secondary ${
-                      m.feedback === "up" ? "text-success" : ""
-                    }`}
-                  >
-                    <ThumbsUp className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    onClick={() => setFeedback(m.id, i, "down")}
-                    aria-label="Неудачный ответ"
-                    className={`grid h-7 w-7 place-items-center rounded-md transition-colors hover:bg-secondary ${
-                      m.feedback === "down" ? "text-destructive" : ""
-                    }`}
-                  >
-                    <ThumbsDown className="h-3.5 w-3.5" />
-                  </button>
-                  <span className="mx-1 h-4 w-px bg-border" />
-                  <button
-                    onClick={() => copy(m)}
-                    className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-secondary hover:text-foreground"
-                  >
-                    {copiedId === m.id ? (
-                      <Check className="h-3.5 w-3.5 text-success" />
-                    ) : (
-                      <Copy className="h-3.5 w-3.5" />
+              <MessageBubble
+                key={m.id}
+                variant="entity"
+                bubbleClassName="p-5 rounded-tl-2xl"
+                bodyClassName="leading-7 whitespace-pre-line"
+                footer={
+                  <>
+                    {m.citations && m.citations.length > 0 && (
+                      <ul className="mt-4 flex flex-wrap gap-1.5 border-t border-border pt-3">
+                        {m.citations.map((c, idx) => (
+                          <li key={c}>
+                            <button
+                              onClick={() => openCitation(c)}
+                              className="inline-flex max-w-[280px] items-center gap-1.5 rounded-md bg-secondary px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                              title={c}
+                            >
+                              <Quote className="h-3 w-3 shrink-0 text-primary" />
+                              <span className="truncate">
+                                [{idx + 1}] {c}
+                              </span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
                     )}
-                    Копировать
-                  </button>
-                  <button
-                    onClick={() => onSaveNote(m.text)}
-                    className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-secondary hover:text-foreground"
-                  >
-                    <StickyNote className="h-3.5 w-3.5" /> В заметки
-                  </button>
-                  <button
-                    onClick={() => setReportFor(reportFor === m.id ? null : m.id)}
-                    className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-secondary hover:text-destructive"
-                  >
-                    <Flag className="h-3.5 w-3.5" /> Сообщить об ошибке
-                  </button>
-                  <span className="ml-auto text-xs">{m.time}</span>
-                </div>
 
-                {reportFor === m.id && (
-                  <div className="mt-3 rounded-xl border border-border bg-secondary/50 p-3">
-                    <p className="text-xs font-semibold text-card-foreground">
-                      Что не так с ответом?
-                    </p>
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      {[
-                        "Неверный факт",
-                        "Цитата не соответствует",
-                        "Ответ не по вопросу",
-                        "Устаревшие данные",
-                        "Конфиденциальные данные",
-                      ].map((reason) => (
-                        <button
-                          key={reason}
-                          onClick={() => {
-                            setReportFor(null);
-                            onFeedback("report", questionFor(i), reason);
-                            toast.success(`Отправлено редакторам: «${reason}»`);
-                          }}
-                          className="rounded-full border border-border bg-card px-2.5 py-1 text-xs transition-colors hover:border-destructive hover:text-destructive"
-                        >
-                          {reason}
-                        </button>
-                      ))}
+                    <div className="mt-3 flex flex-wrap items-center gap-1 border-t border-border pt-2.5 text-muted-foreground">
+                      <button
+                        onClick={() => setFeedback(m.id, i, "up")}
+                        aria-label="Полезный ответ"
+                        className={`grid h-7 w-7 place-items-center rounded-md transition-colors hover:bg-secondary ${
+                          m.feedback === "up" ? "text-success" : ""
+                        }`}
+                      >
+                        <ThumbsUp className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        onClick={() => setFeedback(m.id, i, "down")}
+                        aria-label="Неудачный ответ"
+                        className={`grid h-7 w-7 place-items-center rounded-md transition-colors hover:bg-secondary ${
+                          m.feedback === "down" ? "text-destructive" : ""
+                        }`}
+                      >
+                        <ThumbsDown className="h-3.5 w-3.5" />
+                      </button>
+                      <span className="mx-1 h-4 w-px bg-border" />
+                      <button
+                        onClick={() => copy(m)}
+                        className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-secondary hover:text-foreground"
+                      >
+                        {copiedId === m.id ? (
+                          <Check className="h-3.5 w-3.5 text-success" />
+                        ) : (
+                          <Copy className="h-3.5 w-3.5" />
+                        )}
+                        Копировать
+                      </button>
+                      <button
+                        onClick={() => onSaveNote(m.text)}
+                        className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-secondary hover:text-foreground"
+                      >
+                        <StickyNote className="h-3.5 w-3.5" /> В заметки
+                      </button>
+                      <button
+                        onClick={() => setReportFor(reportFor === m.id ? null : m.id)}
+                        className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-secondary hover:text-destructive"
+                      >
+                        <Flag className="h-3.5 w-3.5" /> Сообщить об ошибке
+                      </button>
+                      <span className="ml-auto text-xs">{m.time}</span>
                     </div>
-                  </div>
-                )}
-              </div>
+
+                    {reportFor === m.id && (
+                      <div className="mt-3 rounded-xl border border-border bg-secondary/50 p-3">
+                        <p className="text-xs font-semibold text-card-foreground">
+                          Что не так с ответом?
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {[
+                            "Неверный факт",
+                            "Цитата не соответствует",
+                            "Ответ не по вопросу",
+                            "Устаревшие данные",
+                            "Конфиденциальные данные",
+                          ].map((reason) => (
+                            <button
+                              key={reason}
+                              onClick={() => {
+                                setReportFor(null);
+                                onFeedback("report", questionFor(i), reason);
+                                toast.success(`Отправлено редакторам: «${reason}»`);
+                              }}
+                              className="rounded-full border border-border bg-card px-2.5 py-1 text-xs transition-colors hover:border-destructive hover:text-destructive"
+                            >
+                              {reason}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                }
+              >
+                {renderWithFootnotes(m.text, m.citations ?? [])}
+              </MessageBubble>
             ),
           )}
 

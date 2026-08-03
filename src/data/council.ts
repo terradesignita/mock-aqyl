@@ -3,17 +3,109 @@ export interface CouncilPersona {
   name: string;
   initials: string;
   role: string;
+  /** Реальный лидер — только как отсылка к стилю в bio. Никогда не источник цитаты. */
+  inspiredBy: string;
   color: string;
 }
 
 export const COUNCIL_PERSONAS: CouncilPersona[] = [
   // Цвета подобраны на контраст ≥4.5:1 с белым текстом инициалов (WCAG AA).
-  { id: "cfo", name: "Санжар Ахметов", initials: "SA", role: "Финансовый директор", color: "bg-amber-700" },
-  { id: "legal", name: "Дана Бекова", initials: "DB", role: "Юрист", color: "bg-violet-600" },
-  { id: "ops", name: "Ержан Мадиев", initials: "EM", role: "Операционный директор", color: "bg-blue-600" },
-  { id: "hr", name: "Жанна Хан", initials: "JH", role: "HR-директор", color: "bg-teal-700" },
-  { id: "strategy", name: "Самал Зейнеп", initials: "SZ", role: "Стратегический советник", color: "bg-orange-700" },
-  { id: "external", name: "Марк Абрамс", initials: "MA", role: "Внешний консультант", color: "bg-fuchsia-600" },
+  {
+    id: "founder",
+    name: "Артур Ким",
+    initials: "AK",
+    role: "Визионер-фаундер",
+    inspiredBy: "Илона Маска",
+    color: "bg-amber-700",
+  },
+  {
+    id: "operator",
+    name: "Роза Ниязова",
+    initials: "RN",
+    role: "Операционный директор",
+    inspiredBy: "Тима Кука",
+    color: "bg-violet-600",
+  },
+  {
+    id: "engineer",
+    name: "Виктор Тен",
+    initials: "VT",
+    role: "Инженер-прагматик",
+    inspiredBy: "Стива Возняка",
+    color: "bg-blue-600",
+  },
+  {
+    id: "contrarian",
+    name: "Лейла Асанова",
+    initials: "LA",
+    role: "Контрарианка-инвестор",
+    inspiredBy: "Джорджа Сороса",
+    color: "bg-teal-700",
+  },
+  {
+    id: "industrialist",
+    name: "Данияр Оспанов",
+    initials: "DO",
+    role: "Промышленник",
+    inspiredBy: "Уоррена Баффета",
+    color: "bg-orange-700",
+  },
+  {
+    id: "product",
+    name: "Мила Ержанова",
+    initials: "ME",
+    role: "Продакт-лидер",
+    inspiredBy: "Джеффа Безоса",
+    color: "bg-fuchsia-600",
+  },
+  {
+    id: "brand",
+    name: "Николь Багрова",
+    initials: "NB",
+    role: "Бренд-стратег",
+    inspiredBy: "Ричарда Брэнсона",
+    color: "bg-rose-700",
+  },
+  {
+    id: "platform",
+    name: "Самат Ержигитов",
+    initials: "SE",
+    role: "Платформенный стратег",
+    inspiredBy: "Сатьи Наделлы",
+    color: "bg-indigo-600",
+  },
+  {
+    id: "competitor",
+    name: "Алина Достаева",
+    initials: "AD",
+    role: "Директор по M&A",
+    inspiredBy: "Ларри Эллисона",
+    color: "bg-red-700",
+  },
+  {
+    id: "resilience",
+    name: "Тимур Нурланов",
+    initials: "TN",
+    role: "Директор по устойчивости",
+    inspiredBy: "Джека Ма",
+    color: "bg-cyan-700",
+  },
+  {
+    id: "scale",
+    name: "Диана Рахимова",
+    initials: "DR",
+    role: "Операционная эффективность",
+    inspiredBy: "Сэма Уолтона",
+    color: "bg-emerald-700",
+  },
+  {
+    id: "transform",
+    name: "Ержан Тулегенов",
+    initials: "ET",
+    role: "Директор по трансформации",
+    inspiredBy: "Мэри Барра",
+    color: "bg-stone-600",
+  },
 ];
 
 export function getPersona(id: string): CouncilPersona {
@@ -27,11 +119,34 @@ export interface CouncilTopic {
   businessUnit: string;
 }
 
+function hashString(value: string): number {
+  let hash = 0;
+  for (let i = 0; i < value.length; i++) {
+    hash = (hash * 31 + value.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash);
+}
+
+/**
+ * ponytail: детерминированный подбор по хэшу заголовка+бизнес-юнита,
+ * не семантическое сопоставление темы и архетипа. Заменить на более
+ * умную логику, если подбор будет систематически невпопад.
+ */
+export function suggestPersonas(topic: CouncilTopic): string[] {
+  const ids = COUNCIL_PERSONAS.map((p) => p.id);
+  const start = hashString(topic.title + topic.businessUnit) % ids.length;
+  // Use step size derived from roster length to guarantee 3 unique offsets
+  // for any roster size >= 3, not just the current length of 12.
+  const step = Math.max(1, Math.floor(ids.length / 3));
+  return [0, step, 2 * step].map((offset) => ids[(start + offset) % ids.length]);
+}
+
 export interface CouncilSession {
   id: string;
   title: string;
   date: string;
   personaIds: string[];
+  followUps: string[];
   unread?: boolean;
   topic: CouncilTopic;
 }
@@ -41,7 +156,8 @@ export const SEED_COUNCIL_SESSIONS: CouncilSession[] = [
     id: "seed-1",
     title: "Iz Lynn Chan at Far East Organization (Abridged)",
     date: "30.07.2026",
-    personaIds: ["strategy", "legal", "external"],
+    personaIds: ["founder", "contrarian", "transform"],
+    followUps: [],
     topic: {
       title: "Iz Lynn Chan at Far East Organization (Abridged)",
       summary:
@@ -55,7 +171,8 @@ export const SEED_COUNCIL_SESSIONS: CouncilSession[] = [
     id: "seed-2",
     title: "SpinBrush",
     date: "28.07.2026",
-    personaIds: ["ops", "hr", "external"],
+    personaIds: ["operator", "competitor", "resilience"],
+    followUps: [],
     unread: true,
     topic: {
       title: "SpinBrush",
@@ -70,19 +187,87 @@ export const SEED_COUNCIL_SESSIONS: CouncilSession[] = [
 
 export function buildPersonaTake(personaId: string, topic: CouncilTopic): string {
   switch (personaId) {
-    case "cfo":
-      return `Финансово: ${topic.insight} Прежде чем двигаться дальше, нужно оценить эффект на денежный поток «${topic.businessUnit}» на горизонте 6–12 месяцев.`;
-    case "legal":
-      return `С юридической стороны: главный риск в «${topic.title}» — нечётко зафиксированные права и обязательства сторон. Это нужно закрыть до подписания.`;
-    case "ops":
-      return `Операционно: ${topic.summary} Без выделенного владельца процесса результат не повторится на масштабе.`;
-    case "hr":
-      return `С точки зрения людей: успех зависит от того, кто в «${topic.businessUnit}» реально возьмёт на себя ответственность и как будет организовано сопровождение команды.`;
-    case "strategy":
-      return `Стратегически: ${topic.insight} Вопрос в том, усиливает ли это долгосрочную позицию компании или создаёт зависимость.`;
-    case "external":
-      return `Взгляд со стороны: похожие ситуации на рынке подтверждают — ${topic.insight.toLowerCase()} Стоит сверить с независимым бенчмарком, прежде чем финализировать.`;
+    case "founder":
+      return `Смело: ${topic.insight} Если это не меняет правила игры на горизонте 10 лет — не стоит тратить на это ресурсы.`;
+    case "operator":
+      return `Операционно: ${topic.summary} Без чёткого владельца процесса и метрик это не повторится на масштабе «${topic.businessUnit}».`;
+    case "engineer":
+      return `Технически: прежде чем говорить про «${topic.title}», нужно проверить, что это вообще реализуемо без скрытых допущений.`;
+    case "contrarian":
+      return `Контрарианский взгляд: рынок наверняка уже заложил обратное — ${topic.insight.toLowerCase()} Стоит поставить на то, где консенсус ошибается.`;
+    case "industrialist":
+      return `Долгий горизонт: репутация «${topic.businessUnit}» стоит дороже быстрой выгоды. ${topic.insight} Спешить не буду.`;
+    case "product":
+      return `С точки зрения клиента: ${topic.summary} Если это не улучшает жизнь конечного пользователя — вопрос ещё не решён.`;
+    case "brand":
+      return `История имеет значение: как мы объясним «${topic.title}» людям внутри и снаружи компании? ${topic.insight}`;
+    case "platform":
+      return `Экосистемно: кто ещё выигрывает, если мы пойдём этим путём? Партнёрства важнее, чем контроль над каждым шагом.`;
+    case "competitor":
+      return `Конкурентно: ${topic.insight} Если мы не сделаем этот шаг первыми, это сделает кто-то другой в «${topic.businessUnit}».`;
+    case "resilience":
+      return `Через призму устойчивости: регуляторная и рыночная турбулентность рано или поздно ударит по «${topic.businessUnit}» — вопрос, готовы ли мы адаптироваться быстрее других.`;
+    case "scale":
+      return `Эффективность прежде всего: ${topic.summary} Каждый лишний доллар издержек на масштабе «${topic.businessUnit}» — упущенная маржа.`;
+    case "transform":
+      return `Трансформационно: старые процессы в «${topic.businessUnit}» не переживут это решение без изменений в культуре. ${topic.insight}`;
     default:
       return topic.insight;
   }
+}
+
+export interface CouncilVerdict {
+  synthesis: string;
+  openQuestions: string[];
+  agreements: { label: string; kind: "agree" | "risk" }[];
+}
+
+const PERSONA_QUESTIONS: Record<string, string> = {
+  founder: "Меняет ли это правила игры для компании на годы вперёд?",
+  operator: "Кто станет владельцем процесса после запуска?",
+  engineer: "Что произойдёт при провале ключевого допущения?",
+  contrarian: "Где консенсус рынка может ошибаться?",
+  industrialist: "Стоит ли краткосрочная выгода долгосрочной репутации?",
+  product: "Как это меняет жизнь конечного клиента?",
+  brand: "Как мы объясним это решение публично?",
+  platform: "Кто ещё выигрывает от этого решения?",
+  competitor: "Кто сделает этот шаг, если не мы?",
+  resilience: "Что если регуляторная ситуация изменится?",
+  scale: "Где здесь скрытые издержки на масштабе?",
+  transform: "Готова ли культура компании к этому изменению?",
+};
+
+const RISK_PERSONAS = new Set(["contrarian", "competitor", "resilience"]);
+
+function buildAgreements(
+  personaIds: string[],
+  topic: CouncilTopic,
+): { label: string; kind: "agree" | "risk" }[] {
+  const agreements: { label: string; kind: "agree" | "risk" }[] = [
+    {
+      label: topic.insight.length > 40 ? `${topic.insight.slice(0, 40)}…` : topic.insight,
+      kind: "agree",
+    },
+  ];
+  if (personaIds.some((id) => RISK_PERSONAS.has(id))) {
+    agreements.push({ label: `Риск: сроки и допущения по «${topic.businessUnit}»`, kind: "risk" });
+  }
+  return agreements;
+}
+
+export function buildVerdict(
+  topic: CouncilTopic,
+  personaIds: string[],
+  followUps: string[],
+): CouncilVerdict {
+  const latest = followUps[followUps.length - 1];
+  const synthesis = latest
+    ? `${topic.insight} По вопросу «${latest}» совет расходится в деталях, но не в сути: решение зависит от того, какой риск готова принять компания.`
+    : topic.insight;
+
+  return {
+    synthesis,
+    openQuestions: personaIds.map((id) => PERSONA_QUESTIONS[id] ?? topic.insight),
+    agreements: buildAgreements(personaIds, topic),
+  };
 }
