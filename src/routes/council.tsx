@@ -309,7 +309,7 @@ function PersonaPicker({
   );
 }
 
-function EmptyState({ onNew }: { onNew: () => void }) {
+function EmptyState() {
   const heroIds = ["founder", "operator", "resilience"];
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
@@ -329,11 +329,8 @@ function EmptyState({ onNew }: { onNew: () => void }) {
       </div>
       <h2 className="text-xl font-bold text-foreground">Разберите решение с советом</h2>
       <p className="max-w-md text-sm text-muted-foreground">
-        Выберите кейс — совет из трёх персон подберётся автоматически.
+        Выберите кейс слева — совет из трёх персон подберётся автоматически.
       </p>
-      <Button size="lg" className="gap-1.5" onClick={onNew}>
-        <Plus className="h-4 w-4" /> Создать совет
-      </Button>
     </div>
   );
 }
@@ -584,7 +581,7 @@ function CouncilPage() {
             ) : active ? (
               <SessionView session={active} onFollowUp={(text) => addFollowUp(active.id, text)} />
             ) : (
-              <EmptyState onNew={() => setCreating(true)} />
+              <EmptyState />
             )}
           </main>
           {active && (
