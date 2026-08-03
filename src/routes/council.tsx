@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   PanelLeft,
@@ -102,6 +102,7 @@ function NewCouncilPanel({
   const [card, setCard] = useState<KnowledgeCardData | null>(null);
   const [personaIds, setPersonaIds] = useState<string[]>([]);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const pickerTriggerRef = useRef<HTMLButtonElement>(null);
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -196,6 +197,7 @@ function NewCouncilPanel({
               );
             })}
             <button
+              ref={pickerTriggerRef}
               type="button"
               onClick={() => setPickerOpen(true)}
               className="text-xs font-semibold text-primary underline-offset-2 hover:underline"
@@ -223,7 +225,10 @@ function NewCouncilPanel({
         <PersonaPicker
           selected={personaIds}
           onChange={setPersonaIds}
-          onClose={() => setPickerOpen(false)}
+          onClose={() => {
+            setPickerOpen(false);
+            requestAnimationFrame(() => pickerTriggerRef.current?.focus());
+          }}
         />
       )}
     </div>
@@ -406,7 +411,7 @@ function SessionView({
         </div>
       </div>
 
-      <div className="mt-6 flex gap-2 border-t border-border pt-4">
+      <div className="sticky bottom-0 mt-6 flex gap-2 border-t border-border bg-background pt-4 pb-2">
         <label htmlFor="council-follow-up" className="sr-only">
           Уточняющий вопрос совету
         </label>
@@ -433,6 +438,7 @@ function VerdictPanel({
   startResize,
   collapsed,
   onCollapse,
+  panelRef,
 }: {
   session: CouncilSession;
   onAsk: (text: string) => void;
@@ -440,15 +446,18 @@ function VerdictPanel({
   startResize: (e: React.MouseEvent) => void;
   collapsed: boolean;
   onCollapse: () => void;
+  panelRef: React.RefObject<HTMLElement | null>;
 }) {
   const verdict = buildVerdict(session.topic, session.personaIds, session.followUps);
 
   return (
     <aside
+      ref={panelRef}
+      tabIndex={-1}
       aria-label="Вердикт совета"
       style={{ "--panel-w": `${width}px` } as React.CSSProperties}
       className={cn(
-        "relative flex w-full flex-col gap-3 border-t border-border bg-card p-4 md:max-h-[45vh] md:shrink-0 md:overflow-y-auto lg:max-h-none lg:w-[var(--panel-w)] lg:border-l lg:border-t-0",
+        "relative flex w-full flex-col gap-3 border-t border-border bg-card p-4 outline-none focus-visible:ring-2 focus-visible:ring-primary md:max-h-[45vh] md:shrink-0 md:overflow-y-auto lg:max-h-none lg:w-[var(--panel-w)] lg:border-l lg:border-t-0",
         collapsed && "lg:hidden",
       )}
     >
@@ -520,8 +529,18 @@ function CouncilPage() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const pickerTriggerRef = useRef<HTMLButtonElement>(null);
   const [showSessions, setShowSessions] = useState(true);
   const [showVerdict, setShowVerdict] = useState(true);
+  const sessionsCollapseRef = useRef<HTMLButtonElement>(null);
+  const sessionsRestoreRef = useRef<HTMLButtonElement>(null);
+  const sessionsPanelRef = useRef<HTMLElement>(null);
+  const verdictRestoreRef = useRef<HTMLButtonElement>(null);
+  const verdictPanelRef = useRef<HTMLElement>(null);
+
+  const focusNext = (ref: React.RefObject<HTMLElement | null>) => {
+    requestAnimationFrame(() => ref.current?.focus());
+  };
   const { width: sessionsWidth, startResize: startSessionsResize } = useResizablePanel(320, {
     min: 220,
     max: 520,
@@ -542,15 +561,17 @@ function CouncilPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-background md:h-screen md:overflow-hidden">
+    <div className="flex min-h-screen flex-col bg-background lg:h-screen lg:overflow-hidden">
       <Header dark={dark} onToggleDark={toggle} />
       <h1 className="sr-only">Консилиум</h1>
 
-      <div className="relative flex flex-1 flex-col md:min-h-0 md:flex-row">
+      <div className="relative flex flex-1 flex-col lg:min-h-0 md:flex-row">
         <aside
+          ref={sessionsPanelRef}
+          tabIndex={-1}
           style={{ "--panel-w": `${sessionsWidth}px` } as React.CSSProperties}
           className={cn(
-            "relative flex w-full shrink-0 flex-col border-b border-border bg-card p-3 md:max-h-none md:w-[var(--panel-w)] md:overflow-y-auto md:border-b-0 md:border-r",
+            "relative flex w-full shrink-0 flex-col border-b border-border bg-card p-3 outline-none focus-visible:ring-2 focus-visible:ring-primary md:max-h-none md:w-[var(--panel-w)] md:overflow-y-auto md:border-b-0 md:border-r",
             !showSessions && "md:hidden",
           )}
         >
@@ -570,7 +591,11 @@ function CouncilPage() {
               </span>
             </p>
             <button
-              onClick={() => setShowSessions(false)}
+              ref={sessionsCollapseRef}
+              onClick={() => {
+                setShowSessions(false);
+                focusNext(sessionsRestoreRef);
+              }}
               aria-label="Свернуть панель сессий"
               title="Свернуть панель"
               className="hidden h-7 w-7 shrink-0 place-items-center rounded-md border border-border text-muted-foreground transition-colors hover:border-primary hover:text-primary md:grid"
@@ -634,6 +659,7 @@ function CouncilPage() {
                 })}
               </div>
               <button
+                ref={pickerTriggerRef}
                 type="button"
                 onClick={() => setPickerOpen(true)}
                 className="mt-2 w-full rounded-lg border border-border px-2 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:border-primary/30 hover:text-card-foreground"
@@ -646,7 +672,11 @@ function CouncilPage() {
 
         {!showSessions && (
           <button
-            onClick={() => setShowSessions(true)}
+            ref={sessionsRestoreRef}
+            onClick={() => {
+              setShowSessions(true);
+              focusNext(sessionsPanelRef);
+            }}
             aria-label="Показать сессии"
             title="Показать панель сессий"
             className="absolute left-0 top-1/2 z-20 hidden h-16 w-6 -translate-y-1/2 place-items-center rounded-r-lg border border-l-0 border-border bg-card text-muted-foreground shadow-sm transition-colors hover:text-primary md:grid"
@@ -655,8 +685,8 @@ function CouncilPage() {
           </button>
         )}
 
-        <div className="relative flex flex-1 flex-col md:min-h-0 md:min-w-0 lg:flex-row">
-          <main className="flex flex-1 flex-col md:min-h-0 md:min-w-0 md:overflow-y-auto">
+        <div className="relative flex flex-1 flex-col lg:min-h-0 md:min-w-0 lg:flex-row">
+          <main className="flex flex-1 flex-col lg:min-h-0 md:min-w-0 lg:overflow-y-auto">
             {creating ? (
               <NewCouncilPanel
                 onCancel={() => setCreating(false)}
@@ -679,12 +709,20 @@ function CouncilPage() {
               width={verdictWidth}
               startResize={startVerdictResize(true)}
               collapsed={!showVerdict}
-              onCollapse={() => setShowVerdict(false)}
+              onCollapse={() => {
+                setShowVerdict(false);
+                focusNext(verdictRestoreRef);
+              }}
+              panelRef={verdictPanelRef}
             />
           )}
           {active && !showVerdict && (
             <button
-              onClick={() => setShowVerdict(true)}
+              ref={verdictRestoreRef}
+              onClick={() => {
+                setShowVerdict(true);
+                focusNext(verdictPanelRef);
+              }}
               aria-label="Показать вердикт"
               title="Показать панель вердикта"
               className="absolute right-0 top-1/2 z-20 hidden h-16 w-6 -translate-y-1/2 place-items-center rounded-l-lg border border-r-0 border-border bg-card text-muted-foreground shadow-sm transition-colors hover:text-primary lg:grid"
@@ -699,7 +737,10 @@ function CouncilPage() {
         <PersonaPicker
           selected={active.personaIds}
           onChange={(ids) => updatePersonas(active.id, ids)}
-          onClose={() => setPickerOpen(false)}
+          onClose={() => {
+            setPickerOpen(false);
+            focusNext(pickerTriggerRef);
+          }}
         />
       )}
     </div>
@@ -729,7 +770,10 @@ function SessionRow({
       <div className="flex items-center justify-between gap-2">
         <p className="truncate text-sm font-bold text-card-foreground">{session.title}</p>
         {session.unread && (
-          <span aria-hidden className="h-2 w-2 shrink-0 rounded-full bg-success" />
+          <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-success">
+            <span aria-hidden className="h-2 w-2 rounded-full bg-success" />
+            <span className="sr-only">Непрочитано</span>
+          </span>
         )}
       </div>
       <div className="mt-1.5 flex items-center justify-between">
