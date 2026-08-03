@@ -20,25 +20,27 @@ interface ResizablePanelOptions {
 export function useResizablePanel(initial: number, { min, max }: ResizablePanelOptions) {
   const [width, setWidth] = useState(initial);
 
-  const startResize = (invert = false) => (e: React.MouseEvent) => {
-    e.preventDefault();
-    const startX = e.clientX;
-    const startWidth = width;
-    const onMove = (ev: MouseEvent) => {
-      const delta = invert ? startX - ev.clientX : ev.clientX - startX;
-      setWidth(clampWidth(startWidth + delta, min, max));
+  const startResize =
+    (invert = false) =>
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      const startX = e.clientX;
+      const startWidth = width;
+      const onMove = (ev: MouseEvent) => {
+        const delta = invert ? startX - ev.clientX : ev.clientX - startX;
+        setWidth(clampWidth(startWidth + delta, min, max));
+      };
+      const onUp = () => {
+        window.removeEventListener("mousemove", onMove);
+        window.removeEventListener("mouseup", onUp);
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
+      };
+      document.body.style.cursor = "col-resize";
+      document.body.style.userSelect = "none";
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("mouseup", onUp);
     };
-    const onUp = () => {
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup", onUp);
-      document.body.style.cursor = "";
-      document.body.style.userSelect = "";
-    };
-    document.body.style.cursor = "col-resize";
-    document.body.style.userSelect = "none";
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
-  };
 
   return { width, startResize };
 }

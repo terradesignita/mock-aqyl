@@ -1,6 +1,14 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { PanelLeft, PanelLeftClose, PanelRight, PanelRightClose, Plus, Search, Send } from "lucide-react";
+import {
+  PanelLeft,
+  PanelLeftClose,
+  PanelRight,
+  PanelRightClose,
+  Plus,
+  Search,
+  Send,
+} from "lucide-react";
 import { Header } from "@/components/Header";
 import { MessageBubble } from "@/components/MessageBubble";
 import { PersonaAvatar } from "@/components/PersonaAvatar";
@@ -449,7 +457,7 @@ function VerdictPanel({
         role="separator"
         aria-orientation="vertical"
         aria-label="Изменить ширину панели вердикта"
-        className="absolute inset-y-0 -left-1 z-20 hidden w-2 cursor-col-resize hover:bg-primary/25 lg:block"
+        className="absolute inset-y-0 left-0 z-20 hidden w-2 cursor-col-resize hover:bg-primary/25 lg:block"
       />
       <div className="flex items-center gap-2">
         <button
@@ -551,7 +559,7 @@ function CouncilPage() {
             role="separator"
             aria-orientation="vertical"
             aria-label="Изменить ширину панели сессий"
-            className="absolute inset-y-0 -right-1 z-20 hidden w-2 cursor-col-resize hover:bg-primary/25 md:block"
+            className="absolute inset-y-0 right-0 z-20 hidden w-2 cursor-col-resize hover:bg-primary/25 md:block"
           />
 
           <div className="flex items-center gap-2 pb-2">
