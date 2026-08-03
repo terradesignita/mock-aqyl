@@ -1,6 +1,9 @@
 import { useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
+  Check,
+  Copy,
+  Loader2,
   PanelLeft,
   PanelLeftClose,
   PanelRight,
@@ -8,7 +11,9 @@ import {
   Plus,
   Search,
   Send,
+  Trash2,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Header } from "@/components/Header";
 import { MessageBubble } from "@/components/MessageBubble";
 import { PersonaAvatar } from "@/components/PersonaAvatar";
@@ -28,6 +33,7 @@ import {
   buildPersonaTake,
   buildVerdict,
   COUNCIL_PERSONAS,
+  formatVerdictForCopy,
   getPersona,
   suggestPersonas,
   type CouncilSession,
@@ -351,16 +357,19 @@ function EmptyState() {
 
 function SessionView({
   session,
+  pending,
   onFollowUp,
 }: {
   session: CouncilSession;
+  /** Follow-up text already shown as sent, still waiting to land in `session.followUps`. */
+  pending: string | null;
   onFollowUp: (text: string) => void;
 }) {
   const [followUp, setFollowUp] = useState("");
 
   const send = () => {
     const text = followUp.trim();
-    if (!text) return;
+    if (!text || pending) return;
     onFollowUp(text);
     setFollowUp("");
   };
@@ -408,6 +417,21 @@ function SessionView({
               </MessageBubble>
             </div>
           ))}
+
+          {pending && (
+            <div className="ml-12 animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <MessageBubble variant="user" bubbleClassName="p-3">
+                {pending}
+              </MessageBubble>
+            </div>
+          )}
+
+          {pending && (
+            <div className="flex items-center gap-2 pl-1 text-sm text-muted-foreground">
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" /> Совет учитывает ваш
+              вопрос...
+            </div>
+          )}
         </div>
       </div>
 
@@ -420,10 +444,16 @@ function SessionView({
           value={followUp}
           onChange={(e) => setFollowUp(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && send()}
+          disabled={!!pending}
           placeholder="Задайте уточняющий вопрос совету"
-          className="h-10 w-full min-w-0 rounded-control border border-border bg-secondary/40 px-3 text-base outline-none transition-colors placeholder:text-muted-foreground focus:border-primary sm:text-sm"
+          className="h-10 w-full min-w-0 rounded-control border border-border bg-secondary/40 px-3 text-base outline-none transition-colors placeholder:text-muted-foreground focus:border-primary disabled:opacity-60 sm:text-sm"
         />
-        <Button size="icon" disabled={!followUp.trim()} onClick={send} aria-label="Отправить">
+        <Button
+          size="icon"
+          disabled={!followUp.trim() || !!pending}
+          onClick={send}
+          aria-label="Отправить"
+        >
           <Send className="h-4 w-4" />
         </Button>
       </div>
@@ -434,6 +464,7 @@ function SessionView({
 function VerdictPanel({
   session,
   onAsk,
+  pending,
   width,
   startResize,
   collapsed,
@@ -442,6 +473,7 @@ function VerdictPanel({
 }: {
   session: CouncilSession;
   onAsk: (text: string) => void;
+  pending: boolean;
   width: number;
   startResize: (e: React.MouseEvent) => void;
   collapsed: boolean;
@@ -449,6 +481,14 @@ function VerdictPanel({
   panelRef: React.RefObject<HTMLElement | null>;
 }) {
   const verdict = buildVerdict(session.topic, session.personaIds, session.followUps);
+  const [copied, setCopied] = useState(false);
+
+  const copyVerdict = async () => {
+    await navigator.clipboard.writeText(formatVerdictForCopy(session.topic, verdict));
+    setCopied(true);
+    toast.success("Вердикт скопирован");
+    window.setTimeout(() => setCopied(false), 1500);
+  };
 
   return (
     <aside
@@ -478,7 +518,15 @@ function VerdictPanel({
           <PanelRightClose className="h-4 w-4" />
         </button>
         <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-success" />
-        <p className="text-xs font-bold text-primary">Вердикт совета</p>
+        <p className="flex-1 text-xs font-bold text-primary">Вердикт совета</p>
+        <button
+          onClick={copyVerdict}
+          aria-label="Скопировать вердикт"
+          title="Скопировать вердикт"
+          className="grid h-7 w-7 shrink-0 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+        >
+          {copied ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
+        </button>
       </div>
       <div
         key={session.followUps.length}
@@ -493,8 +541,9 @@ function VerdictPanel({
             <button
               key={i}
               type="button"
+              disabled={pending}
               onClick={() => onAsk(question)}
-              className="rounded-full border border-border bg-secondary/30 px-3 py-1.5 text-left text-xs text-card-foreground transition-[color,border-color,background-color,transform] hover:-translate-y-0.5 hover:border-primary hover:bg-primary/8 hover:text-primary"
+              className="rounded-full border border-border bg-secondary/30 px-3 py-1.5 text-left text-xs text-card-foreground transition-[color,border-color,background-color,transform] hover:-translate-y-0.5 hover:border-primary hover:bg-primary/8 hover:text-primary disabled:pointer-events-none disabled:opacity-50"
             >
               {question}
             </button>
@@ -525,10 +574,12 @@ function VerdictPanel({
 
 function CouncilPage() {
   const { dark, toggle } = useTheme();
-  const { sessions, create, markRead, updatePersonas, addFollowUp } = useCouncilSessions();
+  const { sessions, create, markRead, updatePersonas, addFollowUp, remove } = useCouncilSessions();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [sessionQuery, setSessionQuery] = useState("");
+  const [pendingFollowUp, setPendingFollowUp] = useState<string | null>(null);
   const pickerTriggerRef = useRef<HTMLButtonElement>(null);
   const [showSessions, setShowSessions] = useState(true);
   const [showVerdict, setShowVerdict] = useState(true);
@@ -551,13 +602,30 @@ function CouncilPage() {
   });
 
   const active = sessions.find((s) => s.id === activeId) ?? null;
-  const today = sessions.filter((s) => s.date === TODAY);
-  const earlier = sessions.filter((s) => s.date !== TODAY);
+  const q = sessionQuery.trim().toLowerCase();
+  const visibleSessions = q ? sessions.filter((s) => s.title.toLowerCase().includes(q)) : sessions;
+  const today = visibleSessions.filter((s) => s.date === TODAY);
+  const earlier = visibleSessions.filter((s) => s.date !== TODAY);
 
   const openSession = (id: string) => {
     setCreating(false);
     setActiveId(id);
     markRead(id);
+  };
+
+  const deleteSession = (id: string) => {
+    remove(id);
+    if (id === activeId) setActiveId(null);
+    toast.success("Сессия удалена");
+  };
+
+  const submitFollowUp = (text: string) => {
+    if (!active || pendingFollowUp) return;
+    setPendingFollowUp(text);
+    window.setTimeout(() => {
+      addFollowUp(active.id, text);
+      setPendingFollowUp(null);
+    }, 650);
   };
 
   return (
@@ -614,6 +682,17 @@ function CouncilPage() {
             <Plus className="h-4 w-4" /> Создать совет
           </Button>
 
+          <div className="relative mt-3">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <input
+              value={sessionQuery}
+              onChange={(e) => setSessionQuery(e.target.value)}
+              placeholder="Поиск по сессиям"
+              aria-label="Поиск по сессиям"
+              className="h-9 w-full min-w-0 rounded-lg border border-border bg-secondary/30 pl-8 pr-3 text-base outline-none transition-colors placeholder:text-muted-foreground focus:border-primary sm:text-sm"
+            />
+          </div>
+
           <div className="mt-4 flex-1 space-y-4">
             {today.length > 0 && (
               <div>
@@ -625,6 +704,7 @@ function CouncilPage() {
                       session={s}
                       active={s.id === activeId}
                       onClick={openSession}
+                      onDelete={deleteSession}
                     />
                   ))}
                 </div>
@@ -640,10 +720,14 @@ function CouncilPage() {
                       session={s}
                       active={s.id === activeId}
                       onClick={openSession}
+                      onDelete={deleteSession}
                     />
                   ))}
                 </div>
               </div>
+            )}
+            {q && today.length === 0 && earlier.length === 0 && (
+              <p className="px-1 text-xs text-muted-foreground">Ничего не найдено</p>
             )}
           </div>
 
@@ -697,7 +781,7 @@ function CouncilPage() {
                 }}
               />
             ) : active ? (
-              <SessionView session={active} onFollowUp={(text) => addFollowUp(active.id, text)} />
+              <SessionView session={active} pending={pendingFollowUp} onFollowUp={submitFollowUp} />
             ) : (
               <EmptyState />
             )}
@@ -705,7 +789,8 @@ function CouncilPage() {
           {active && (
             <VerdictPanel
               session={active}
-              onAsk={(text) => addFollowUp(active.id, text)}
+              onAsk={submitFollowUp}
+              pending={!!pendingFollowUp}
               width={verdictWidth}
               startResize={startVerdictResize(true)}
               collapsed={!showVerdict}
@@ -751,35 +836,52 @@ function SessionRow({
   session,
   active,
   onClick,
+  onDelete,
 }: {
   session: CouncilSession;
   active: boolean;
   onClick: (id: string) => void;
+  onDelete: (id: string) => void;
 }) {
   return (
-    <button
-      onClick={() => onClick(session.id)}
-      aria-current={active ? "true" : undefined}
+    <div
       className={cn(
-        "w-full rounded-xl border p-3 text-left transition-colors",
+        "group relative w-full rounded-xl border transition-colors",
         active
           ? "border-primary bg-primary/5"
           : "border-border hover:border-primary/30 hover:bg-secondary/30",
       )}
     >
-      <div className="flex items-center justify-between gap-2">
-        <p className="truncate text-sm font-bold text-card-foreground">{session.title}</p>
-        {session.unread && (
-          <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-success">
-            <span aria-hidden className="h-2 w-2 rounded-full bg-success" />
-            <span className="sr-only">Непрочитано</span>
-          </span>
-        )}
-      </div>
-      <div className="mt-1.5 flex items-center justify-between">
-        <AvatarStack personaIds={session.personaIds} />
-        <span className="text-xs text-muted-foreground">{session.date}</span>
-      </div>
-    </button>
+      <button
+        onClick={() => onClick(session.id)}
+        aria-current={active ? "true" : undefined}
+        className="block w-full p-3 text-left"
+      >
+        <div className="flex items-center justify-between gap-2 pr-6">
+          <p className="truncate text-sm font-bold text-card-foreground">{session.title}</p>
+          {session.unread && (
+            <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-success">
+              <span aria-hidden className="h-2 w-2 rounded-full bg-success" />
+              <span className="sr-only">Непрочитано</span>
+            </span>
+          )}
+        </div>
+        <div className="mt-1.5 flex items-center justify-between">
+          <AvatarStack personaIds={session.personaIds} />
+          <span className="text-xs text-muted-foreground">{session.date}</span>
+        </div>
+      </button>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete(session.id);
+        }}
+        aria-label={`Удалить сессию «${session.title}»`}
+        title="Удалить сессию"
+        className="absolute right-2 top-2 grid h-6 w-6 shrink-0 place-items-center rounded-md text-muted-foreground opacity-0 transition-opacity hover:bg-secondary hover:text-destructive focus-visible:opacity-100 group-hover:opacity-100"
+      >
+        <Trash2 className="h-3.5 w-3.5" />
+      </button>
+    </div>
   );
 }

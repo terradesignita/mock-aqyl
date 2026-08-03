@@ -92,7 +92,12 @@ export function useCouncilSessions() {
     [setSessions],
   );
 
-  return { sessions, create, markRead, updatePersonas, addFollowUp };
+  const remove = useCallback(
+    (id: string) => setSessions((prev) => prev.filter((s) => s.id !== id)),
+    [setSessions],
+  );
+
+  return { sessions, create, markRead, updatePersonas, addFollowUp, remove };
 }
 
 /** §32-34 ТЗ AI-советника — сохранённый разбор ситуации, чтобы вернуться к нему после переговоров. */

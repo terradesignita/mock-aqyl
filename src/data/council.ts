@@ -275,3 +275,19 @@ export function buildVerdict(
     agreements: buildAgreements(personaIds, topic),
   };
 }
+
+/** Plain-text rendering of a verdict for "Скопировать" — no markup, safe to paste anywhere. */
+export function formatVerdictForCopy(topic: CouncilTopic, verdict: CouncilVerdict): string {
+  const lines = [`Вердикт совета — ${topic.title}`, "", verdict.synthesis];
+  if (verdict.openQuestions.length > 0) {
+    lines.push("", "Открытые вопросы:", ...verdict.openQuestions.map((q) => `• ${q}`));
+  }
+  if (verdict.agreements.length > 0) {
+    lines.push(
+      "",
+      "Согласны / расходятся:",
+      ...verdict.agreements.map((a) => `${a.kind === "risk" ? "⚠" : "✓"} ${a.label}`),
+    );
+  }
+  return lines.join("\n");
+}
