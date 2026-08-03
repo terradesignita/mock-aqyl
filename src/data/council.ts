@@ -202,7 +202,7 @@ export function buildPersonaTake(personaId: string, topic: CouncilTopic): string
     case "brand":
       return `История имеет значение: как мы объясним «${topic.title}» людям внутри и снаружи компании? ${topic.insight}`;
     case "platform":
-      return `Экосистемно: кто ещё выигрывает, если мы пойдём этим путём? Партнёрства важнее, чем контроль над каждым шагом.`;
+      return `Экосистемно: кто ещё выигрывает от «${topic.title}», если мы пойдём этим путём? В «${topic.businessUnit}» партнёрства важнее, чем контроль над каждым шагом.`;
     case "competitor":
       return `Конкурентно: ${topic.insight} Если мы не сделаем этот шаг первыми, это сделает кто-то другой в «${topic.businessUnit}».`;
     case "resilience":
@@ -262,12 +262,16 @@ export function buildVerdict(
 ): CouncilVerdict {
   const latest = followUps[followUps.length - 1];
   const synthesis = latest
-    ? `${topic.insight} По вопросу «${latest}» совет расходится в деталях, но не в сути: решение зависит от того, какой риск готова принять компания.`
+    ? personaIds.length > 1
+      ? `${topic.insight} По вопросу «${latest}» совет расходится в деталях, но не в сути: решение зависит от того, какой риск готова принять компания.`
+      : `${topic.insight} По вопросу «${latest}»: ключевой фактор — какой риск готова принять компания.`
     : topic.insight;
 
   return {
     synthesis,
-    openQuestions: personaIds.map((id) => PERSONA_QUESTIONS[id] ?? topic.insight),
+    openQuestions: personaIds
+      .map((id) => PERSONA_QUESTIONS[id] ?? topic.insight)
+      .filter((q) => !followUps.includes(q)),
     agreements: buildAgreements(personaIds, topic),
   };
 }
