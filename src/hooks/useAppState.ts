@@ -48,6 +48,19 @@ export function useScope() {
   return useLocalStorage<ScopeFilter>("biaqyl:mode", "ALL");
 }
 
+/** Per-card title override — lets the user rename a card without mutating the mock data. */
+export function useCardTitle(cardId: string, fallback: string) {
+  const [overrides, setOverrides] = useLocalStorage<Record<string, string>>(
+    "biaqyl:card-titles",
+    {},
+  );
+  const rename = useCallback(
+    (title: string) => setOverrides((prev) => ({ ...prev, [cardId]: title })),
+    [cardId, setOverrides],
+  );
+  return { title: overrides[cardId] ?? fallback, rename };
+}
+
 export function useCouncilSessions() {
   const [sessions, setSessions] = useLocalStorage<CouncilSession[]>(
     "biaqyl:council-sessions:v2",

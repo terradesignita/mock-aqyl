@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, createFileRoute, notFound } from "@tanstack/react-router";
-import { Bookmark, PanelLeft, PanelRight, X } from "lucide-react";
+import { Bookmark, Pencil, PanelLeft, PanelRight, X } from "lucide-react";
 import { toast } from "sonner";
 import { Header } from "@/components/Header";
 import { SourcesPanel } from "@/components/notebook/SourcesPanel";
@@ -10,7 +10,7 @@ import { NotebookChat } from "@/components/notebook/NotebookChat";
 import { StudioPanel } from "@/components/notebook/StudioPanel";
 import { Button } from "@/components/ui/button";
 import { getCardById, type KnowledgeCardData } from "@/data/mockCards";
-import { useBookmarks, useFeedback, useNotes, useTheme } from "@/hooks/useAppState";
+import { useBookmarks, useCardTitle, useFeedback, useNotes, useTheme } from "@/hooks/useAppState";
 
 export const Route = createFileRoute("/card/$id")({
   loader: ({ params }) => {
@@ -41,6 +41,8 @@ export const Route = createFileRoute("/card/$id")({
 
 function CardWorkspace() {
   const { card } = Route.useLoaderData() as { card: KnowledgeCardData };
+  const { title, rename } = useCardTitle(card.id, card.title);
+  const displayCard = useMemo(() => ({ ...card, title }), [card, title]);
 
   const { dark, toggle } = useTheme();
   const { bookmarks, toggle: toggleBookmark } = useBookmarks();
@@ -48,6 +50,24 @@ function CardWorkspace() {
   const { record: recordFeedback } = useFeedback(card.id);
 
   const sources = useMemo(() => buildNotebookSources(card), [card]);
+
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleDraft, setTitleDraft] = useState(title);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editingTitle) titleInputRef.current?.focus();
+  }, [editingTitle]);
+
+  const startEditingTitle = () => {
+    setTitleDraft(title);
+    setEditingTitle(true);
+  };
+  const commitTitle = () => {
+    const next = titleDraft.trim();
+    if (next) rename(next);
+    setEditingTitle(false);
+  };
 
   const [selected, setSelected] = useState<string[]>(() => sources.map((s) => s.id));
   const [showSources, setShowSources] = useState(true);
@@ -95,7 +115,29 @@ function CardWorkspace() {
         <div className="flex min-w-0 items-center gap-3">
           <span className="min-w-0">
             <span className="flex min-w-0 items-center gap-2">
-              <h1 className="truncate text-sm font-bold text-card-foreground">{card.title}</h1>
+              {editingTitle ? (
+                <input
+                  ref={titleInputRef}
+                  value={titleDraft}
+                  onChange={(e) => setTitleDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") commitTitle();
+                    if (e.key === "Escape") setEditingTitle(false);
+                  }}
+                  onBlur={commitTitle}
+                  aria-label="Название кейса"
+                  className="min-w-0 flex-1 rounded-md border border-primary bg-transparent px-1.5 py-0.5 text-lg font-bold text-card-foreground outline-none"
+                />
+              ) : (
+                <button
+                  type="button"
+                  onClick={startEditingTitle}
+                  className="group flex min-w-0 items-center gap-1.5 rounded-md px-1.5 py-0.5 text-left transition-colors hover:bg-secondary/50"
+                >
+                  <h1 className="truncate text-lg font-bold text-card-foreground">{title}</h1>
+                  <Pencil className="h-3.5 w-3.5 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+                </button>
+              )}
               <span
                 className={`hidden shrink-0 items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-semibold sm:inline-flex ${
                   isInternal
@@ -196,7 +238,7 @@ function CardWorkspace() {
 
         <main className="min-w-0 flex-1">
           <NotebookChat
-            card={card}
+            card={displayCard}
             sources={sources}
             selectedCitations={selectedCitations}
             onOpenSource={(s, h) => {
@@ -236,7 +278,7 @@ function CardWorkspace() {
               className="absolute inset-y-0 -left-1 z-20 w-2 cursor-col-resize hover:bg-primary/25"
             />
             <StudioPanel
-              card={card}
+              card={displayCard}
               onSaveNote={(text) => {
                 addNote(text);
                 toast.success("Артефакт сохранён в заметки");
