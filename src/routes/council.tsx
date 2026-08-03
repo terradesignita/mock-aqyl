@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Plus, Search, Send } from "lucide-react";
+import { PanelLeft, PanelLeftClose, PanelRight, PanelRightClose, Plus, Search, Send } from "lucide-react";
 import { Header } from "@/components/Header";
 import { MessageBubble } from "@/components/MessageBubble";
 import { PersonaAvatar } from "@/components/PersonaAvatar";
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { useCouncilSessions, useTheme } from "@/hooks/useAppState";
+import { useResizablePanel } from "@/hooks/useResizablePanel";
 import { mockCards, type KnowledgeCardData } from "@/data/mockCards";
 import {
   buildPersonaTake,
@@ -420,18 +421,45 @@ function SessionView({
 function VerdictPanel({
   session,
   onAsk,
+  width,
+  startResize,
+  collapsed,
+  onCollapse,
 }: {
   session: CouncilSession;
   onAsk: (text: string) => void;
+  width: number;
+  startResize: (e: React.MouseEvent) => void;
+  collapsed: boolean;
+  onCollapse: () => void;
 }) {
   const verdict = buildVerdict(session.topic, session.personaIds, session.followUps);
 
   return (
     <aside
       aria-label="Вердикт совета"
-      className="flex w-full flex-col gap-3 border-t border-border bg-card p-4 md:max-h-[45vh] md:shrink-0 md:overflow-y-auto lg:max-h-none lg:w-[260px] lg:border-l lg:border-t-0"
+      style={{ "--panel-w": `${width}px` } as React.CSSProperties}
+      className={cn(
+        "relative flex w-full flex-col gap-3 border-t border-border bg-card p-4 md:max-h-[45vh] md:shrink-0 md:overflow-y-auto lg:max-h-none lg:w-[var(--panel-w)] lg:border-l lg:border-t-0",
+        collapsed && "lg:hidden",
+      )}
     >
-      <div className="flex items-center gap-1.5">
+      <div
+        onMouseDown={startResize}
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Изменить ширину панели вердикта"
+        className="absolute inset-y-0 -left-1 z-20 hidden w-2 cursor-col-resize hover:bg-primary/25 lg:block"
+      />
+      <div className="flex items-center gap-2">
+        <button
+          onClick={onCollapse}
+          aria-label="Свернуть панель вердикта"
+          title="Свернуть панель"
+          className="hidden h-7 w-7 shrink-0 place-items-center rounded-md border border-border text-muted-foreground transition-colors hover:border-primary hover:text-primary lg:grid"
+        >
+          <PanelRightClose className="h-4 w-4" />
+        </button>
         <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-success" />
         <p className="text-xs font-bold text-primary">Вердикт совета</p>
       </div>
@@ -484,6 +512,16 @@ function CouncilPage() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [showSessions, setShowSessions] = useState(true);
+  const [showVerdict, setShowVerdict] = useState(true);
+  const { width: sessionsWidth, startResize: startSessionsResize } = useResizablePanel(320, {
+    min: 220,
+    max: 520,
+  });
+  const { width: verdictWidth, startResize: startVerdictResize } = useResizablePanel(260, {
+    min: 220,
+    max: 480,
+  });
 
   const active = sessions.find((s) => s.id === activeId) ?? null;
   const today = sessions.filter((s) => s.date === TODAY);
@@ -500,8 +538,39 @@ function CouncilPage() {
       <Header dark={dark} onToggleDark={toggle} />
       <h1 className="sr-only">Консилиум</h1>
 
-      <div className="flex flex-1 flex-col md:min-h-0 md:flex-row">
-        <aside className="flex w-full shrink-0 flex-col border-b border-border bg-card p-3 md:max-h-none md:w-[320px] md:overflow-y-auto md:border-b-0 md:border-r">
+      <div className="relative flex flex-1 flex-col md:min-h-0 md:flex-row">
+        <aside
+          style={{ "--panel-w": `${sessionsWidth}px` } as React.CSSProperties}
+          className={cn(
+            "relative flex w-full shrink-0 flex-col border-b border-border bg-card p-3 md:max-h-none md:w-[var(--panel-w)] md:overflow-y-auto md:border-b-0 md:border-r",
+            !showSessions && "md:hidden",
+          )}
+        >
+          <div
+            onMouseDown={startSessionsResize()}
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="Изменить ширину панели сессий"
+            className="absolute inset-y-0 -right-1 z-20 hidden w-2 cursor-col-resize hover:bg-primary/25 md:block"
+          />
+
+          <div className="flex items-center gap-2 pb-2">
+            <p className="flex min-w-0 flex-1 items-center gap-1.5 truncate text-sm font-bold tracking-tight text-card-foreground">
+              Сессии
+              <span className="inline-grid h-[18px] min-w-[18px] place-items-center rounded-full bg-secondary px-1 text-xs font-bold tabular-nums text-muted-foreground">
+                {sessions.length}
+              </span>
+            </p>
+            <button
+              onClick={() => setShowSessions(false)}
+              aria-label="Свернуть панель сессий"
+              title="Свернуть панель"
+              className="hidden h-7 w-7 shrink-0 place-items-center rounded-md border border-border text-muted-foreground transition-colors hover:border-primary hover:text-primary md:grid"
+            >
+              <PanelLeftClose className="h-4 w-4" />
+            </button>
+          </div>
+
           <Button
             className="h-11 w-full gap-1.5 rounded-2xl text-sm"
             onClick={() => {
@@ -567,7 +636,18 @@ function CouncilPage() {
           )}
         </aside>
 
-        <div className="flex flex-1 flex-col md:min-h-0 md:min-w-0 lg:flex-row">
+        {!showSessions && (
+          <button
+            onClick={() => setShowSessions(true)}
+            aria-label="Показать сессии"
+            title="Показать панель сессий"
+            className="absolute left-0 top-1/2 z-20 hidden h-16 w-6 -translate-y-1/2 place-items-center rounded-r-lg border border-l-0 border-border bg-card text-muted-foreground shadow-sm transition-colors hover:text-primary md:grid"
+          >
+            <PanelLeft className="h-4 w-4" />
+          </button>
+        )}
+
+        <div className="relative flex flex-1 flex-col md:min-h-0 md:min-w-0 lg:flex-row">
           <main className="flex flex-1 flex-col md:min-h-0 md:min-w-0 md:overflow-y-auto">
             {creating ? (
               <NewCouncilPanel
@@ -585,7 +665,24 @@ function CouncilPage() {
             )}
           </main>
           {active && (
-            <VerdictPanel session={active} onAsk={(text) => addFollowUp(active.id, text)} />
+            <VerdictPanel
+              session={active}
+              onAsk={(text) => addFollowUp(active.id, text)}
+              width={verdictWidth}
+              startResize={startVerdictResize(true)}
+              collapsed={!showVerdict}
+              onCollapse={() => setShowVerdict(false)}
+            />
+          )}
+          {active && !showVerdict && (
+            <button
+              onClick={() => setShowVerdict(true)}
+              aria-label="Показать вердикт"
+              title="Показать панель вердикта"
+              className="absolute right-0 top-1/2 z-20 hidden h-16 w-6 -translate-y-1/2 place-items-center rounded-l-lg border border-r-0 border-border bg-card text-muted-foreground shadow-sm transition-colors hover:text-primary lg:grid"
+            >
+              <PanelRight className="h-4 w-4" />
+            </button>
           )}
         </div>
       </div>
