@@ -21,6 +21,7 @@ import {
   pickDefaultTrio,
   QUICK_REPLIES,
   type CouncilChatMessage,
+  type CouncilPersona,
   type CouncilSession,
 } from "@/data/council";
 
@@ -34,27 +35,50 @@ export const Route = createFileRoute("/council")({
 const TODAY = "30.07.2026";
 const MAX_PERSONAS = 3;
 
-// Static map so Tailwind's JIT scanner sees every class literally — a
-// runtime `p.color.replace("bg-", "border-l-")` would never be picked up.
-const PERSONA_BORDER_CLASS: Record<string, string> = {
-  "bg-amber-700": "border-l-amber-700",
-  "bg-violet-600": "border-l-violet-600",
-  "bg-blue-600": "border-l-blue-600",
-  "bg-teal-700": "border-l-teal-700",
-  "bg-orange-700": "border-l-orange-700",
-  "bg-fuchsia-600": "border-l-fuchsia-600",
-  "bg-rose-700": "border-l-rose-700",
-  "bg-indigo-600": "border-l-indigo-600",
-  "bg-red-700": "border-l-red-700",
-  "bg-cyan-700": "border-l-cyan-700",
-  "bg-emerald-700": "border-l-emerald-700",
-  "bg-stone-600": "border-l-stone-600",
-};
+// Персональный цвет — произвольный hex (Task 1), не именованный Tailwind-класс,
+// поэтому вместо карты color→класс используем CSS-переменные: сам класс
+// статичен и один на всех (JIT видит литерал), а конкретный цвет приходит
+// через --persona-color/--persona-color-dark в style. Рамка/кольцо — всегда
+// 100% непрозрачности (тонированная рамка не держит WCAG 3:1 в тёмной теме,
+// см. спеку §2); только заливка (PERSONA_TINT_CLASS) — 10%.
+const PERSONA_BORDER_CLASS = "border-[var(--persona-color)] dark:border-[var(--persona-color-dark)]";
+const PERSONA_TINT_CLASS = "bg-[color-mix(in_oklab,var(--persona-color)_10%,transparent)]";
 
-function AvatarStack({ personaIds }: { personaIds: string[] }) {
+function personaColorVars(p: CouncilPersona): React.CSSProperties {
+  return {
+    "--persona-color": p.hex,
+    "--persona-color-dark": p.darkHex ?? p.hex,
+  } as React.CSSProperties;
+}
+
+/** personaColorVars + backgroundColor in one shot — for standalone PersonaAvatar
+ *  usages that aren't already inside an element carrying the CSS variables. */
+function personaAvatarStyle(p: CouncilPersona): React.CSSProperties {
+  return { backgroundColor: p.hex, ...personaColorVars(p) };
+}
+
+function PersonaTag({ tag, hex }: { tag: string; hex: string }) {
+  return (
+    <span
+      className="rounded-full px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wide text-white"
+      style={{ backgroundColor: hex }}
+    >
+      {tag}
+    </span>
+  );
+}
+
+function AvatarStack({
+  personaIds,
+  size = "xs",
+}: {
+  personaIds: string[];
+  size?: "xs" | "lg";
+}) {
   const shown = personaIds.slice(0, 2);
   const rest = personaIds.length - shown.length;
   const names = personaIds.map((id) => getPersona(id).name).join(", ");
+  const overflowClass = size === "lg" ? "h-10 w-10 text-sm" : "h-6 w-6 text-xs";
   return (
     <div role="img" aria-label={`Участники: ${names}`} className="flex items-center -space-x-2">
       {shown.map((id) => {
@@ -64,16 +88,19 @@ function AvatarStack({ personaIds }: { personaIds: string[] }) {
             key={id}
             aria-hidden
             initials={p.initials}
-            size="xs"
+            size={size}
             ring
-            className={p.color}
+            style={{ backgroundColor: p.hex }}
           />
         );
       })}
       {rest > 0 && (
         <span
           aria-hidden
-          className="grid h-6 w-6 place-items-center rounded-full border-2 border-card bg-secondary text-xs font-bold text-muted-foreground"
+          className={cn(
+            "grid place-items-center rounded-full border-2 border-card bg-secondary font-bold text-muted-foreground",
+            overflowClass,
+          )}
         >
           +{rest}
         </span>
@@ -239,10 +266,18 @@ function NewCouncilPanel({
                         : "border-border hover:border-primary/30 hover:bg-secondary/30",
                     )}
                   >
-                    <PersonaAvatar initials={p.initials} size="md" className={p.color} />
+                    <PersonaAvatar
+                      initials={p.initials}
+                      size="md"
+                      ringClassName={PERSONA_BORDER_CLASS}
+                      style={personaAvatarStyle(p)}
+                    />
                     <span className="min-w-0">
-                      <span className="block truncate text-sm font-semibold text-card-foreground">
-                        {p.name}
+                      <span className="flex items-center gap-1.5">
+                        <span className="block truncate text-sm font-semibold text-card-foreground">
+                          {p.name}
+                        </span>
+                        <PersonaTag tag={p.tag} hex={p.hex} />
                       </span>
                       <span className="block truncate text-xs text-muted-foreground">
                         {p.role} · в духе {p.inspiredBy}
@@ -396,10 +431,18 @@ function PersonaPicker({
                   : "border-border hover:border-primary/30 hover:bg-secondary/30",
               )}
             >
-              <PersonaAvatar initials={p.initials} size="md" className={p.color} />
+              <PersonaAvatar
+                initials={p.initials}
+                size="md"
+                ringClassName={PERSONA_BORDER_CLASS}
+                style={personaAvatarStyle(p)}
+              />
               <span className="min-w-0">
-                <span className="block truncate text-sm font-semibold text-card-foreground">
-                  {p.name}
+                <span className="flex items-center gap-1.5">
+                  <span className="block truncate text-sm font-semibold text-card-foreground">
+                    {p.name}
+                  </span>
+                  <PersonaTag tag={p.tag} hex={p.hex} />
                 </span>
                 <span className="block truncate text-xs text-muted-foreground">
                   {p.role} · в духе {p.inspiredBy}
@@ -924,7 +967,7 @@ function CouncilPage() {
                           key={id}
                           initials={p.initials}
                           size="sm"
-                          className={p.color}
+                          style={{ backgroundColor: p.hex }}
                         />
                       );
                     })}
