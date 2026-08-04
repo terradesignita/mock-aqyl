@@ -123,6 +123,36 @@ function groupMessages(
   return groups;
 }
 
+function ConversationCover({ session }: { session: CouncilSession }) {
+  const colors = session.personaIds.slice(0, 3).map((id) => getPersona(id).hex);
+  const anchors = ["0% 0%", "100% 0%", "50% 100%"];
+  const backgroundImage = colors
+    .map(
+      (hex, i) =>
+        `radial-gradient(60% 90% at ${anchors[i]}, color-mix(in oklab, ${hex} 18%, transparent), transparent 65%)`,
+    )
+    .join(", ");
+
+  return (
+    <div
+      className="rounded-2xl border border-border p-4"
+      style={{ backgroundImage, backgroundColor: "var(--color-card)" }}
+    >
+      <AvatarStack personaIds={session.personaIds} size="lg" />
+      <h2 className="mt-3 text-lg font-bold leading-tight text-foreground">
+        {session.topic.title}
+      </h2>
+      <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+        {session.topic.summary}
+      </p>
+      <p className="mt-2 text-xs text-muted-foreground">
+        {session.personaIds.length}{" "}
+        {session.personaIds.length === 1 ? "участник" : "участника"} · на связи
+      </p>
+    </div>
+  );
+}
+
 /** Nearest scrollable ancestor — used to check whether the user is still near the
  *  bottom before yanking their scroll position during a reveal cascade. */
 function getScrollParent(node: HTMLElement | null): HTMLElement | null {
@@ -619,28 +649,7 @@ function SessionView({
   return (
     <div className="mx-auto flex min-h-full w-full max-w-2xl flex-col px-6 py-8">
       <div role="log" aria-live="polite" aria-relevant="additions" className="flex-1 space-y-4">
-        <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3">
-          <AvatarStack personaIds={session.personaIds} />
-          <div className="min-w-0">
-            <p className="truncate text-sm font-bold text-card-foreground" title={session.title}>
-              {session.title}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {session.personaIds.length}{" "}
-              {session.personaIds.length === 1 ? "участник" : "участника"} · на связи
-            </p>
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-border bg-card p-4">
-          <p className="text-xs font-bold text-primary">Кейс</p>
-          <h2 className="mt-1 text-lg font-bold leading-tight text-foreground">
-            {session.topic.title}
-          </h2>
-          <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-            {session.topic.summary}
-          </p>
-        </div>
+        <ConversationCover session={session} />
 
         {groups.map((group, gi) => {
           if (group.author === "user") {
