@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   Check,
@@ -41,23 +41,6 @@ export const Route = createFileRoute("/council")({
 
 const TODAY = "30.07.2026";
 const MAX_PERSONAS = 3;
-
-function buildSessionFromCard(card: KnowledgeCardData): CouncilSession {
-  const topic = {
-    title: card.title,
-    summary: card.executive_summary,
-    insight: card.core_insight,
-    businessUnit: card.business_unit,
-  };
-  return {
-    id: `session-${Date.now()}`,
-    title: card.title,
-    date: TODAY,
-    personaIds: suggestPersonas(topic),
-    followUps: [],
-    topic,
-  };
-}
 
 // Static map so Tailwind's JIT scanner sees every class literally — a
 // runtime `p.color.replace("bg-", "border-l-")` would never be picked up.
@@ -345,39 +328,59 @@ function PersonaPicker({
   );
 }
 
-function EmptyState({ onQuickStart }: { onQuickStart: (card: KnowledgeCardData) => void }) {
-  const heroIds = ["founder", "operator", "resilience"];
-  const suggestions = mockCards.slice(0, 3);
+/** Landing view when no session is active — a feed of every discussion, not an instructional blank screen. */
+function SessionsOverview({
+  sessions,
+  onOpen,
+}: {
+  sessions: CouncilSession[];
+  onOpen: (id: string) => void;
+}) {
+  if (sessions.length === 0) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center gap-2 px-6 text-center">
+        <h2 className="text-xl font-bold text-foreground">Пока нет ни одного совета</h2>
+        <p className="max-w-md text-sm text-muted-foreground">
+          Нажмите «Создать совет» слева, чтобы разобрать первый кейс.
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
-      <div aria-hidden className="flex items-center -space-x-3">
-        {heroIds.map((id, i) => {
-          const p = getPersona(id);
+    <div className="mx-auto w-full max-w-4xl space-y-4 px-6 py-8">
+      <h2 className="text-xs font-bold text-muted-foreground">
+        Все обсуждения
+        <span className="ml-1.5 tabular-nums">({sessions.length})</span>
+      </h2>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {sessions.map((s) => {
+          const verdict = buildVerdict(s.topic, s.personaIds, s.followUps);
           return (
-            <PersonaAvatar
-              key={id}
-              initials={p.initials}
-              size="lg"
-              style={{ zIndex: heroIds.length - i }}
-              className={cn(p.color, "border-4 border-background")}
-            />
+            <button
+              key={s.id}
+              onClick={() => onOpen(s.id)}
+              className="flex flex-col gap-2 rounded-2xl border border-border bg-card p-4 text-left transition-colors hover:border-primary/40 hover:bg-secondary/20"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <p className="truncate text-sm font-bold text-card-foreground">{s.title}</p>
+                {s.unread && (
+                  <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-success">
+                    <span aria-hidden className="h-2 w-2 rounded-full bg-success" />
+                    <span className="sr-only">Непрочитано</span>
+                  </span>
+                )}
+              </div>
+              <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                {verdict.synthesis}
+              </p>
+              <div className="mt-1 flex items-center justify-between">
+                <AvatarStack personaIds={s.personaIds} />
+                <span className="text-xs text-muted-foreground">{s.date}</span>
+              </div>
+            </button>
           );
         })}
-      </div>
-      <h2 className="text-xl font-bold text-foreground">Разберите решение с советом</h2>
-      <p className="max-w-md text-sm text-muted-foreground">
-        Совет из трёх персон подберётся автоматически. Начните с одного из кейсов:
-      </p>
-      <div className="flex max-w-md flex-wrap justify-center gap-2">
-        {suggestions.map((c) => (
-          <button
-            key={c.id}
-            onClick={() => onQuickStart(c)}
-            className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-card-foreground transition-colors hover:border-primary hover:bg-primary/8 hover:text-primary"
-          >
-            {c.title}
-          </button>
-        ))}
       </div>
     </div>
   );
@@ -602,17 +605,8 @@ function VerdictPanel({
 
 function CouncilPage() {
   const { dark, toggle } = useTheme();
-  const { sessions, create, markRead, updatePersonas, addFollowUp, remove, hydrated } =
-    useCouncilSessions();
+  const { sessions, create, markRead, updatePersonas, addFollowUp, remove } = useCouncilSessions();
   const [activeId, setActiveId] = useState<string | null>(null);
-  const autoSelectedRef = useRef(false);
-
-  // Land on the most recent session instead of a blank "pick something" screen.
-  useEffect(() => {
-    if (!hydrated || autoSelectedRef.current) return;
-    autoSelectedRef.current = true;
-    if (sessions.length > 0) setActiveId(sessions[0].id);
-  }, [hydrated, sessions]);
   const [creating, setCreating] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [sessionQuery, setSessionQuery] = useState("");
@@ -665,12 +659,6 @@ function CouncilPage() {
     }, 650);
   };
 
-  const quickStart = (card: KnowledgeCardData) => {
-    const session = buildSessionFromCard(card);
-    create(session);
-    autoSelectedRef.current = true;
-    setActiveId(session.id);
-  };
 
   return (
     <div className="flex min-h-screen flex-col bg-background lg:h-screen lg:overflow-hidden">
@@ -846,7 +834,7 @@ function CouncilPage() {
             ) : active ? (
               <SessionView session={active} pending={pendingFollowUp} onFollowUp={submitFollowUp} />
             ) : (
-              <EmptyState onQuickStart={quickStart} />
+              <SessionsOverview sessions={sessions} onOpen={openSession} />
             )}
           </main>
           {active && (
