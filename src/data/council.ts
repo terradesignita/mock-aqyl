@@ -328,14 +328,15 @@ const KEYWORD_RULES: {
     reply: (t) => `Риск главный: «${t.businessUnit}» не прощает недооценённых сценариев.`,
   },
   {
-    test: /план|дальше|шаг/i,
+    test: /план|дальше|шаг|первым/i,
     personaId: "operator",
     reply: () => `Первый шаг — назначить владельца процесса, без этого любой план стоит на месте.`,
   },
   {
     test: /согласны|друг с другом|спор/i,
     personaId: "contrarian",
-    reply: () => `Не совсем — именно в этом и смысл: если бы все соглашались, совет был бы не нужен.`,
+    reply: () =>
+      `Не совсем — именно в этом и смысл: если бы все соглашались, совет был бы не нужен.`,
   },
 ];
 
@@ -345,6 +346,7 @@ export function buildFollowUpReplies(
   topic: CouncilTopic,
   followUpText: string,
 ): CouncilChatMessage[] {
+  if (personaIds.length === 0) return [];
   const matched = KEYWORD_RULES.filter(
     (rule) => rule.test.test(followUpText) && personaIds.includes(rule.personaId),
   );
@@ -364,6 +366,10 @@ export function buildFollowUpReplies(
       time: nowTime(),
     },
   ];
+}
+
+export function buildUserMessage(text: string): CouncilChatMessage {
+  return { id: makeMessageId(), author: "user", text, time: nowTime() };
 }
 
 export const QUICK_REPLIES = [

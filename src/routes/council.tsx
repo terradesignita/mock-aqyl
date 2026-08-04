@@ -13,6 +13,7 @@ import { mockCards, type KnowledgeCardData } from "@/data/mockCards";
 import {
   buildFollowUpReplies,
   buildOpeningMessages,
+  buildUserMessage,
   COUNCIL_PERSONAS,
   getPersona,
   hasLikelyDisagreement,
@@ -88,7 +89,7 @@ function groupMessages(
   const groups: { author: string; items: CouncilChatMessage[] }[] = [];
   for (const m of messages) {
     const last = groups[groups.length - 1];
-    if (last && last.author === m.author) last.items.push(m);
+    if (last && last.author === m.author && !m.replyTo) last.items.push(m);
     else groups.push({ author: m.author, items: [m] });
   }
   return groups;
@@ -441,15 +442,17 @@ function SessionsOverview({
 
 function SessionView({
   session,
+  revealFromStart,
   onFollowUp,
 }: {
   session: CouncilSession;
+  revealFromStart: boolean;
   onFollowUp: (text: string) => void;
 }) {
   const [followUp, setFollowUp] = useState("");
-  const [visibleCount, setVisibleCount] = useState(session.messages.length);
+  const [visibleCount, setVisibleCount] = useState(revealFromStart ? 0 : session.messages.length);
   const [typingAuthor, setTypingAuthor] = useState<string | null>(null);
-  const shownCountRef = useRef(session.messages.length);
+  const shownCountRef = useRef(revealFromStart ? 0 : session.messages.length);
   const timersRef = useRef<number[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -457,8 +460,9 @@ function SessionView({
   useEffect(() => {
     timersRef.current.forEach((t) => window.clearTimeout(t));
     timersRef.current = [];
-    setVisibleCount(session.messages.length);
-    shownCountRef.current = session.messages.length;
+    setFollowUp("");
+    setVisibleCount(revealFromStart ? 0 : session.messages.length);
+    shownCountRef.current = revealFromStart ? 0 : session.messages.length;
     setTypingAuthor(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session.id]);
@@ -532,7 +536,8 @@ function SessionView({
           <div className="min-w-0">
             <p className="truncate text-sm font-bold text-card-foreground">{session.title}</p>
             <p className="text-xs text-muted-foreground">
-              {session.personaIds.length} участника · на связи
+              {session.personaIds.length}{" "}
+              {session.personaIds.length === 1 ? "участник" : "участника"} · на связи
             </p>
           </div>
         </div>
@@ -547,12 +552,12 @@ function SessionView({
 
         {groups.map((group, gi) => {
           if (group.author === "user") {
-            const isLastGroup = gi === groups.length - 1;
+            const answered = groups.slice(gi + 1).some((g) => g.author !== "user");
             return (
-              <div key={gi} className="ml-12 space-y-1">
+              <div key={group.items[0].id} className="ml-12 space-y-1">
                 {group.items.map((m, mi) => {
-                  const isLastItem = isLastGroup && mi === group.items.length - 1;
-                  const isRead = !isLastItem || isRevealing;
+                  const isLastItem = mi === group.items.length - 1;
+                  const isRead = isLastItem && (answered || isRevealing);
                   return (
                     <div key={m.id} className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                       <MessageBubble variant="user" bubbleClassName="p-3">
@@ -560,7 +565,7 @@ function SessionView({
                       </MessageBubble>
                       <p className="mt-1 text-right text-xs text-muted-foreground">
                         {m.time}
-                        {isLastItem && isRead && " · Прочитано ✓✓"}
+                        {isRead && " · Прочитано ✓✓"}
                       </p>
                     </div>
                   );
@@ -573,7 +578,7 @@ function SessionView({
           const replyTarget = group.items[0].replyTo ? getPersona(group.items[0].replyTo) : null;
 
           return (
-            <div key={gi} className="flex gap-3">
+            <div key={group.items[0].id} className="flex gap-3">
               <PersonaAvatar initials={p.initials} size="md" className={p.color} />
               <div className="min-w-0 flex-1 space-y-1">
                 <p className="text-xs font-bold text-card-foreground">
@@ -670,6 +675,7 @@ function CouncilPage() {
   const { dark, toggle } = useTheme();
   const { sessions, create, markRead, updatePersonas, addMessages, remove } = useCouncilSessions();
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [justCreatedId, setJustCreatedId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [sessionQuery, setSessionQuery] = useState("");
@@ -707,12 +713,7 @@ function CouncilPage() {
 
   const submitFollowUp = (text: string) => {
     if (!active) return;
-    const userMessage: CouncilChatMessage = {
-      id: `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-      author: "user",
-      text,
-      time: new Date().toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" }),
-    };
+    const userMessage = buildUserMessage(text);
     const replies = buildFollowUpReplies(active.personaIds, active.topic, text);
     addMessages(active.id, [userMessage, ...replies]);
   };
@@ -885,10 +886,15 @@ function CouncilPage() {
                 create(session);
                 setCreating(false);
                 setActiveId(session.id);
+                setJustCreatedId(session.id);
               }}
             />
           ) : active ? (
-            <SessionView session={active} onFollowUp={submitFollowUp} />
+            <SessionView
+              session={active}
+              revealFromStart={active.id === justCreatedId}
+              onFollowUp={submitFollowUp}
+            />
           ) : (
             <SessionsOverview sessions={sessions} onOpen={openSession} />
           )}

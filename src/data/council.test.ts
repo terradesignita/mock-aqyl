@@ -7,6 +7,7 @@ import {
   buildFollowUpReplies,
   hasLikelyDisagreement,
   pickDefaultTrio,
+  QUICK_REPLIES,
 } from "./council";
 
 describe("real leader names never leak into generated text", () => {
@@ -45,14 +46,14 @@ describe("real leader names never leak into generated text", () => {
     }
   });
 
-  it("buildOpeningMessages never attributes a message to a real leader", () => {
-    const allIds = COUNCIL_PERSONAS.map((p) => p.id);
-    buildOpeningMessages(allIds.slice(0, 3), topic).forEach((m) => assertClean(m.text));
+  it("buildOpeningMessages never attributes the disagreement reaction to a real leader", () => {
+    buildOpeningMessages(["founder", "contrarian"], topic).forEach((m) => assertClean(m.text));
   });
 
-  it("buildFollowUpReplies never attributes a message to a real leader", () => {
-    const allIds = COUNCIL_PERSONAS.map((p) => p.id);
-    buildFollowUpReplies(allIds.slice(0, 3), topic, "Какие риски?").forEach((m) =>
+  it("buildFollowUpReplies never attributes any keyword-rule reply to a real leader", () => {
+    buildFollowUpReplies(["resilience"], topic, "Какие риски?").forEach((m) => assertClean(m.text));
+    buildFollowUpReplies(["operator"], topic, "Дайте план").forEach((m) => assertClean(m.text));
+    buildFollowUpReplies(["contrarian"], topic, "Вы согласны друг с другом?").forEach((m) =>
       assertClean(m.text),
     );
   });
@@ -179,5 +180,22 @@ describe("pickDefaultTrio", () => {
     const ids = pickDefaultTrio();
     expect(new Set(ids).size).toBe(ids.length);
     expect(hasLikelyDisagreement(ids)).toBe(true);
+  });
+});
+
+describe("QUICK_REPLIES", () => {
+  it("every quick reply matches a keyword rule when its persona is present", () => {
+    const personaIds = ["resilience", "operator", "contrarian"];
+    const topic = {
+      title: "SpinBrush",
+      summary: "Маленькая компания выбирает между ростом, партнёрством и продажей.",
+      insight: "Переговорная сила растёт после подтверждения спроса.",
+      businessUnit: "Товары для дома",
+    };
+    const fallbackText = "По этому конкретному вопросу мне нечего добавить сверх уже сказанного.";
+    for (const reply of QUICK_REPLIES) {
+      const messages = buildFollowUpReplies(personaIds, topic, reply);
+      expect(messages.some((m) => m.text !== fallbackText)).toBe(true);
+    }
   });
 });
