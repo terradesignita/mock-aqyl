@@ -660,7 +660,7 @@ function SessionView({
                   const isLastItem = mi === group.items.length - 1;
                   const isRead = isLastItem && (answered || isRevealing);
                   return (
-                    <div key={m.id} className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <div key={m.id} className="animate-message-pop">
                       <MessageBubble variant="user" bubbleClassName="p-3">
                         {m.text}
                       </MessageBubble>
@@ -696,7 +696,7 @@ function SessionView({
                   )}
                 </p>
                 {group.items.map((m) => (
-                  <div key={m.id} className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                  <div key={m.id} className="animate-message-pop">
                     <MessageBubble
                       variant="entity"
                       accentClassName={cn(PERSONA_TINT_CLASS, PERSONA_BORDER_CLASS)}
@@ -716,7 +716,13 @@ function SessionView({
             <PersonaAvatar
               initials={typingPersona.initials}
               size="md"
-              style={{ backgroundColor: typingPersona.hex }}
+              className="animate-typing-ring"
+              style={
+                {
+                  backgroundColor: typingPersona.hex,
+                  "--pulse-color": typingPersona.darkHex ?? typingPersona.hex,
+                } as React.CSSProperties
+              }
             />
             <div className="flex items-center gap-1.5 rounded-2xl rounded-tl-sm border border-border bg-card px-3 py-2.5">
               <span className="sr-only">{typingPersona.name} печатает…</span>
