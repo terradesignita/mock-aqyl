@@ -8,6 +8,7 @@ import {
   hasLikelyDisagreement,
   pickDefaultTrio,
   QUICK_REPLIES,
+  FOLLOW_UP_FALLBACK_TEXT,
 } from "./council";
 
 describe("real leader names never leak into generated text", () => {
@@ -192,10 +193,9 @@ describe("QUICK_REPLIES", () => {
       insight: "Переговорная сила растёт после подтверждения спроса.",
       businessUnit: "Товары для дома",
     };
-    const fallbackText = "По этому конкретному вопросу мне нечего добавить сверх уже сказанного.";
     for (const reply of QUICK_REPLIES) {
       const messages = buildFollowUpReplies(personaIds, topic, reply);
-      expect(messages.some((m) => m.text !== fallbackText)).toBe(true);
+      expect(messages.some((m) => m.text !== FOLLOW_UP_FALLBACK_TEXT)).toBe(true);
     }
   });
 });

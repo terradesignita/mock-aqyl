@@ -224,7 +224,7 @@ export function buildPersonaTake(personaId: string, topic: CouncilTopic): string
     case "operator":
       return [
         `Операционно: ${topic.summary}`,
-        `Без чёткого владельца процесса и метрик это не повторится на масштабе «${topic.businessUnit}».`,
+        `Без чёткого владельца процесса и метрик это не повторится на масштабе направления «${topic.businessUnit}».`,
       ];
     case "engineer":
       return [
@@ -237,7 +237,7 @@ export function buildPersonaTake(personaId: string, topic: CouncilTopic): string
       ];
     case "industrialist":
       return [
-        `Долгий горизонт: репутация «${topic.businessUnit}» стоит дороже быстрой выгоды.`,
+        `Долгий горизонт: репутация направления «${topic.businessUnit}» стоит дороже быстрой выгоды.`,
         `${topic.insight} Спешить не буду.`,
       ];
     case "product":
@@ -253,25 +253,25 @@ export function buildPersonaTake(personaId: string, topic: CouncilTopic): string
     case "platform":
       return [
         `Экосистемно: кто ещё выигрывает от «${topic.title}», если мы пойдём этим путём?`,
-        `В «${topic.businessUnit}» партнёрства важнее, чем контроль над каждым шагом.`,
+        `В направлении «${topic.businessUnit}» партнёрства важнее, чем контроль над каждым шагом.`,
       ];
     case "competitor":
       return [
         `Конкурентно: ${topic.insight}`,
-        `Если мы не сделаем этот шаг первыми, это сделает кто-то другой в «${topic.businessUnit}».`,
+        `Если мы не сделаем этот шаг первыми, это сделает кто-то другой в направлении «${topic.businessUnit}».`,
       ];
     case "resilience":
       return [
-        `Через призму устойчивости: регуляторная и рыночная турбулентность рано или поздно ударит по «${topic.businessUnit}» — вопрос, готовы ли мы адаптироваться быстрее других.`,
+        `Через призму устойчивости: регуляторная и рыночная турбулентность рано или поздно ударит по направлению «${topic.businessUnit}» — вопрос, готовы ли мы адаптироваться быстрее других.`,
       ];
     case "scale":
       return [
         `Эффективность прежде всего: ${topic.summary}`,
-        `Каждый лишний доллар издержек на масштабе «${topic.businessUnit}» — упущенная маржа.`,
+        `Каждый лишний доллар издержек на масштабе направления «${topic.businessUnit}» — упущенная маржа.`,
       ];
     case "transform":
       return [
-        `Трансформационно: старые процессы в «${topic.businessUnit}» не переживут это решение без изменений в культуре.`,
+        `Трансформационно: старые процессы в направлении «${topic.businessUnit}» не переживут это решение без изменений в культуре.`,
         `${topic.insight}`,
       ];
     default:
@@ -325,7 +325,7 @@ const KEYWORD_RULES: {
   {
     test: /риск/i,
     personaId: "resilience",
-    reply: (t) => `Риск главный: «${t.businessUnit}» не прощает недооценённых сценариев.`,
+    reply: (t) => `Главный риск: «${t.businessUnit}» не прощает недооценённых сценариев.`,
   },
   {
     test: /план|дальше|шаг|первым/i,
@@ -339,6 +339,11 @@ const KEYWORD_RULES: {
       `Не совсем — именно в этом и смысл: если бы все соглашались, совет был бы не нужен.`,
   },
 ];
+
+/** Экспортируется, чтобы UI мог отличить этот фолбэк от настоящего ответа
+ *  (например, не показывать его как превью сессии в общем списке). */
+export const FOLLOW_UP_FALLBACK_TEXT =
+  "Тут нужен более предметный разбор — задайте вопрос конкретнее, и отвечу.";
 
 /** Ответы на follow-up: 1+ персоны отвечают по ключевым словам, либо честный фолбэк, если нет совпадений. */
 export function buildFollowUpReplies(
@@ -362,7 +367,7 @@ export function buildFollowUpReplies(
     {
       id: makeMessageId(),
       author: personaIds[0],
-      text: "По этому конкретному вопросу мне нечего добавить сверх уже сказанного.",
+      text: FOLLOW_UP_FALLBACK_TEXT,
       time: nowTime(),
     },
   ];
