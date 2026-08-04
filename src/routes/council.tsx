@@ -408,7 +408,7 @@ function SessionsOverview({
       </h2>
       <div className="grid gap-3 sm:grid-cols-2">
         {sessions.map((s) => {
-          const verdict = buildVerdict(s.topic, s.personaIds, s.followUps);
+          const preview = s.messages.at(-1)?.text ?? s.topic.summary;
           return (
             <button
               key={s.id}
@@ -425,7 +425,7 @@ function SessionsOverview({
                 )}
               </div>
               <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-                {verdict.synthesis}
+                {preview}
               </p>
               <div className="mt-1 flex items-center justify-between">
                 <AvatarStack personaIds={s.personaIds} />
@@ -666,133 +666,18 @@ function SessionView({
   );
 }
 
-function VerdictPanel({
-  session,
-  onAsk,
-  pending,
-  width,
-  startResize,
-  collapsed,
-  onCollapse,
-  panelRef,
-}: {
-  session: CouncilSession;
-  onAsk: (text: string) => void;
-  pending: boolean;
-  width: number;
-  startResize: (e: React.MouseEvent) => void;
-  collapsed: boolean;
-  onCollapse: () => void;
-  panelRef: React.RefObject<HTMLElement | null>;
-}) {
-  const verdict = buildVerdict(session.topic, session.personaIds, session.followUps);
-  const [copied, setCopied] = useState(false);
-
-  const copyVerdict = async () => {
-    await navigator.clipboard.writeText(formatVerdictForCopy(session.topic, verdict));
-    setCopied(true);
-    toast.success("Вердикт скопирован");
-    window.setTimeout(() => setCopied(false), 1500);
-  };
-
-  return (
-    <aside
-      ref={panelRef}
-      tabIndex={-1}
-      aria-label="Вердикт совета"
-      style={{ "--panel-w": `${width}px` } as React.CSSProperties}
-      className={cn(
-        "relative flex w-full flex-col gap-3 border-t border-border bg-card p-4 outline-none focus-visible:ring-2 focus-visible:ring-primary md:max-h-[45vh] md:shrink-0 md:overflow-y-auto lg:max-h-none lg:w-[var(--panel-w)] lg:border-l lg:border-t-0",
-        collapsed && "lg:hidden",
-      )}
-    >
-      <div
-        onMouseDown={startResize}
-        role="separator"
-        aria-orientation="vertical"
-        aria-label="Изменить ширину панели вердикта"
-        className="absolute inset-y-0 left-0 z-20 hidden w-2 cursor-col-resize hover:bg-primary/25 lg:block"
-      />
-      <div className="flex items-center gap-2">
-        <button
-          onClick={onCollapse}
-          aria-label="Свернуть панель вердикта"
-          title="Свернуть панель"
-          className="hidden h-7 w-7 shrink-0 place-items-center rounded-md border border-border text-muted-foreground transition-colors hover:border-primary hover:text-primary lg:grid"
-        >
-          <PanelRightClose className="h-4 w-4" />
-        </button>
-        <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-success" />
-        <p className="flex-1 text-xs font-bold text-primary">Вердикт совета</p>
-        <button
-          onClick={copyVerdict}
-          aria-label="Скопировать вердикт"
-          title="Скопировать вердикт"
-          className="grid h-7 w-7 shrink-0 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-        >
-          {copied ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
-        </button>
-      </div>
-      <div
-        key={session.followUps.length}
-        className="animate-in rounded-xl border border-primary/30 bg-primary/6 p-3 text-sm leading-relaxed text-card-foreground fade-in duration-300"
-      >
-        {verdict.synthesis}
-      </div>
-      <div>
-        <p className="mb-1.5 text-xs font-bold text-muted-foreground">Открытые вопросы</p>
-        <div className="flex flex-wrap gap-1.5">
-          {verdict.openQuestions.map((question, i) => (
-            <button
-              key={i}
-              type="button"
-              disabled={pending}
-              onClick={() => onAsk(question)}
-              className="rounded-full border border-border bg-secondary/30 px-3 py-1.5 text-left text-xs text-card-foreground transition-[color,border-color,background-color,transform] hover:-translate-y-0.5 hover:border-primary hover:bg-primary/8 hover:text-primary disabled:pointer-events-none disabled:opacity-50"
-            >
-              {question}
-            </button>
-          ))}
-        </div>
-      </div>
-      <div>
-        <p className="mb-1.5 text-xs font-bold text-muted-foreground">Согласны / расходятся</p>
-        <div className="flex flex-wrap gap-1.5">
-          {verdict.agreements.map((a, i) => (
-            <span
-              key={i}
-              className={cn(
-                "max-w-full truncate rounded-full border px-2 py-0.5 text-xs font-medium",
-                a.kind === "agree"
-                  ? "border-success/40 bg-success/10 text-success"
-                  : "border-destructive/40 bg-destructive/10 text-destructive",
-              )}
-            >
-              {a.label}
-            </span>
-          ))}
-        </div>
-      </div>
-    </aside>
-  );
-}
-
 function CouncilPage() {
   const { dark, toggle } = useTheme();
-  const { sessions, create, markRead, updatePersonas, addFollowUp, remove } = useCouncilSessions();
+  const { sessions, create, markRead, updatePersonas, addMessages, remove } = useCouncilSessions();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [sessionQuery, setSessionQuery] = useState("");
-  const [pendingFollowUp, setPendingFollowUp] = useState<string | null>(null);
   const pickerTriggerRef = useRef<HTMLButtonElement>(null);
   const [showSessions, setShowSessions] = useState(true);
-  const [showVerdict, setShowVerdict] = useState(true);
   const sessionsCollapseRef = useRef<HTMLButtonElement>(null);
   const sessionsRestoreRef = useRef<HTMLButtonElement>(null);
   const sessionsPanelRef = useRef<HTMLElement>(null);
-  const verdictRestoreRef = useRef<HTMLButtonElement>(null);
-  const verdictPanelRef = useRef<HTMLElement>(null);
 
   const focusNext = (ref: React.RefObject<HTMLElement | null>) => {
     requestAnimationFrame(() => ref.current?.focus());
@@ -800,10 +685,6 @@ function CouncilPage() {
   const { width: sessionsWidth, startResize: startSessionsResize } = useResizablePanel(320, {
     min: 220,
     max: 520,
-  });
-  const { width: verdictWidth, startResize: startVerdictResize } = useResizablePanel(260, {
-    min: 220,
-    max: 480,
   });
 
   const active = sessions.find((s) => s.id === activeId) ?? null;
@@ -825,14 +706,16 @@ function CouncilPage() {
   };
 
   const submitFollowUp = (text: string) => {
-    if (!active || pendingFollowUp) return;
-    setPendingFollowUp(text);
-    window.setTimeout(() => {
-      addFollowUp(active.id, text);
-      setPendingFollowUp(null);
-    }, 650);
+    if (!active) return;
+    const userMessage: CouncilChatMessage = {
+      id: `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      author: "user",
+      text,
+      time: new Date().toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" }),
+    };
+    const replies = buildFollowUpReplies(active.personaIds, active.topic, text);
+    addMessages(active.id, [userMessage, ...replies]);
   };
-
 
   return (
     <div className="flex min-h-screen flex-col bg-background lg:h-screen lg:overflow-hidden">
@@ -994,53 +877,22 @@ function CouncilPage() {
           </button>
         )}
 
-        <div className="relative flex flex-1 flex-col lg:min-h-0 md:min-w-0 lg:flex-row">
-          <main className="flex flex-1 flex-col lg:min-h-0 md:min-w-0 lg:overflow-y-auto">
-            {creating ? (
-              <NewCouncilPanel
-                onCancel={() => setCreating(false)}
-                onCreate={(session) => {
-                  create(session);
-                  setCreating(false);
-                  setActiveId(session.id);
-                }}
-              />
-            ) : active ? (
-              <SessionView session={active} pending={pendingFollowUp} onFollowUp={submitFollowUp} />
-            ) : (
-              <SessionsOverview sessions={sessions} onOpen={openSession} />
-            )}
-          </main>
-          {active && (
-            <VerdictPanel
-              session={active}
-              onAsk={submitFollowUp}
-              pending={!!pendingFollowUp}
-              width={verdictWidth}
-              startResize={startVerdictResize(true)}
-              collapsed={!showVerdict}
-              onCollapse={() => {
-                setShowVerdict(false);
-                focusNext(verdictRestoreRef);
+        <main className="flex flex-1 flex-col lg:min-h-0 md:min-w-0 lg:overflow-y-auto">
+          {creating ? (
+            <NewCouncilPanel
+              onCancel={() => setCreating(false)}
+              onCreate={(session) => {
+                create(session);
+                setCreating(false);
+                setActiveId(session.id);
               }}
-              panelRef={verdictPanelRef}
             />
+          ) : active ? (
+            <SessionView session={active} onFollowUp={submitFollowUp} />
+          ) : (
+            <SessionsOverview sessions={sessions} onOpen={openSession} />
           )}
-          {active && !showVerdict && (
-            <button
-              ref={verdictRestoreRef}
-              onClick={() => {
-                setShowVerdict(true);
-                focusNext(verdictPanelRef);
-              }}
-              aria-label="Показать вердикт"
-              title="Показать панель вердикта"
-              className="absolute right-0 top-1/2 z-20 hidden h-16 w-6 -translate-y-1/2 place-items-center rounded-l-lg border border-r-0 border-border bg-card text-muted-foreground shadow-sm transition-colors hover:text-primary lg:grid"
-            >
-              <PanelRight className="h-4 w-4" />
-            </button>
-          )}
-        </div>
+        </main>
       </div>
     </div>
   );
