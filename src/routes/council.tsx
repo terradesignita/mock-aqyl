@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { PanelLeft, PanelLeftClose, Plus, Search, Send, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -78,6 +78,20 @@ function AvatarStack({ personaIds }: { personaIds: string[] }) {
       )}
     </div>
   );
+}
+
+/** Groups consecutive messages from the same author — that's what a "burst" of 2 short
+ *  messages in a row looks like, both structurally and visually (avatar/name shown once). */
+function groupMessages(
+  messages: CouncilChatMessage[],
+): { author: string; items: CouncilChatMessage[] }[] {
+  const groups: { author: string; items: CouncilChatMessage[] }[] = [];
+  for (const m of messages) {
+    const last = groups[groups.length - 1];
+    if (last && last.author === m.author) last.items.push(m);
+    else groups.push({ author: m.author, items: [m] });
+  }
+  return groups;
 }
 
 function NewCouncilPanel({
@@ -427,26 +441,101 @@ function SessionsOverview({
 
 function SessionView({
   session,
-  pending,
   onFollowUp,
 }: {
   session: CouncilSession;
-  /** Follow-up text already shown as sent, still waiting to land in `session.followUps`. */
-  pending: string | null;
   onFollowUp: (text: string) => void;
 }) {
   const [followUp, setFollowUp] = useState("");
+  const [visibleCount, setVisibleCount] = useState(session.messages.length);
+  const [typingAuthor, setTypingAuthor] = useState<string | null>(null);
+  const shownCountRef = useRef(session.messages.length);
+  const timersRef = useRef<number[]>([]);
+  const bottomRef = useRef<HTMLDivElement>(null);
 
-  const send = () => {
-    const text = followUp.trim();
-    if (!text || pending) return;
-    onFollowUp(text);
+  // Session switched: show everything already there instantly, no replay of old bursts.
+  useEffect(() => {
+    timersRef.current.forEach((t) => window.clearTimeout(t));
+    timersRef.current = [];
+    setVisibleCount(session.messages.length);
+    shownCountRef.current = session.messages.length;
+    setTypingAuthor(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session.id]);
+
+  // New messages appended to the same session: reveal them one at a time with a typing pause.
+  useEffect(() => {
+    if (session.messages.length <= shownCountRef.current) return;
+    const newOnes = session.messages.slice(shownCountRef.current);
+    shownCountRef.current = session.messages.length;
+    let cancelled = false;
+    let index = 0;
+
+    const revealNext = () => {
+      if (cancelled || index >= newOnes.length) {
+        if (!cancelled) setTypingAuthor(null);
+        return;
+      }
+      const message = newOnes[index];
+      if (message.author === "user") {
+        setVisibleCount((v) => v + 1);
+        index += 1;
+        timersRef.current.push(window.setTimeout(revealNext, 300));
+        return;
+      }
+      setTypingAuthor(message.author);
+      const typingDelay = 600 + Math.random() * 800;
+      timersRef.current.push(
+        window.setTimeout(() => {
+          if (cancelled) return;
+          setVisibleCount((v) => v + 1);
+          setTypingAuthor(null);
+          index += 1;
+          const messageDelay = 1000 + Math.random() * 1500;
+          timersRef.current.push(window.setTimeout(revealNext, messageDelay));
+        }, typingDelay),
+      );
+    };
+
+    revealNext();
+
+    return () => {
+      cancelled = true;
+      timersRef.current.forEach((t) => window.clearTimeout(t));
+      timersRef.current = [];
+    };
+  }, [session.messages]);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [visibleCount, typingAuthor]);
+
+  const isRevealing = typingAuthor !== null || visibleCount < session.messages.length;
+
+  const send = (text: string) => {
+    const value = text.trim();
+    if (!value || isRevealing) return;
+    onFollowUp(value);
     setFollowUp("");
   };
 
+  const visibleMessages = session.messages.slice(0, visibleCount);
+  const groups = groupMessages(visibleMessages);
+  const typingPersona = typingAuthor ? getPersona(typingAuthor) : null;
+
   return (
     <div className="mx-auto flex min-h-full w-full max-w-2xl flex-col px-6 py-8">
-      <div className="flex-1 space-y-5">
+      <div className="flex-1 space-y-4">
+        <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3">
+          <AvatarStack personaIds={session.personaIds} />
+          <div className="min-w-0">
+            <p className="truncate text-sm font-bold text-card-foreground">{session.title}</p>
+            <p className="text-xs text-muted-foreground">
+              {session.personaIds.length} участника · на связи
+            </p>
+          </div>
+        </div>
+
         <div className="rounded-2xl border border-border bg-card p-4">
           <p className="text-xs font-bold text-primary">Кейс</p>
           <h2 className="mt-1 text-lg font-bold text-foreground">{session.topic.title}</h2>
@@ -455,77 +544,122 @@ function SessionView({
           </p>
         </div>
 
-        <div className="space-y-3">
-          {session.personaIds.map((id, i) => {
-            const p = getPersona(id);
+        {groups.map((group, gi) => {
+          if (group.author === "user") {
+            const isLastGroup = gi === groups.length - 1;
             return (
-              <div
-                key={id}
-                style={{ animationDelay: `${Math.min(i, 9) * 80}ms` }}
-                className="animate-in fade-in slide-in-from-bottom-2 duration-300"
-              >
-                <MessageBubble
-                  variant="entity"
-                  avatar={<PersonaAvatar initials={p.initials} size="md" className={p.color} />}
-                  title={
-                    <>
-                      {p.name} <span className="font-normal text-muted-foreground">· {p.role}</span>
-                    </>
-                  }
-                  accentClassName={cn("border-l-4", PERSONA_BORDER_CLASS[p.color])}
-                >
-                  {buildPersonaTake(id, session.topic)}
-                </MessageBubble>
+              <div key={gi} className="ml-12 space-y-1">
+                {group.items.map((m, mi) => {
+                  const isLastItem = isLastGroup && mi === group.items.length - 1;
+                  const isRead = !isLastItem || isRevealing;
+                  return (
+                    <div key={m.id} className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                      <MessageBubble variant="user" bubbleClassName="p-3">
+                        {m.text}
+                      </MessageBubble>
+                      <p className="mt-1 text-right text-xs text-muted-foreground">
+                        {m.time}
+                        {isLastItem && isRead && " · Прочитано ✓✓"}
+                      </p>
+                    </div>
+                  );
+                })}
               </div>
             );
-          })}
+          }
 
-          {session.followUps.map((text, i) => (
-            <div key={i} className="ml-12 animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <MessageBubble variant="user" bubbleClassName="p-3">
-                {text}
-              </MessageBubble>
-            </div>
-          ))}
+          const p = getPersona(group.author);
+          const replyTarget = group.items[0].replyTo ? getPersona(group.items[0].replyTo) : null;
 
-          {pending && (
-            <div className="ml-12 animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <MessageBubble variant="user" bubbleClassName="p-3">
-                {pending}
-              </MessageBubble>
+          return (
+            <div key={gi} className="flex gap-3">
+              <PersonaAvatar initials={p.initials} size="md" className={p.color} />
+              <div className="min-w-0 flex-1 space-y-1">
+                <p className="text-xs font-bold text-card-foreground">
+                  {p.name} <span className="font-normal text-muted-foreground">· {p.role}</span>
+                  {replyTarget && (
+                    <span className="ml-1.5 font-normal text-muted-foreground">
+                      · отвечает {replyTarget.name.split(" ")[0]}
+                    </span>
+                  )}
+                </p>
+                {group.items.map((m) => (
+                  <div key={m.id} className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <div
+                      className={cn(
+                        "rounded-2xl rounded-tl-sm border border-border bg-card p-3 text-sm leading-relaxed text-card-foreground border-l-4",
+                        PERSONA_BORDER_CLASS[p.color],
+                      )}
+                    >
+                      {m.text}
+                    </div>
+                    <p className="mt-1 text-xs text-muted-foreground">{m.time}</p>
+                  </div>
+                ))}
+              </div>
             </div>
-          )}
+          );
+        })}
 
-          {pending && (
-            <div className="flex items-center gap-2 pl-1 text-sm text-muted-foreground">
-              <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" /> Совет учитывает ваш
-              вопрос...
+        {typingPersona && (
+          <div className="flex items-center gap-3">
+            <PersonaAvatar
+              initials={typingPersona.initials}
+              size="md"
+              className={typingPersona.color}
+            />
+            <div className="flex items-center gap-1.5 rounded-2xl rounded-tl-sm border border-border bg-card px-3 py-2.5">
+              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" />
+              <span
+                className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground"
+                style={{ animationDelay: "120ms" }}
+              />
+              <span
+                className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground"
+                style={{ animationDelay: "240ms" }}
+              />
             </div>
-          )}
-        </div>
+          </div>
+        )}
+        <div ref={bottomRef} />
       </div>
 
-      <div className="sticky bottom-0 mt-6 flex gap-2 border-t border-border bg-background pt-4 pb-2">
-        <label htmlFor="council-follow-up" className="sr-only">
-          Уточняющий вопрос совету
-        </label>
-        <input
-          id="council-follow-up"
-          value={followUp}
-          onChange={(e) => setFollowUp(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && send()}
-          disabled={!!pending}
-          placeholder="Задайте уточняющий вопрос совету"
-          className="h-10 w-full min-w-0 rounded-control border border-border bg-secondary/40 px-3 text-base outline-none transition-colors placeholder:text-muted-foreground focus:border-primary disabled:opacity-60 sm:text-sm"
-        />
-        <Button
-          size="icon"
-          disabled={!followUp.trim() || !!pending}
-          onClick={send}
-          aria-label="Отправить"
-        >
-          <Send className="h-4 w-4" />
-        </Button>
+      <div className="sticky bottom-0 mt-6 space-y-2 border-t border-border bg-background pt-4 pb-2">
+        <div className="flex flex-wrap gap-1.5">
+          {QUICK_REPLIES.map((q) => (
+            <button
+              key={q}
+              type="button"
+              disabled={isRevealing}
+              onClick={() => send(q)}
+              className="rounded-full border border-border bg-secondary/30 px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-primary hover:bg-primary/8 hover:text-primary disabled:pointer-events-none disabled:opacity-50"
+            >
+              {q}
+            </button>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <label htmlFor="council-follow-up" className="sr-only">
+            Сообщение совету
+          </label>
+          <input
+            id="council-follow-up"
+            value={followUp}
+            onChange={(e) => setFollowUp(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && send(followUp)}
+            disabled={isRevealing}
+            placeholder="Написать сообщение…"
+            className="h-10 w-full min-w-0 rounded-control border border-border bg-secondary/40 px-3 text-base outline-none transition-colors placeholder:text-muted-foreground focus:border-primary disabled:opacity-60 sm:text-sm"
+          />
+          <Button
+            size="icon"
+            disabled={!followUp.trim() || isRevealing}
+            onClick={() => send(followUp)}
+            aria-label="Отправить"
+          >
+            <Send className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
     </div>
   );
