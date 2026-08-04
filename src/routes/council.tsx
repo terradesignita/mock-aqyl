@@ -670,8 +670,13 @@ function SessionView({
           const replyTarget = group.items[0].replyTo ? getPersona(group.items[0].replyTo) : null;
 
           return (
-            <div key={group.items[0].id} className="flex gap-3">
-              <PersonaAvatar initials={p.initials} size="md" className={p.color} />
+            <div key={group.items[0].id} className="flex gap-3" style={personaColorVars(p)}>
+              <PersonaAvatar
+                initials={p.initials}
+                size="md"
+                ringClassName={PERSONA_BORDER_CLASS}
+                style={{ backgroundColor: p.hex }}
+              />
               <div className="min-w-0 flex-1 space-y-1">
                 <p className="text-xs font-bold text-card-foreground">
                   {p.name} <span className="font-normal text-muted-foreground">· {p.role}</span>
@@ -685,7 +690,7 @@ function SessionView({
                   <div key={m.id} className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                     <MessageBubble
                       variant="entity"
-                      accentClassName={cn("border-l-4", PERSONA_BORDER_CLASS[p.color])}
+                      accentClassName={cn(PERSONA_TINT_CLASS, PERSONA_BORDER_CLASS)}
                     >
                       {m.text}
                     </MessageBubble>
@@ -702,7 +707,7 @@ function SessionView({
             <PersonaAvatar
               initials={typingPersona.initials}
               size="md"
-              className={typingPersona.color}
+              style={{ backgroundColor: typingPersona.hex }}
             />
             <div className="flex items-center gap-1.5 rounded-2xl rounded-tl-sm border border-border bg-card px-3 py-2.5">
               <span className="sr-only">{typingPersona.name} печатает…</span>
