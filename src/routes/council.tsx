@@ -1,18 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  Check,
-  Copy,
-  Loader2,
-  PanelLeft,
-  PanelLeftClose,
-  PanelRight,
-  PanelRightClose,
-  Plus,
-  Search,
-  Send,
-  Trash2,
-} from "lucide-react";
+import { PanelLeft, PanelLeftClose, Plus, Search, Send, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Header } from "@/components/Header";
 import { MessageBubble } from "@/components/MessageBubble";
@@ -23,12 +11,14 @@ import { useCouncilSessions, useTheme } from "@/hooks/useAppState";
 import { useResizablePanel } from "@/hooks/useResizablePanel";
 import { mockCards, type KnowledgeCardData } from "@/data/mockCards";
 import {
-  buildPersonaTake,
-  buildVerdict,
+  buildFollowUpReplies,
+  buildOpeningMessages,
   COUNCIL_PERSONAS,
-  formatVerdictForCopy,
   getPersona,
-  suggestPersonas,
+  hasLikelyDisagreement,
+  pickDefaultTrio,
+  QUICK_REPLIES,
+  type CouncilChatMessage,
   type CouncilSession,
 } from "@/data/council";
 
@@ -97,141 +87,190 @@ function NewCouncilPanel({
   onCreate: (session: CouncilSession) => void;
   onCancel: () => void;
 }) {
+  const [step, setStep] = useState<"contacts" | "topic">("contacts");
+  const [personaIds, setPersonaIds] = useState<string[]>([]);
+  const [personaQuery, setPersonaQuery] = useState("");
   const [query, setQuery] = useState("");
   const [card, setCard] = useState<KnowledgeCardData | null>(null);
-  const [personaIds, setPersonaIds] = useState<string[]>([]);
-  const [pickerOpen, setPickerOpen] = useState(false);
-  const pickerTriggerRef = useRef<HTMLButtonElement>(null);
 
-  const results = useMemo(() => {
+  const personaResults = useMemo(() => {
+    const q = personaQuery.trim().toLowerCase();
+    if (!q) return COUNCIL_PERSONAS;
+    return COUNCIL_PERSONAS.filter(
+      (p) =>
+        p.name.toLowerCase().includes(q) ||
+        p.role.toLowerCase().includes(q) ||
+        p.inspiredBy.toLowerCase().includes(q),
+    );
+  }, [personaQuery]);
+
+  const togglePersona = (id: string) =>
+    setPersonaIds((prev) =>
+      prev.includes(id)
+        ? prev.filter((x) => x !== id)
+        : prev.length >= MAX_PERSONAS
+          ? prev
+          : [...prev, id],
+    );
+
+  const caseResults = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return mockCards.slice(0, 8);
     return mockCards.filter((c) => c.title.toLowerCase().includes(q)).slice(0, 8);
   }, [query]);
 
-  const selectCard = (c: KnowledgeCardData) => {
-    setCard(c);
-    setPersonaIds(
-      suggestPersonas({
-        title: c.title,
-        summary: c.executive_summary,
-        insight: c.core_insight,
-        businessUnit: c.business_unit,
-      }),
-    );
-  };
-
   const start = () => {
     if (!card || personaIds.length === 0) return;
+    const topic = {
+      title: card.title,
+      summary: card.executive_summary,
+      insight: card.core_insight,
+      businessUnit: card.business_unit,
+    };
     onCreate({
       id: `session-${Date.now()}`,
       title: card.title,
       date: TODAY,
       personaIds,
-      followUps: [],
-      topic: {
-        title: card.title,
-        summary: card.executive_summary,
-        insight: card.core_insight,
-        businessUnit: card.business_unit,
-      },
+      messages: buildOpeningMessages(personaIds, topic),
+      topic,
     });
   };
 
   return (
     <div className="mx-auto w-full max-w-xl px-6 py-10">
-      <div className="space-y-6 rounded-2xl border border-border bg-card p-6 shadow-soft">
-        <div>
-          <label
-            htmlFor="council-case-search"
-            className="mb-2 block text-xs font-bold text-muted-foreground"
-          >
-            Выберите кейс
-          </label>
-          <div className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 transition-colors focus-within:border-primary">
-            <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
-            <input
-              id="council-case-search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Найдите кейс по названию"
-              className="h-10 w-full min-w-0 bg-transparent text-base outline-none placeholder:text-muted-foreground sm:text-sm"
-            />
-          </div>
-          <div className="mt-2 max-h-56 space-y-1 overflow-y-auto">
-            {results.map((c) => (
-              <button
-                key={c.id}
-                onClick={() => selectCard(c)}
-                className={cn(
-                  "w-full rounded-lg border px-3 py-2 text-left text-sm transition-colors",
-                  card?.id === c.id
-                    ? "border-primary bg-primary/8 font-semibold text-card-foreground"
-                    : "border-transparent text-muted-foreground hover:bg-secondary/50",
-                )}
-              >
-                <span className="block truncate">{c.title}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {card && (
-          <div>
-            <p className="mb-2 text-xs font-bold tabular-nums text-muted-foreground">
-              Совет ({personaIds.length}/{MAX_PERSONAS})
-            </p>
-            {!pickerOpen && (
-              <div className="flex flex-wrap items-center gap-2">
-                {personaIds.map((id) => {
-                  const p = getPersona(id);
-                  return (
-                    <span
-                      key={id}
-                      className={cn(
-                        "flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold text-white",
-                        p.color,
-                      )}
-                    >
-                      {p.initials} {p.name.split(" ")[0]}
-                    </span>
-                  );
-                })}
-                <button
-                  ref={pickerTriggerRef}
-                  type="button"
-                  onClick={() => setPickerOpen(true)}
-                  className="text-xs font-semibold text-primary underline-offset-2 hover:underline"
-                >
-                  Изменить состав
-                </button>
+      <div className="space-y-5 rounded-2xl border border-border bg-card p-6 shadow-soft">
+        {step === "contacts" ? (
+          <>
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <p className="text-sm font-bold text-card-foreground">Кто в совете?</p>
+                <p className="text-xs text-muted-foreground">
+                  Выберите до {MAX_PERSONAS} участников
+                </p>
               </div>
-            )}
-            {pickerOpen && (
-              <PersonaPicker
-                selected={personaIds}
-                onChange={setPersonaIds}
-                onClose={() => {
-                  setPickerOpen(false);
-                  requestAnimationFrame(() => pickerTriggerRef.current?.focus());
-                }}
-              />
-            )}
-          </div>
-        )}
+              <span className="shrink-0 text-xs font-bold tabular-nums text-muted-foreground">
+                {personaIds.length}/{MAX_PERSONAS}
+              </span>
+            </div>
 
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" onClick={onCancel}>
-            Отмена
-          </Button>
-          <Button
-            className="flex-1 gap-1.5"
-            disabled={!card || personaIds.length === 0}
-            onClick={start}
-          >
-            <Plus className="h-4 w-4" /> Начать совет
-          </Button>
-        </div>
+            <div className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 transition-colors focus-within:border-primary">
+              <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+              <input
+                value={personaQuery}
+                onChange={(e) => setPersonaQuery(e.target.value)}
+                placeholder="Найдите персону по имени или стилю"
+                aria-label="Найдите персону по имени или стилю"
+                className="h-10 w-full min-w-0 bg-transparent text-base outline-none placeholder:text-muted-foreground sm:text-sm"
+              />
+            </div>
+
+            {personaIds.length >= 2 && !hasLikelyDisagreement(personaIds) && (
+              <p className="rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-card-foreground">
+                В этом составе взгляды похожи — спора может не быть. Попробуйте добавить
+                контрарианку или скептика.
+              </p>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setPersonaIds(pickDefaultTrio())}
+              className="text-xs font-semibold text-primary underline-offset-2 hover:underline"
+            >
+              Подобрать автоматически
+            </button>
+
+            <div className="max-h-72 space-y-1.5 overflow-y-auto">
+              {personaResults.map((p) => {
+                const isSelected = personaIds.includes(p.id);
+                const disabled = !isSelected && personaIds.length >= MAX_PERSONAS;
+                return (
+                  <button
+                    key={p.id}
+                    onClick={() => togglePersona(p.id)}
+                    disabled={disabled}
+                    aria-pressed={isSelected}
+                    className={cn(
+                      "flex w-full items-center gap-2.5 rounded-lg border p-2.5 text-left transition-colors disabled:opacity-40",
+                      isSelected
+                        ? "border-primary bg-primary/8"
+                        : "border-border hover:border-primary/30 hover:bg-secondary/30",
+                    )}
+                  >
+                    <PersonaAvatar initials={p.initials} size="md" className={p.color} />
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-semibold text-card-foreground">
+                        {p.name}
+                      </span>
+                      <span className="block truncate text-xs text-muted-foreground">
+                        {p.role} · в духе {p.inspiredBy}
+                      </span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" onClick={onCancel}>
+                Отмена
+              </Button>
+              <Button
+                className="flex-1 gap-1.5"
+                disabled={personaIds.length === 0}
+                onClick={() => setStep("topic")}
+              >
+                Далее
+              </Button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div>
+              <label
+                htmlFor="council-case-search"
+                className="mb-2 block text-xs font-bold text-muted-foreground"
+              >
+                О чём поговорим?
+              </label>
+              <div className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 transition-colors focus-within:border-primary">
+                <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+                <input
+                  id="council-case-search"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Найдите кейс по названию"
+                  className="h-10 w-full min-w-0 bg-transparent text-base outline-none placeholder:text-muted-foreground sm:text-sm"
+                />
+              </div>
+              <div className="mt-2 max-h-56 space-y-1 overflow-y-auto">
+                {caseResults.map((c) => (
+                  <button
+                    key={c.id}
+                    onClick={() => setCard(c)}
+                    className={cn(
+                      "w-full rounded-lg border px-3 py-2 text-left text-sm transition-colors",
+                      card?.id === c.id
+                        ? "border-primary bg-primary/8 font-semibold text-card-foreground"
+                        : "border-transparent text-muted-foreground hover:bg-secondary/50",
+                    )}
+                  >
+                    <span className="block truncate">{c.title}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" onClick={() => setStep("contacts")}>
+                Назад
+              </Button>
+              <Button className="flex-1 gap-1.5" disabled={!card} onClick={start}>
+                <Plus className="h-4 w-4" /> Начать совет
+              </Button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
