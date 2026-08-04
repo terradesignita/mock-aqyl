@@ -466,7 +466,8 @@ function SessionView({
   // New messages appended to the same session: reveal them one at a time with a typing pause.
   useEffect(() => {
     if (session.messages.length <= shownCountRef.current) return;
-    const newOnes = session.messages.slice(shownCountRef.current);
+    const base = shownCountRef.current;
+    const newOnes = session.messages.slice(base);
     shownCountRef.current = session.messages.length;
     let cancelled = false;
     let index = 0;
@@ -478,7 +479,7 @@ function SessionView({
       }
       const message = newOnes[index];
       if (message.author === "user") {
-        setVisibleCount((v) => v + 1);
+        setVisibleCount(base + index + 1);
         index += 1;
         timersRef.current.push(window.setTimeout(revealNext, 300));
         return;
@@ -488,7 +489,7 @@ function SessionView({
       timersRef.current.push(
         window.setTimeout(() => {
           if (cancelled) return;
-          setVisibleCount((v) => v + 1);
+          setVisibleCount(base + index + 1);
           setTypingAuthor(null);
           index += 1;
           const messageDelay = 1000 + Math.random() * 1500;
