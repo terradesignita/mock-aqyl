@@ -1066,13 +1066,15 @@ function SessionRow({
   onClick: (id: string) => void;
   onDelete: (id: string) => void;
 }) {
+  const accentHex = getPersona(session.personaIds[0]).hex;
   return (
     <div
+      style={{ "--row-accent": accentHex } as React.CSSProperties}
       className={cn(
         "group relative w-full rounded-xl border transition-colors",
         active
           ? "border-primary bg-primary/5"
-          : "border-border hover:border-primary/30 hover:bg-secondary/30",
+          : "border-[color-mix(in_oklab,var(--row-accent)_25%,transparent)] bg-[color-mix(in_oklab,var(--row-accent)_6%,var(--color-card))] hover:border-primary/30 hover:bg-secondary/30",
       )}
     >
       <button
