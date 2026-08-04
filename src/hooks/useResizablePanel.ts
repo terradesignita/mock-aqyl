@@ -51,5 +51,5 @@ export function useResizablePanel(initial: number, { min, max }: ResizablePanelO
       window.addEventListener("blur", onUp);
     };
 
-  return { width, startResize };
+  return { width, setWidth, startResize };
 }
