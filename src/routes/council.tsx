@@ -702,6 +702,10 @@ function CouncilPage() {
   const openSession = (id: string) => {
     setCreating(false);
     setActiveId(id);
+    // Reveal-from-start only applies to the single continuous view right after
+    // creation — an explicit re-navigation to this session (even back to the
+    // same one) means "already seen it," so the next mount shows it instantly.
+    setJustCreatedId((prev) => (prev === id ? null : prev));
     markRead(id);
   };
 

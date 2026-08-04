@@ -1,7 +1,11 @@
 import { useCallback, useEffect } from "react";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import type { ScopeFilter } from "@/lib/search";
-import { SEED_COUNCIL_SESSIONS, type CouncilChatMessage, type CouncilSession } from "@/data/council";
+import {
+  SEED_COUNCIL_SESSIONS,
+  type CouncilChatMessage,
+  type CouncilSession,
+} from "@/data/council";
 import type { AdvisorSelection, FollowUpFlags } from "@/data/advisor";
 
 export function useTheme() {
