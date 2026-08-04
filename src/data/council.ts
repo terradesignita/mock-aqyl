@@ -119,26 +119,15 @@ export interface CouncilTopic {
   businessUnit: string;
 }
 
-function hashString(value: string): number {
-  let hash = 0;
-  for (let i = 0; i < value.length; i++) {
-    hash = (hash * 31 + value.charCodeAt(i)) | 0;
-  }
-  return Math.abs(hash);
-}
-
-/**
- * ponytail: детерминированный подбор по хэшу заголовка+бизнес-юнита,
- * не семантическое сопоставление темы и архетипа. Заменить на более
- * умную логику, если подбор будет систематически невпопад.
- */
-export function suggestPersonas(topic: CouncilTopic): string[] {
-  const ids = COUNCIL_PERSONAS.map((p) => p.id);
-  const start = hashString(topic.title + topic.businessUnit) % ids.length;
-  // Use step size derived from roster length to guarantee 3 unique offsets
-  // for any roster size >= 3, not just the current length of 12.
-  const step = Math.max(1, Math.floor(ids.length / 3));
-  return [0, step, 2 * step].map((offset) => ids[(start + offset) % ids.length]);
+export interface CouncilChatMessage {
+  id: string;
+  /** "user" или id персоны из COUNCIL_PERSONAS. */
+  author: "user" | string;
+  text: string;
+  /** "ЧЧ:ММ" — тот же паттерн, что уже используется в NotebookChat.tsx. */
+  time: string;
+  /** id персоны, на чью реплику это реакция — рендерится как "отвечает <Имя>". */
+  replyTo?: string;
 }
 
 export interface CouncilSession {
@@ -146,9 +135,36 @@ export interface CouncilSession {
   title: string;
   date: string;
   personaIds: string[];
-  followUps: string[];
+  messages: CouncilChatMessage[];
   unread?: boolean;
   topic: CouncilTopic;
+}
+
+function makeMessageId(): string {
+  return `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+}
+
+function nowTime(): string {
+  return new Date().toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+}
+
+/** Персоны, у которых инстинктивная позиция — "действовать быстрее". */
+const BULLISH = new Set(["founder", "product", "platform"]);
+/** Персоны, у которых инстинктивная позиция — "сначала проверить, потом отдавать контроль". */
+const SKEPTICAL = new Set(["contrarian", "competitor", "resilience"]);
+
+export function hasLikelyDisagreement(personaIds: string[]): boolean {
+  return personaIds.some((id) => BULLISH.has(id)) && personaIds.some((id) => SKEPTICAL.has(id));
+}
+
+/** Гарантированно разнообразная тройка по умолчанию — не завязана на тему, т.к. на шаге выбора персон темы ещё нет. */
+export function pickDefaultTrio(): string[] {
+  const bullish = COUNCIL_PERSONAS.find((p) => BULLISH.has(p.id));
+  const skeptical = COUNCIL_PERSONAS.find((p) => SKEPTICAL.has(p.id));
+  const neutral = COUNCIL_PERSONAS.find((p) => !BULLISH.has(p.id) && !SKEPTICAL.has(p.id));
+  return [bullish, skeptical, neutral]
+    .filter((p): p is CouncilPersona => Boolean(p))
+    .map((p) => p.id);
 }
 
 export const SEED_COUNCIL_SESSIONS: CouncilSession[] = [
@@ -157,7 +173,6 @@ export const SEED_COUNCIL_SESSIONS: CouncilSession[] = [
     title: "Iz Lynn Chan at Far East Organization (Abridged)",
     date: "30.07.2026",
     personaIds: ["founder", "contrarian", "transform"],
-    followUps: [],
     topic: {
       title: "Iz Lynn Chan at Far East Organization (Abridged)",
       summary:
@@ -166,13 +181,13 @@ export const SEED_COUNCIL_SESSIONS: CouncilSession[] = [
         "Формальный стаж не гарантирует результат — решение о повышении должно опираться на измеримый вклад, а не на срок работы.",
       businessUnit: "Дальний Восток",
     },
+    messages: [],
   },
   {
     id: "seed-2",
     title: "SpinBrush",
     date: "28.07.2026",
     personaIds: ["operator", "competitor", "resilience"],
-    followUps: [],
     unread: true,
     topic: {
       title: "SpinBrush",
@@ -182,112 +197,178 @@ export const SEED_COUNCIL_SESSIONS: CouncilSession[] = [
         "Переговорная сила резко возрастает после подтверждения внешнего спроса — до этого момента долгосрочные права лучше не отдавать.",
       businessUnit: "Товары для дома",
     },
+    messages: [],
   },
 ];
 
-export function buildPersonaTake(personaId: string, topic: CouncilTopic): string {
+// Seed sessions' opening messages are generated after buildOpeningMessages is
+// defined below (function declarations are hoisted, but this keeps the seed
+// data readable top-to-bottom without relying on hoisting for clarity).
+SEED_COUNCIL_SESSIONS[0].messages = buildOpeningMessages(
+  SEED_COUNCIL_SESSIONS[0].personaIds,
+  SEED_COUNCIL_SESSIONS[0].topic,
+);
+SEED_COUNCIL_SESSIONS[1].messages = buildOpeningMessages(
+  SEED_COUNCIL_SESSIONS[1].personaIds,
+  SEED_COUNCIL_SESSIONS[1].topic,
+);
+
+/** 1-2 короткие реплики на персону (не абзац) — материал для группового чата. */
+export function buildPersonaTake(personaId: string, topic: CouncilTopic): string[] {
   switch (personaId) {
     case "founder":
-      return `Смело: ${topic.insight} Если это не меняет правила игры на горизонте 10 лет — не стоит тратить на это ресурсы.`;
+      return [
+        `Смело: ${topic.insight}`,
+        `Если это не меняет правила игры на горизонте 10 лет — не стоит тратить на это ресурсы.`,
+      ];
     case "operator":
-      return `Операционно: ${topic.summary} Без чёткого владельца процесса и метрик это не повторится на масштабе «${topic.businessUnit}».`;
+      return [
+        `Операционно: ${topic.summary}`,
+        `Без чёткого владельца процесса и метрик это не повторится на масштабе «${topic.businessUnit}».`,
+      ];
     case "engineer":
-      return `Технически: прежде чем говорить про «${topic.title}», нужно проверить, что это вообще реализуемо без скрытых допущений.`;
+      return [
+        `Технически: прежде чем говорить про «${topic.title}», нужно проверить, что это вообще реализуемо без скрытых допущений.`,
+      ];
     case "contrarian":
-      return `Контрарианский взгляд: рынок наверняка уже заложил обратное — ${topic.insight.toLowerCase()} Стоит поставить на то, где консенсус ошибается.`;
+      return [
+        `Контрарианский взгляд: рынок наверняка уже заложил обратное — ${topic.insight.toLowerCase()}`,
+        `Стоит поставить на то, где консенсус ошибается.`,
+      ];
     case "industrialist":
-      return `Долгий горизонт: репутация «${topic.businessUnit}» стоит дороже быстрой выгоды. ${topic.insight} Спешить не буду.`;
+      return [
+        `Долгий горизонт: репутация «${topic.businessUnit}» стоит дороже быстрой выгоды.`,
+        `${topic.insight} Спешить не буду.`,
+      ];
     case "product":
-      return `С точки зрения клиента: ${topic.summary} Если это не улучшает жизнь конечного пользователя — вопрос ещё не решён.`;
+      return [
+        `С точки зрения клиента: ${topic.summary}`,
+        `Если это не улучшает жизнь конечного пользователя — вопрос ещё не решён.`,
+      ];
     case "brand":
-      return `История имеет значение: как мы объясним «${topic.title}» людям внутри и снаружи компании? ${topic.insight}`;
+      return [
+        `История имеет значение: как мы объясним «${topic.title}» людям внутри и снаружи компании?`,
+        `${topic.insight}`,
+      ];
     case "platform":
-      return `Экосистемно: кто ещё выигрывает от «${topic.title}», если мы пойдём этим путём? В «${topic.businessUnit}» партнёрства важнее, чем контроль над каждым шагом.`;
+      return [
+        `Экосистемно: кто ещё выигрывает от «${topic.title}», если мы пойдём этим путём?`,
+        `В «${topic.businessUnit}» партнёрства важнее, чем контроль над каждым шагом.`,
+      ];
     case "competitor":
-      return `Конкурентно: ${topic.insight} Если мы не сделаем этот шаг первыми, это сделает кто-то другой в «${topic.businessUnit}».`;
+      return [
+        `Конкурентно: ${topic.insight}`,
+        `Если мы не сделаем этот шаг первыми, это сделает кто-то другой в «${topic.businessUnit}».`,
+      ];
     case "resilience":
-      return `Через призму устойчивости: регуляторная и рыночная турбулентность рано или поздно ударит по «${topic.businessUnit}» — вопрос, готовы ли мы адаптироваться быстрее других.`;
+      return [
+        `Через призму устойчивости: регуляторная и рыночная турбулентность рано или поздно ударит по «${topic.businessUnit}» — вопрос, готовы ли мы адаптироваться быстрее других.`,
+      ];
     case "scale":
-      return `Эффективность прежде всего: ${topic.summary} Каждый лишний доллар издержек на масштабе «${topic.businessUnit}» — упущенная маржа.`;
+      return [
+        `Эффективность прежде всего: ${topic.summary}`,
+        `Каждый лишний доллар издержек на масштабе «${topic.businessUnit}» — упущенная маржа.`,
+      ];
     case "transform":
-      return `Трансформационно: старые процессы в «${topic.businessUnit}» не переживут это решение без изменений в культуре. ${topic.insight}`;
+      return [
+        `Трансформационно: старые процессы в «${topic.businessUnit}» не переживут это решение без изменений в культуре.`,
+        `${topic.insight}`,
+      ];
     default:
-      return topic.insight;
+      return [topic.insight];
   }
 }
 
-export interface CouncilVerdict {
-  synthesis: string;
-  openQuestions: string[];
-  agreements: { label: string; kind: "agree" | "risk" }[];
+function buildDisagreement(skepticId: string, bullishFirstName: string): string {
+  switch (skepticId) {
+    case "contrarian":
+      return `${bullishFirstName}, а вы уверены, что рынок ещё не отыграл это заранее?`;
+    case "competitor":
+      return `${bullishFirstName}, оптимизм — это хорошо, но кто-то из конкурентов уже наверняка думает о том же.`;
+    case "resilience":
+      return `${bullishFirstName}, красиво, но что будет с этим планом, если условия резко изменятся?`;
+    default:
+      return `${bullishFirstName}, я бы не спешил.`;
+  }
 }
 
-const PERSONA_QUESTIONS: Record<string, string> = {
-  founder: "Меняет ли это правила игры для компании на годы вперёд?",
-  operator: "Кто станет владельцем процесса после запуска?",
-  engineer: "Что произойдёт при провале ключевого допущения?",
-  contrarian: "Где консенсус рынка может ошибаться?",
-  industrialist: "Стоит ли краткосрочная выгода долгосрочной репутации?",
-  product: "Как это меняет жизнь конечного клиента?",
-  brand: "Как мы объясним это решение публично?",
-  platform: "Кто ещё выигрывает от этого решения?",
-  competitor: "Кто сделает этот шаг, если не мы?",
-  resilience: "Что если регуляторная ситуация изменится?",
-  scale: "Где здесь скрытые издержки на масштабе?",
-  transform: "Готова ли культура компании к этому изменению?",
-};
-
-const RISK_PERSONAS = new Set(["contrarian", "competitor", "resilience"]);
-
-function buildAgreements(
+/** Стартовые реплики при создании сессии: 1-2 сообщения на персону + опциональная реакция несогласия. */
+export function buildOpeningMessages(
   personaIds: string[],
   topic: CouncilTopic,
-): { label: string; kind: "agree" | "risk" }[] {
-  const agreements: { label: string; kind: "agree" | "risk" }[] = [
+): CouncilChatMessage[] {
+  const messages: CouncilChatMessage[] = [];
+  for (const id of personaIds) {
+    for (const text of buildPersonaTake(id, topic)) {
+      messages.push({ id: makeMessageId(), author: id, text, time: nowTime() });
+    }
+  }
+  const bullishId = personaIds.find((id) => BULLISH.has(id));
+  const skepticalId = personaIds.find((id) => SKEPTICAL.has(id));
+  if (bullishId && skepticalId) {
+    messages.push({
+      id: makeMessageId(),
+      author: skepticalId,
+      text: buildDisagreement(skepticalId, getPersona(bullishId).name.split(" ")[0]),
+      time: nowTime(),
+      replyTo: bullishId,
+    });
+  }
+  return messages;
+}
+
+const KEYWORD_RULES: {
+  test: RegExp;
+  personaId: string;
+  reply: (topic: CouncilTopic) => string;
+}[] = [
+  {
+    test: /риск/i,
+    personaId: "resilience",
+    reply: (t) => `Риск главный: «${t.businessUnit}» не прощает недооценённых сценариев.`,
+  },
+  {
+    test: /план|дальше|шаг/i,
+    personaId: "operator",
+    reply: () => `Первый шаг — назначить владельца процесса, без этого любой план стоит на месте.`,
+  },
+  {
+    test: /согласны|друг с другом|спор/i,
+    personaId: "contrarian",
+    reply: () => `Не совсем — именно в этом и смысл: если бы все соглашались, совет был бы не нужен.`,
+  },
+];
+
+/** Ответы на follow-up: 1+ персоны отвечают по ключевым словам, либо честный фолбэк, если нет совпадений. */
+export function buildFollowUpReplies(
+  personaIds: string[],
+  topic: CouncilTopic,
+  followUpText: string,
+): CouncilChatMessage[] {
+  const matched = KEYWORD_RULES.filter(
+    (rule) => rule.test.test(followUpText) && personaIds.includes(rule.personaId),
+  );
+  if (matched.length > 0) {
+    return matched.map((rule) => ({
+      id: makeMessageId(),
+      author: rule.personaId,
+      text: rule.reply(topic),
+      time: nowTime(),
+    }));
+  }
+  return [
     {
-      label: topic.insight.length > 40 ? `${topic.insight.slice(0, 40)}…` : topic.insight,
-      kind: "agree",
+      id: makeMessageId(),
+      author: personaIds[0],
+      text: "По этому конкретному вопросу мне нечего добавить сверх уже сказанного.",
+      time: nowTime(),
     },
   ];
-  if (personaIds.some((id) => RISK_PERSONAS.has(id))) {
-    agreements.push({ label: `Риск: сроки и допущения по «${topic.businessUnit}»`, kind: "risk" });
-  }
-  return agreements;
 }
 
-export function buildVerdict(
-  topic: CouncilTopic,
-  personaIds: string[],
-  followUps: string[],
-): CouncilVerdict {
-  const latest = followUps[followUps.length - 1];
-  const synthesis = latest
-    ? personaIds.length > 1
-      ? `${topic.insight} По вопросу «${latest}» совет расходится в деталях, но не в сути: решение зависит от того, какой риск готова принять компания.`
-      : `${topic.insight} По вопросу «${latest}»: ключевой фактор — какой риск готова принять компания.`
-    : topic.insight;
-
-  return {
-    synthesis,
-    openQuestions: personaIds
-      .map((id) => PERSONA_QUESTIONS[id] ?? topic.insight)
-      .filter((q) => !followUps.includes(q)),
-    agreements: buildAgreements(personaIds, topic),
-  };
-}
-
-/** Plain-text rendering of a verdict for "Скопировать" — no markup, safe to paste anywhere. */
-export function formatVerdictForCopy(topic: CouncilTopic, verdict: CouncilVerdict): string {
-  const lines = [`Вердикт совета — ${topic.title}`, "", verdict.synthesis];
-  if (verdict.openQuestions.length > 0) {
-    lines.push("", "Открытые вопросы:", ...verdict.openQuestions.map((q) => `• ${q}`));
-  }
-  if (verdict.agreements.length > 0) {
-    lines.push(
-      "",
-      "Согласны / расходятся:",
-      ...verdict.agreements.map((a) => `${a.kind === "risk" ? "⚠" : "✓"} ${a.label}`),
-    );
-  }
-  return lines.join("\n");
-}
+export const QUICK_REPLIES = [
+  "Какие главные риски?",
+  "Что бы вы сделали первым?",
+  "Вы согласны друг с другом?",
+  "Дайте конкретный план",
+];

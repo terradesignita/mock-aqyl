@@ -2,9 +2,11 @@ import { describe, expect, it } from "vitest";
 import {
   COUNCIL_PERSONAS,
   SEED_COUNCIL_SESSIONS,
-  suggestPersonas,
-  buildVerdict,
   buildPersonaTake,
+  buildOpeningMessages,
+  buildFollowUpReplies,
+  hasLikelyDisagreement,
+  pickDefaultTrio,
 } from "./council";
 
 describe("real leader names never leak into generated text", () => {
@@ -39,16 +41,20 @@ describe("real leader names never leak into generated text", () => {
 
   it("buildPersonaTake never attributes a quote to a real leader", () => {
     for (const p of COUNCIL_PERSONAS) {
-      assertClean(buildPersonaTake(p.id, topic));
+      buildPersonaTake(p.id, topic).forEach(assertClean);
     }
   });
 
-  it("buildVerdict never attributes synthesis, questions, or tags to a real leader", () => {
+  it("buildOpeningMessages never attributes a message to a real leader", () => {
     const allIds = COUNCIL_PERSONAS.map((p) => p.id);
-    const verdict = buildVerdict(topic, allIds, ["follow-up?"]);
-    assertClean(verdict.synthesis);
-    verdict.openQuestions.forEach(assertClean);
-    verdict.agreements.forEach((a) => assertClean(a.label));
+    buildOpeningMessages(allIds.slice(0, 3), topic).forEach((m) => assertClean(m.text));
+  });
+
+  it("buildFollowUpReplies never attributes a message to a real leader", () => {
+    const allIds = COUNCIL_PERSONAS.map((p) => p.id);
+    buildFollowUpReplies(allIds.slice(0, 3), topic, "Какие риски?").forEach((m) =>
+      assertClean(m.text),
+    );
   });
 });
 
@@ -79,79 +85,13 @@ describe("SEED_COUNCIL_SESSIONS", () => {
       }
     }
   });
-});
 
-describe("suggestPersonas", () => {
-  const topic = {
-    title: "SpinBrush",
-    summary: "Маленькая компания выбирает между ростом, партнёрством и продажей.",
-    insight: "Переговорная сила растёт после подтверждения спроса.",
-    businessUnit: "Товары для дома",
-  };
-
-  it("is deterministic for the same topic", () => {
-    expect(suggestPersonas(topic)).toEqual(suggestPersonas(topic));
-  });
-
-  it("returns 3 unique valid persona ids", () => {
-    const ids = suggestPersonas(topic);
-    const validIds = new Set(COUNCIL_PERSONAS.map((p) => p.id));
-    expect(ids).toHaveLength(3);
-    expect(new Set(ids).size).toBe(3);
-    for (const id of ids) expect(validIds.has(id)).toBe(true);
-  });
-
-  it("returns 3 unique valid ids across a variety of topics", () => {
-    const topics = [
-      { title: "A", summary: "s", insight: "i", businessUnit: "u1" },
-      { title: "B", summary: "s", insight: "i", businessUnit: "u2" },
-      { title: "SpinBrush", summary: "s", insight: "i", businessUnit: "Товары для дома" },
-      { title: "Iz Lynn Chan", summary: "s", insight: "i", businessUnit: "Дальний Восток" },
-    ];
-    const validIds = new Set(COUNCIL_PERSONAS.map((p) => p.id));
-    for (const t of topics) {
-      const ids = suggestPersonas(t);
-      expect(new Set(ids).size).toBe(3);
-      for (const id of ids) expect(validIds.has(id)).toBe(true);
-    }
-  });
-});
-
-describe("buildVerdict", () => {
-  const topic = {
-    title: "SpinBrush",
-    summary: "Маленькая компания выбирает между ростом, партнёрством и продажей.",
-    insight: "Переговорная сила растёт после подтверждения спроса.",
-    businessUnit: "Товары для дома",
-  };
-
-  it("uses the topic insight as synthesis before any follow-up", () => {
-    expect(buildVerdict(topic, ["operator"], []).synthesis).toBe(topic.insight);
-  });
-
-  it("folds the latest follow-up into the synthesis", () => {
-    const verdict = buildVerdict(topic, ["operator"], ["А если спрос не подтвердится?"]);
-    expect(verdict.synthesis).toContain("А если спрос не подтвердится?");
-  });
-
-  it("returns one open question per persona", () => {
-    const verdict = buildVerdict(topic, ["operator", "competitor"], []);
-    expect(verdict.openQuestions).toHaveLength(2);
-  });
-
-  it("adds a risk tag only when a risk-voiced persona is present", () => {
-    expect(buildVerdict(topic, ["operator"], []).agreements.some((a) => a.kind === "risk")).toBe(
-      false,
-    );
-    expect(buildVerdict(topic, ["competitor"], []).agreements.some((a) => a.kind === "risk")).toBe(
-      true,
-    );
-  });
-
-  it("has a mapped open question for every persona (no silent insight fallback)", () => {
-    for (const p of COUNCIL_PERSONAS) {
-      const verdict = buildVerdict(topic, [p.id], []);
-      expect(verdict.openQuestions[0]).not.toBe(topic.insight);
+  it("has at least one opening message per persona in the session", () => {
+    for (const session of SEED_COUNCIL_SESSIONS) {
+      const authors = new Set(session.messages.map((m) => m.author));
+      for (const id of session.personaIds) {
+        expect(authors.has(id)).toBe(true);
+      }
     }
   });
 });
@@ -166,7 +106,78 @@ describe("buildPersonaTake", () => {
 
   it("has a distinct case for every persona (no silent default fallback)", () => {
     for (const p of COUNCIL_PERSONAS) {
-      expect(buildPersonaTake(p.id, topic)).not.toBe(topic.insight);
+      const messages = buildPersonaTake(p.id, topic);
+      expect(messages.length).toBeGreaterThan(0);
+      expect(messages.join(" ")).not.toBe(topic.insight);
     }
+  });
+});
+
+describe("buildOpeningMessages", () => {
+  const topic = {
+    title: "SpinBrush",
+    summary: "Маленькая компания выбирает между ростом, партнёрством и продажей.",
+    insight: "Переговорная сила растёт после подтверждения спроса.",
+    businessUnit: "Товары для дома",
+  };
+
+  it("includes at least one message per selected persona", () => {
+    const messages = buildOpeningMessages(["founder", "operator"], topic);
+    const authors = new Set(messages.map((m) => m.author));
+    expect(authors.has("founder")).toBe(true);
+    expect(authors.has("operator")).toBe(true);
+  });
+
+  it("adds a disagreement reaction when a bullish and skeptical persona are both present", () => {
+    const messages = buildOpeningMessages(["founder", "contrarian"], topic);
+    const reaction = messages.find((m) => m.replyTo === "founder");
+    expect(reaction).toBeDefined();
+    expect(reaction?.author).toBe("contrarian");
+  });
+
+  it("adds no disagreement reaction without a bullish/skeptical pair", () => {
+    const messages = buildOpeningMessages(["operator", "engineer"], topic);
+    expect(messages.some((m) => m.replyTo)).toBe(false);
+  });
+
+  it("every message has a non-empty time string", () => {
+    const messages = buildOpeningMessages(["founder", "contrarian"], topic);
+    for (const m of messages) expect(m.time.length).toBeGreaterThan(0);
+  });
+});
+
+describe("buildFollowUpReplies", () => {
+  const topic = {
+    title: "SpinBrush",
+    summary: "Маленькая компания выбирает между ростом, партнёрством и продажей.",
+    insight: "Переговорная сила растёт после подтверждения спроса.",
+    businessUnit: "Товары для дома",
+  };
+
+  it("matches a persona by keyword when present in the council", () => {
+    const messages = buildFollowUpReplies(["resilience", "operator"], topic, "Какие тут риски?");
+    expect(messages.some((m) => m.author === "resilience")).toBe(true);
+  });
+
+  it("falls back to the first persona with an honest reply when nothing matches", () => {
+    const messages = buildFollowUpReplies(["operator", "engineer"], topic, "асдфасдф");
+    expect(messages).toHaveLength(1);
+    expect(messages[0].author).toBe("operator");
+    expect(messages[0].text.length).toBeGreaterThan(0);
+  });
+});
+
+describe("hasLikelyDisagreement", () => {
+  it("is true only when a bullish and skeptical persona are both present", () => {
+    expect(hasLikelyDisagreement(["founder", "contrarian"])).toBe(true);
+    expect(hasLikelyDisagreement(["founder", "product"])).toBe(false);
+  });
+});
+
+describe("pickDefaultTrio", () => {
+  it("returns unique valid ids spanning bullish/skeptical/neutral", () => {
+    const ids = pickDefaultTrio();
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(hasLikelyDisagreement(ids)).toBe(true);
   });
 });
