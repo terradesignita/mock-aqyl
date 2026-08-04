@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { PanelLeft, PanelLeftClose, Plus, Search, Send, Trash2 } from "lucide-react";
+import { PanelLeft, PanelLeftClose, Plus, Search, Send, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
 import { Header } from "@/components/Header";
 import { MessageBubble } from "@/components/MessageBubble";
@@ -8,13 +8,14 @@ import { PersonaAvatar } from "@/components/PersonaAvatar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useCouncilSessions, useTheme } from "@/hooks/useAppState";
-import { useResizablePanel } from "@/hooks/useResizablePanel";
+import { clampWidth, useResizablePanel } from "@/hooks/useResizablePanel";
 import { mockCards, type KnowledgeCardData } from "@/data/mockCards";
 import {
   buildFollowUpReplies,
   buildOpeningMessages,
   buildUserMessage,
   COUNCIL_PERSONAS,
+  FOLLOW_UP_FALLBACK_TEXT,
   getPersona,
   hasLikelyDisagreement,
   pickDefaultTrio,
@@ -95,6 +96,18 @@ function groupMessages(
   return groups;
 }
 
+/** Nearest scrollable ancestor — used to check whether the user is still near the
+ *  bottom before yanking their scroll position during a reveal cascade. */
+function getScrollParent(node: HTMLElement | null): HTMLElement | null {
+  let el = node?.parentElement ?? null;
+  while (el) {
+    const overflowY = window.getComputedStyle(el).overflowY;
+    if (overflowY === "auto" || overflowY === "scroll") return el;
+    el = el.parentElement;
+  }
+  return null;
+}
+
 function NewCouncilPanel({
   onCreate,
   onCancel,
@@ -107,6 +120,11 @@ function NewCouncilPanel({
   const [personaQuery, setPersonaQuery] = useState("");
   const [query, setQuery] = useState("");
   const [card, setCard] = useState<KnowledgeCardData | null>(null);
+  const stepHeadingRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    requestAnimationFrame(() => stepHeadingRef.current?.focus());
+  }, [step]);
 
   const personaResults = useMemo(() => {
     const q = personaQuery.trim().toLowerCase();
@@ -159,7 +177,13 @@ function NewCouncilPanel({
           <>
             <div className="flex items-center justify-between gap-2">
               <div>
-                <p className="text-sm font-bold text-card-foreground">Кто в совете?</p>
+                <p
+                  ref={stepHeadingRef as React.RefObject<HTMLParagraphElement>}
+                  tabIndex={-1}
+                  className="text-sm font-bold text-card-foreground outline-none"
+                >
+                  Кто в совете?
+                </p>
                 <p className="text-xs text-muted-foreground">
                   Выберите до {MAX_PERSONAS} участников
                 </p>
@@ -181,7 +205,10 @@ function NewCouncilPanel({
             </div>
 
             {personaIds.length >= 2 && !hasLikelyDisagreement(personaIds) && (
-              <p className="rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-card-foreground">
+              <p
+                role="status"
+                className="rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-card-foreground"
+              >
                 В этом составе взгляды похожи — спора может не быть. Попробуйте добавить
                 контрарианку или скептика.
               </p>
@@ -206,7 +233,7 @@ function NewCouncilPanel({
                     disabled={disabled}
                     aria-pressed={isSelected}
                     className={cn(
-                      "flex w-full items-center gap-2.5 rounded-lg border p-2.5 text-left transition-colors disabled:opacity-40",
+                      "flex w-full items-center gap-2.5 rounded-lg border p-2.5 text-left transition-[color,background-color,border-color,opacity] disabled:opacity-40",
                       isSelected
                         ? "border-primary bg-primary/8"
                         : "border-border hover:border-primary/30 hover:bg-secondary/30",
@@ -243,8 +270,10 @@ function NewCouncilPanel({
           <>
             <div>
               <label
+                ref={stepHeadingRef as React.RefObject<HTMLLabelElement>}
+                tabIndex={-1}
                 htmlFor="council-case-search"
-                className="mb-2 block text-xs font-bold text-muted-foreground"
+                className="mb-2 block text-xs font-bold text-muted-foreground outline-none"
               >
                 О чём поговорим?
               </label>
@@ -270,7 +299,9 @@ function NewCouncilPanel({
                         : "border-transparent text-muted-foreground hover:bg-secondary/50",
                     )}
                   >
-                    <span className="block truncate">{c.title}</span>
+                    <span className="block truncate" title={c.title}>
+                      {c.title}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -359,7 +390,7 @@ function PersonaPicker({
               disabled={disabled}
               aria-pressed={isSelected}
               className={cn(
-                "flex w-full items-center gap-2.5 rounded-lg border p-2.5 text-left transition-colors disabled:opacity-40",
+                "flex w-full items-center gap-2.5 rounded-lg border p-2.5 text-left transition-[color,background-color,border-color,opacity] disabled:opacity-40",
                 isSelected
                   ? "border-primary bg-primary/8"
                   : "border-border hover:border-primary/30 hover:bg-secondary/30",
@@ -392,11 +423,14 @@ function SessionsOverview({
 }) {
   if (sessions.length === 0) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-2 px-6 text-center">
-        <h2 className="text-xl font-bold text-foreground">Пока нет ни одного совета</h2>
-        <p className="max-w-md text-sm text-muted-foreground">
-          Нажмите «Создать совет» слева, чтобы разобрать первый кейс.
-        </p>
+      <div className="flex flex-1 flex-col items-center justify-center px-6">
+        <div className="flex w-full max-w-sm flex-col items-center rounded-2xl border border-dashed border-border py-20 text-center">
+          <Users className="h-8 w-8 text-muted-foreground" />
+          <p className="mt-4 text-sm font-semibold text-foreground">Пока нет ни одного совета</p>
+          <p className="mt-1 max-w-xs text-xs text-muted-foreground">
+            Нажмите «Создать совет», чтобы разобрать первый кейс.
+          </p>
+        </div>
       </div>
     );
   }
@@ -404,12 +438,15 @@ function SessionsOverview({
   return (
     <div className="mx-auto w-full max-w-4xl space-y-4 px-6 py-8">
       <h2 className="text-xs font-bold text-muted-foreground">
-        Все обсуждения
-        <span className="ml-1.5 tabular-nums">({sessions.length})</span>
+        Все сессии <span className="ml-1.5 tabular-nums">({sessions.length})</span>
       </h2>
       <div className="grid gap-3 sm:grid-cols-2">
         {sessions.map((s) => {
-          const preview = s.messages.at(-1)?.text ?? s.topic.summary;
+          const lastMessage = s.messages.at(-1);
+          const preview =
+            !lastMessage || lastMessage.text === FOLLOW_UP_FALLBACK_TEXT
+              ? s.topic.summary
+              : lastMessage.text;
           return (
             <button
               key={s.id}
@@ -417,7 +454,9 @@ function SessionsOverview({
               className="flex flex-col gap-2 rounded-2xl border border-border bg-card p-4 text-left transition-colors hover:border-primary/40 hover:bg-secondary/20"
             >
               <div className="flex items-center justify-between gap-2">
-                <p className="truncate text-sm font-bold text-card-foreground">{s.title}</p>
+                <p className="truncate text-sm font-bold text-card-foreground" title={s.title}>
+                  {s.title}
+                </p>
                 {s.unread && (
                   <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-success">
                     <span aria-hidden className="h-2 w-2 rounded-full bg-success" />
@@ -512,7 +551,13 @@ function SessionView({
   }, [session.messages]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const scrollParent = getScrollParent(bottomRef.current);
+    const wasNearBottom =
+      !scrollParent ||
+      scrollParent.scrollHeight - scrollParent.scrollTop - scrollParent.clientHeight < 120;
+    if (!wasNearBottom) return;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    bottomRef.current?.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth" });
   }, [visibleCount, typingAuthor]);
 
   const isRevealing = typingAuthor !== null || visibleCount < session.messages.length;
@@ -530,11 +575,13 @@ function SessionView({
 
   return (
     <div className="mx-auto flex min-h-full w-full max-w-2xl flex-col px-6 py-8">
-      <div className="flex-1 space-y-4">
+      <div role="log" aria-live="polite" aria-relevant="additions" className="flex-1 space-y-4">
         <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3">
           <AvatarStack personaIds={session.personaIds} />
           <div className="min-w-0">
-            <p className="truncate text-sm font-bold text-card-foreground">{session.title}</p>
+            <p className="truncate text-sm font-bold text-card-foreground" title={session.title}>
+              {session.title}
+            </p>
             <p className="text-xs text-muted-foreground">
               {session.personaIds.length}{" "}
               {session.personaIds.length === 1 ? "участник" : "участника"} · на связи
@@ -544,7 +591,9 @@ function SessionView({
 
         <div className="rounded-2xl border border-border bg-card p-4">
           <p className="text-xs font-bold text-primary">Кейс</p>
-          <h2 className="mt-1 text-lg font-bold text-foreground">{session.topic.title}</h2>
+          <h2 className="mt-1 text-lg font-bold leading-tight text-foreground">
+            {session.topic.title}
+          </h2>
           <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
             {session.topic.summary}
           </p>
@@ -585,20 +634,18 @@ function SessionView({
                   {p.name} <span className="font-normal text-muted-foreground">· {p.role}</span>
                   {replyTarget && (
                     <span className="ml-1.5 font-normal text-muted-foreground">
-                      · отвечает {replyTarget.name.split(" ")[0]}
+                      · Ответ: {replyTarget.name.split(" ")[0]}
                     </span>
                   )}
                 </p>
                 {group.items.map((m) => (
                   <div key={m.id} className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-                    <div
-                      className={cn(
-                        "rounded-2xl rounded-tl-sm border border-border bg-card p-3 text-sm leading-relaxed text-card-foreground border-l-4",
-                        PERSONA_BORDER_CLASS[p.color],
-                      )}
+                    <MessageBubble
+                      variant="entity"
+                      accentClassName={cn("border-l-4", PERSONA_BORDER_CLASS[p.color])}
                     >
                       {m.text}
-                    </div>
+                    </MessageBubble>
                     <p className="mt-1 text-xs text-muted-foreground">{m.time}</p>
                   </div>
                 ))}
@@ -615,12 +662,15 @@ function SessionView({
               className={typingPersona.color}
             />
             <div className="flex items-center gap-1.5 rounded-2xl rounded-tl-sm border border-border bg-card px-3 py-2.5">
-              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" />
+              <span className="sr-only">{typingPersona.name} печатает…</span>
+              <span aria-hidden className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" />
               <span
+                aria-hidden
                 className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground"
                 style={{ animationDelay: "120ms" }}
               />
               <span
+                aria-hidden
                 className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground"
                 style={{ animationDelay: "240ms" }}
               />
@@ -638,7 +688,7 @@ function SessionView({
               type="button"
               disabled={isRevealing}
               onClick={() => send(q)}
-              className="rounded-full border border-border bg-secondary/30 px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-primary hover:bg-primary/8 hover:text-primary disabled:pointer-events-none disabled:opacity-50"
+              className="rounded-full border border-border bg-secondary/30 px-3 py-1.5 text-xs text-muted-foreground transition-[color,background-color,border-color,opacity] hover:border-primary hover:bg-primary/8 hover:text-primary disabled:pointer-events-none disabled:opacity-50"
             >
               {q}
             </button>
@@ -655,7 +705,7 @@ function SessionView({
             onKeyDown={(e) => e.key === "Enter" && send(followUp)}
             disabled={isRevealing}
             placeholder="Написать сообщение…"
-            className="h-10 w-full min-w-0 rounded-control border border-border bg-secondary/40 px-3 text-base outline-none transition-colors placeholder:text-muted-foreground focus:border-primary disabled:opacity-60 sm:text-sm"
+            className="h-10 w-full min-w-0 rounded-control border border-border bg-secondary/40 px-3 text-base outline-none transition-[border-color,opacity] placeholder:text-muted-foreground focus:border-primary disabled:opacity-60 sm:text-sm"
           />
           <Button
             size="icon"
@@ -684,13 +734,20 @@ function CouncilPage() {
   const sessionsCollapseRef = useRef<HTMLButtonElement>(null);
   const sessionsRestoreRef = useRef<HTMLButtonElement>(null);
   const sessionsPanelRef = useRef<HTMLElement>(null);
+  const mainRef = useRef<HTMLElement>(null);
 
   const focusNext = (ref: React.RefObject<HTMLElement | null>) => {
     requestAnimationFrame(() => ref.current?.focus());
   };
-  const { width: sessionsWidth, startResize: startSessionsResize } = useResizablePanel(320, {
-    min: 220,
-    max: 520,
+  const SESSIONS_WIDTH_MIN = 220;
+  const SESSIONS_WIDTH_MAX = 520;
+  const {
+    width: sessionsWidth,
+    setWidth: setSessionsWidth,
+    startResize: startSessionsResize,
+  } = useResizablePanel(320, {
+    min: SESSIONS_WIDTH_MIN,
+    max: SESSIONS_WIDTH_MAX,
   });
 
   const active = sessions.find((s) => s.id === activeId) ?? null;
@@ -722,12 +779,21 @@ function CouncilPage() {
     addMessages(active.id, [userMessage, ...replies]);
   };
 
+  // Every full swap of <main>'s content (opening the wizard, completing/cancelling
+  // it, opening a different session) moves focus into the new view instead of
+  // silently leaving it wherever it was — screen-reader and keyboard users
+  // otherwise get dumped at <body> with no announcement of the context change.
+  useEffect(() => {
+    focusNext(mainRef);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [creating, activeId]);
+
   return (
-    <div className="flex min-h-screen flex-col bg-background lg:h-screen lg:overflow-hidden">
+    <div className="flex min-h-screen flex-col bg-background md:h-screen md:overflow-hidden">
       <Header dark={dark} onToggleDark={toggle} />
       <h1 className="sr-only">Консилиум</h1>
 
-      <div className="relative flex flex-1 flex-col lg:min-h-0 md:flex-row">
+      <div className="relative flex flex-1 flex-col md:min-h-0 md:flex-row">
         <aside
           ref={sessionsPanelRef}
           tabIndex={-1}
@@ -739,10 +805,30 @@ function CouncilPage() {
         >
           <div
             onMouseDown={startSessionsResize()}
+            onKeyDown={(e) => {
+              const step = e.shiftKey ? 40 : 16;
+              if (e.key === "ArrowLeft") {
+                e.preventDefault();
+                setSessionsWidth((w) => clampWidth(w - step, SESSIONS_WIDTH_MIN, SESSIONS_WIDTH_MAX));
+              } else if (e.key === "ArrowRight") {
+                e.preventDefault();
+                setSessionsWidth((w) => clampWidth(w + step, SESSIONS_WIDTH_MIN, SESSIONS_WIDTH_MAX));
+              } else if (e.key === "Home") {
+                e.preventDefault();
+                setSessionsWidth(SESSIONS_WIDTH_MIN);
+              } else if (e.key === "End") {
+                e.preventDefault();
+                setSessionsWidth(SESSIONS_WIDTH_MAX);
+              }
+            }}
             role="separator"
+            tabIndex={0}
             aria-orientation="vertical"
             aria-label="Изменить ширину панели сессий"
-            className="absolute inset-y-0 right-0 z-20 hidden w-2 cursor-col-resize hover:bg-primary/25 md:block"
+            aria-valuenow={sessionsWidth}
+            aria-valuemin={SESSIONS_WIDTH_MIN}
+            aria-valuemax={SESSIONS_WIDTH_MAX}
+            className="absolute inset-y-0 right-0 z-20 hidden w-2 cursor-col-resize hover:bg-primary/25 focus-visible:bg-primary/25 md:block"
           />
 
           <div className="flex items-center gap-2 pb-2">
@@ -787,7 +873,7 @@ function CouncilPage() {
             />
           </div>
 
-          <div className="mt-4 flex-1 space-y-4">
+          <div className="mt-4 space-y-4">
             {today.length > 0 && (
               <div>
                 <p className="px-1 pb-1.5 text-xs font-bold text-muted-foreground">Сегодня</p>
@@ -882,7 +968,11 @@ function CouncilPage() {
           </button>
         )}
 
-        <main className="flex flex-1 flex-col lg:min-h-0 md:min-w-0 lg:overflow-y-auto">
+        <main
+          ref={mainRef}
+          tabIndex={-1}
+          className="flex flex-1 flex-col outline-none md:min-h-0 md:min-w-0 md:overflow-y-auto"
+        >
           {creating ? (
             <NewCouncilPanel
               onCancel={() => setCreating(false)}
@@ -934,7 +1024,9 @@ function SessionRow({
         className="block w-full p-3 text-left"
       >
         <div className="flex items-center justify-between gap-2 pr-6">
-          <p className="truncate text-sm font-bold text-card-foreground">{session.title}</p>
+          <p className="truncate text-sm font-bold text-card-foreground" title={session.title}>
+            {session.title}
+          </p>
           {session.unread && (
             <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-success">
               <span aria-hidden className="h-2 w-2 rounded-full bg-success" />
