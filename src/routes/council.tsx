@@ -20,6 +20,7 @@ import {
   hasLikelyDisagreement,
   pickDefaultTrio,
   QUICK_REPLIES,
+  REACTION_EMOJIS,
   type CouncilChatMessage,
   type CouncilPersona,
   type CouncilSession,
@@ -149,6 +150,47 @@ function ConversationCover({ session }: { session: CouncilSession }) {
         {session.personaIds.length}{" "}
         {session.personaIds.length === 1 ? "участник" : "участника"} · на связи
       </p>
+    </div>
+  );
+}
+
+function ReactionBar({
+  message,
+  onToggle,
+}: {
+  message: CouncilChatMessage;
+  onToggle: (emoji: string) => void;
+}) {
+  const active = message.reactions ?? [];
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-1 transition-opacity",
+        active.length > 0
+          ? "opacity-100"
+          : "opacity-0 group-hover:opacity-100 group-focus-within:opacity-100",
+      )}
+    >
+      {REACTION_EMOJIS.map((emoji) => {
+        const isActive = active.includes(emoji);
+        return (
+          <button
+            key={emoji}
+            type="button"
+            aria-pressed={isActive}
+            aria-label={`Отреагировать ${emoji}`}
+            onClick={() => onToggle(emoji)}
+            className={cn(
+              "rounded-full border px-1.5 py-0.5 text-xs transition-colors",
+              isActive
+                ? "border-primary bg-primary/10"
+                : "border-transparent text-muted-foreground hover:border-border hover:bg-secondary/40",
+            )}
+          >
+            {emoji}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -556,10 +598,12 @@ function SessionView({
   session,
   revealFromStart,
   onFollowUp,
+  onReact,
 }: {
   session: CouncilSession;
   revealFromStart: boolean;
   onFollowUp: (text: string) => void;
+  onReact: (messageId: string, emoji: string) => void;
 }) {
   const [followUp, setFollowUp] = useState("");
   const [visibleCount, setVisibleCount] = useState(revealFromStart ? 0 : session.messages.length);
@@ -696,14 +740,17 @@ function SessionView({
                   )}
                 </p>
                 {group.items.map((m) => (
-                  <div key={m.id} className="animate-message-pop">
+                  <div key={m.id} className="group animate-message-pop">
                     <MessageBubble
                       variant="entity"
                       accentClassName={cn(PERSONA_TINT_CLASS, PERSONA_BORDER_CLASS)}
                     >
                       {m.text}
                     </MessageBubble>
-                    <p className="mt-1 text-xs text-muted-foreground">{m.time}</p>
+                    <div className="mt-1 flex items-center gap-2">
+                      <p className="text-xs text-muted-foreground">{m.time}</p>
+                      <ReactionBar message={m} onToggle={(emoji) => onReact(m.id, emoji)} />
+                    </div>
                   </div>
                 ))}
               </div>
@@ -786,7 +833,8 @@ function SessionView({
 
 function CouncilPage() {
   const { dark, toggle } = useTheme();
-  const { sessions, create, markRead, updatePersonas, addMessages, remove } = useCouncilSessions();
+  const { sessions, create, markRead, updatePersonas, addMessages, toggleReaction, remove } =
+    useCouncilSessions();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [justCreatedId, setJustCreatedId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
@@ -1051,6 +1099,7 @@ function CouncilPage() {
               session={active}
               revealFromStart={active.id === justCreatedId}
               onFollowUp={submitFollowUp}
+              onReact={(messageId, emoji) => toggleReaction(active.id, messageId, emoji)}
             />
           ) : (
             <SessionsOverview sessions={sessions} onOpen={openSession} />

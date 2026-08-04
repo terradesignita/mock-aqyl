@@ -9,6 +9,7 @@ import {
   pickDefaultTrio,
   QUICK_REPLIES,
   FOLLOW_UP_FALLBACK_TEXT,
+  REACTION_EMOJIS,
 } from "./council";
 
 describe("real leader names never leak into generated text", () => {
@@ -133,6 +134,31 @@ describe("persona color contrast", () => {
       const darkThemeBorderHex = p.darkHex ?? p.hex;
       expect(contrastRatio(darkThemeBorderHex, DARK_CARD_HEX)).toBeGreaterThanOrEqual(3.0);
     }
+  });
+});
+
+function toggleInArray(list: string[], value: string): string[] {
+  return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
+}
+
+describe("REACTION_EMOJIS", () => {
+  it("has exactly 4 emoji, no duplicates", () => {
+    expect(REACTION_EMOJIS).toHaveLength(4);
+    expect(new Set(REACTION_EMOJIS).size).toBe(4);
+  });
+
+  it("toggling the same emoji twice returns to the original list", () => {
+    const start: string[] = [];
+    const added = toggleInArray(start, "👍");
+    const removed = toggleInArray(added, "👍");
+    expect(added).toEqual(["👍"]);
+    expect(removed).toEqual([]);
+  });
+
+  it("toggling a second emoji keeps the first", () => {
+    const afterFirst = toggleInArray([], "👍");
+    const afterSecond = toggleInArray(afterFirst, "🔥");
+    expect(afterSecond).toEqual(["👍", "🔥"]);
   });
 });
 

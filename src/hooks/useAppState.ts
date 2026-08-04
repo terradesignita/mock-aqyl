@@ -96,12 +96,34 @@ export function useCouncilSessions() {
     [setSessions],
   );
 
+  const toggleReaction = useCallback(
+    (sessionId: string, messageId: string, emoji: string) =>
+      setSessions((prev) =>
+        prev.map((s) =>
+          s.id !== sessionId
+            ? s
+            : {
+                ...s,
+                messages: s.messages.map((m) => {
+                  if (m.id !== messageId) return m;
+                  const active = m.reactions ?? [];
+                  const next = active.includes(emoji)
+                    ? active.filter((e) => e !== emoji)
+                    : [...active, emoji];
+                  return { ...m, reactions: next };
+                }),
+              },
+        ),
+      ),
+    [setSessions],
+  );
+
   const remove = useCallback(
     (id: string) => setSessions((prev) => prev.filter((s) => s.id !== id)),
     [setSessions],
   );
 
-  return { sessions, create, markRead, updatePersonas, addMessages, remove };
+  return { sessions, create, markRead, updatePersonas, addMessages, toggleReaction, remove };
 }
 
 /** §32-34 ТЗ AI-советника — сохранённый разбор ситуации, чтобы вернуться к нему после переговоров. */
