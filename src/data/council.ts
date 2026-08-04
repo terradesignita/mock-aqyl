@@ -5,18 +5,28 @@ export interface CouncilPersona {
   role: string;
   /** Реальный лидер — только как отсылка к стилю в bio. Никогда не источник цитаты. */
   inspiredBy: string;
-  color: string;
+  /** Основной цвет персоны — hex. Используется в обеих темах для солидной
+   *  заливки (аватар, тег) и как база для рамки/кольца. */
+  hex: string;
+  /** Только у персон, чей `hex` не проходит WCAG 3:1 на тёмной карточке —
+   *  более светлый вариант ТОЛЬКО для рамки/кольца в тёмной теме. */
+  darkHex?: string;
+  /** Короткое слово-тег архетипа для чипа под именем персоны. */
+  tag: string;
 }
 
 export const COUNCIL_PERSONAS: CouncilPersona[] = [
-  // Цвета подобраны на контраст ≥4.5:1 с белым текстом инициалов (WCAG AA).
+  // hex/darkHex подобраны скриптом (OKLCH → sRGB → WCAG-контраст) — см.
+  // docs/superpowers/specs/2026-08-04-council-visual-redesign-design.md §1
+  // для полной таблицы контрастов. Не менять точечно без пересчёта.
   {
     id: "founder",
     name: "Артур Ким",
     initials: "AK",
     role: "Визионер-фаундер",
     inspiredBy: "Илона Маска",
-    color: "bg-amber-700",
+    hex: "#a75d00",
+    tag: "Визионер",
   },
   {
     id: "operator",
@@ -24,7 +34,8 @@ export const COUNCIL_PERSONAS: CouncilPersona[] = [
     initials: "RN",
     role: "Операционный директор",
     inspiredBy: "Тима Кука",
-    color: "bg-violet-600",
+    hex: "#7c3aed",
+    tag: "Оператор",
   },
   {
     id: "engineer",
@@ -32,7 +43,8 @@ export const COUNCIL_PERSONAS: CouncilPersona[] = [
     initials: "VT",
     role: "Инженер-прагматик",
     inspiredBy: "Стива Возняка",
-    color: "bg-blue-600",
+    hex: "#2563eb",
+    tag: "Инженер",
   },
   {
     id: "contrarian",
@@ -40,7 +52,8 @@ export const COUNCIL_PERSONAS: CouncilPersona[] = [
     initials: "LA",
     role: "Контрарианка-инвестор",
     inspiredBy: "Джорджа Сороса",
-    color: "bg-teal-700",
+    hex: "#0f766e",
+    tag: "Скептик",
   },
   {
     id: "industrialist",
@@ -48,7 +61,8 @@ export const COUNCIL_PERSONAS: CouncilPersona[] = [
     initials: "DO",
     role: "Промышленник",
     inspiredBy: "Уоррена Баффета",
-    color: "bg-orange-700",
+    hex: "#c34700",
+    tag: "Промышленник",
   },
   {
     id: "product",
@@ -56,7 +70,8 @@ export const COUNCIL_PERSONAS: CouncilPersona[] = [
     initials: "ME",
     role: "Продакт-лидер",
     inspiredBy: "Джеффа Безоса",
-    color: "bg-fuchsia-600",
+    hex: "#c026d3",
+    tag: "Продакт",
   },
   {
     id: "brand",
@@ -64,7 +79,8 @@ export const COUNCIL_PERSONAS: CouncilPersona[] = [
     initials: "NB",
     role: "Бренд-стратег",
     inspiredBy: "Ричарда Брэнсона",
-    color: "bg-rose-700",
+    hex: "#c13892",
+    tag: "Бренд",
   },
   {
     id: "platform",
@@ -72,7 +88,9 @@ export const COUNCIL_PERSONAS: CouncilPersona[] = [
     initials: "SE",
     role: "Платформенный стратег",
     inspiredBy: "Сатьи Наделлы",
-    color: "bg-indigo-600",
+    hex: "#4f46e5",
+    darkHex: "#5954f3",
+    tag: "Платформа",
   },
   {
     id: "competitor",
@@ -80,7 +98,8 @@ export const COUNCIL_PERSONAS: CouncilPersona[] = [
     initials: "AD",
     role: "Директор по M&A",
     inspiredBy: "Ларри Эллисона",
-    color: "bg-red-700",
+    hex: "#ce3452",
+    tag: "M&A",
   },
   {
     id: "resilience",
@@ -88,7 +107,8 @@ export const COUNCIL_PERSONAS: CouncilPersona[] = [
     initials: "TN",
     role: "Директор по устойчивости",
     inspiredBy: "Джека Ма",
-    color: "bg-cyan-700",
+    hex: "#0e7490",
+    tag: "Устойчивость",
   },
   {
     id: "scale",
@@ -96,7 +116,8 @@ export const COUNCIL_PERSONAS: CouncilPersona[] = [
     initials: "DR",
     role: "Операционная эффективность",
     inspiredBy: "Сэма Уолтона",
-    color: "bg-emerald-700",
+    hex: "#047857",
+    tag: "Масштаб",
   },
   {
     id: "transform",
@@ -104,7 +125,9 @@ export const COUNCIL_PERSONAS: CouncilPersona[] = [
     initials: "ET",
     role: "Директор по трансформации",
     inspiredBy: "Мэри Барра",
-    color: "bg-stone-600",
+    hex: "#57534e",
+    darkHex: "#6f6b66",
+    tag: "Трансформация",
   },
 ];
 

@@ -67,13 +67,71 @@ describe("COUNCIL_PERSONAS", () => {
   });
 
   it("has unique colors and initials", () => {
-    expect(new Set(COUNCIL_PERSONAS.map((p) => p.color)).size).toBe(12);
+    expect(new Set(COUNCIL_PERSONAS.map((p) => p.hex)).size).toBe(12);
     expect(new Set(COUNCIL_PERSONAS.map((p) => p.initials)).size).toBe(12);
   });
 
   it("every persona names a real-world style reference", () => {
     for (const p of COUNCIL_PERSONAS) {
       expect(p.inspiredBy.length).toBeGreaterThan(0);
+    }
+  });
+});
+
+function hexToRgb(hex: string): [number, number, number] {
+  const clean = hex.replace("#", "");
+  return [
+    parseInt(clean.slice(0, 2), 16),
+    parseInt(clean.slice(2, 4), 16),
+    parseInt(clean.slice(4, 6), 16),
+  ];
+}
+
+function relativeLuminance(hex: string): number {
+  const [r, g, b] = hexToRgb(hex).map((c) => {
+    const s = c / 255;
+    return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+function contrastRatio(hexA: string, hexB: string): number {
+  const a = relativeLuminance(hexA);
+  const b = relativeLuminance(hexB);
+  const lighter = Math.max(a, b);
+  const darker = Math.min(a, b);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+// Same sRGB value as oklch(0.221 0.037 258.8) — the dark-theme --card token
+// in src/styles.css. Hardcoded here so this test doesn't depend on parsing CSS.
+const DARK_CARD_HEX = "#101b2c";
+
+describe("persona color contrast", () => {
+  it("every persona hex/darkHex is a valid #rrggbb string", () => {
+    const hexPattern = /^#[0-9a-f]{6}$/i;
+    for (const p of COUNCIL_PERSONAS) {
+      expect(p.hex).toMatch(hexPattern);
+      if (p.darkHex) expect(p.darkHex).toMatch(hexPattern);
+    }
+  });
+
+  it("every persona has a non-empty tag", () => {
+    for (const p of COUNCIL_PERSONAS) {
+      expect(p.tag.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("white text on every persona hex clears WCAG AA (4.5:1)", () => {
+    for (const p of COUNCIL_PERSONAS) {
+      expect(contrastRatio(p.hex, "#ffffff")).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+
+  it("the border color used in each theme clears 3:1 against the dark card", () => {
+    for (const p of COUNCIL_PERSONAS) {
+      const darkThemeBorderHex = p.darkHex ?? p.hex;
+      expect(contrastRatio(darkThemeBorderHex, DARK_CARD_HEX)).toBeGreaterThanOrEqual(3.0);
     }
   });
 });
