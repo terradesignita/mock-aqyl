@@ -1,7 +1,7 @@
 import { useCallback, useEffect } from "react";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import type { ScopeFilter } from "@/lib/search";
-import { SEED_COUNCIL_SESSIONS, type CouncilSession } from "@/data/council";
+import { SEED_COUNCIL_SESSIONS, type CouncilChatMessage, type CouncilSession } from "@/data/council";
 import type { AdvisorSelection, FollowUpFlags } from "@/data/advisor";
 
 export function useTheme() {
@@ -63,7 +63,7 @@ export function useCardTitle(cardId: string, fallback: string) {
 
 export function useCouncilSessions() {
   const [sessions, setSessions] = useLocalStorage<CouncilSession[]>(
-    "biaqyl:council-sessions:v2",
+    "biaqyl:council-sessions:v3",
     SEED_COUNCIL_SESSIONS,
   );
 
@@ -84,10 +84,10 @@ export function useCouncilSessions() {
     [setSessions],
   );
 
-  const addFollowUp = useCallback(
-    (id: string, text: string) =>
+  const addMessages = useCallback(
+    (id: string, newMessages: CouncilChatMessage[]) =>
       setSessions((prev) =>
-        prev.map((s) => (s.id === id ? { ...s, followUps: [...s.followUps, text] } : s)),
+        prev.map((s) => (s.id === id ? { ...s, messages: [...s.messages, ...newMessages] } : s)),
       ),
     [setSessions],
   );
@@ -97,7 +97,7 @@ export function useCouncilSessions() {
     [setSessions],
   );
 
-  return { sessions, create, markRead, updatePersonas, addFollowUp, remove };
+  return { sessions, create, markRead, updatePersonas, addMessages, remove };
 }
 
 /** §32-34 ТЗ AI-советника — сохранённый разбор ситуации, чтобы вернуться к нему после переговоров. */
