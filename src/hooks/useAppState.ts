@@ -62,7 +62,7 @@ export function useCardTitle(cardId: string, fallback: string) {
 }
 
 export function useCouncilSessions() {
-  const [sessions, setSessions] = useLocalStorage<CouncilSession[]>(
+  const [sessions, setSessions, hydrated] = useLocalStorage<CouncilSession[]>(
     "biaqyl:council-sessions:v2",
     SEED_COUNCIL_SESSIONS,
   );
@@ -97,7 +97,7 @@ export function useCouncilSessions() {
     [setSessions],
   );
 
-  return { sessions, create, markRead, updatePersonas, addFollowUp, remove };
+  return { sessions, create, markRead, updatePersonas, addFollowUp, remove, hydrated };
 }
 
 /** §32-34 ТЗ AI-советника — сохранённый разбор ситуации, чтобы вернуться к нему после переговоров. */
