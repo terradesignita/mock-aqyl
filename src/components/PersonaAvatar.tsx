@@ -13,12 +13,17 @@ export interface PersonaAvatarProps extends HTMLAttributes<HTMLSpanElement> {
   size?: keyof typeof SIZE_CLASS;
   /** border-2 border-card — для стека перекрывающихся аватаров. */
   ring?: boolean;
+  /** Кольцо цвета персоны — border-2 в цвете, заданном через CSS-переменные
+   *  в `style` (см. personaColorVars/personaAvatarStyle в council.tsx).
+   *  Отдельно от `ring` — оба применяются одновременно, если заданы оба. */
+  ringClassName?: string;
 }
 
 export function PersonaAvatar({
   initials,
   size = "md",
   ring,
+  ringClassName,
   className,
   ...rest
 }: PersonaAvatarProps) {
@@ -29,6 +34,8 @@ export function PersonaAvatar({
         "grid shrink-0 place-items-center rounded-full font-bold text-white",
         SIZE_CLASS[size],
         ring && "border-2 border-card",
+        ringClassName && "border-2",
+        ringClassName,
         className,
       )}
     >
