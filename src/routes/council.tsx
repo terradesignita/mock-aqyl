@@ -64,7 +64,7 @@ function personaAvatarStyle(p: CouncilPersona): React.CSSProperties {
 function PersonaTag({ tag, hex }: { tag: string; hex: string }) {
   return (
     <span
-      className="rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-white"
+      className="inline-block max-w-full truncate rounded-full px-1.5 py-px text-[9px] font-medium uppercase tracking-wide text-white"
       style={{ backgroundColor: hex }}
     >
       {tag}
@@ -262,7 +262,7 @@ function GalleryCard({
 
       <span
         className={cn(
-          "flex min-w-0 flex-1 flex-col gap-1 overflow-hidden py-3 pl-3 pr-7 transition-colors duration-200",
+          "flex min-w-0 flex-1 flex-col gap-1 py-3 pl-3 pr-7 transition-colors duration-200",
           selected ? PERSONA_TINT_CLASS : PERSONA_RESTING_TINT_CLASS,
         )}
       >
@@ -272,18 +272,10 @@ function GalleryCard({
         >
           {persona.name}
         </span>
-        <span className="self-start">
-          <PersonaTag tag={persona.tag} hex={persona.hex} />
+        <span className="self-start" title={`в духе ${persona.inspiredBy}`}>
+          <PersonaTag tag={persona.role} hex={persona.hex} />
         </span>
-        <span
-          className="block w-full truncate text-xs text-muted-foreground"
-          title={`${persona.role} · в духе ${persona.inspiredBy}`}
-        >
-          {persona.role}
-        </span>
-        <span className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-          {persona.description}
-        </span>
+        <span className="text-xs leading-relaxed text-muted-foreground">{persona.description}</span>
       </span>
 
       <AnimatePresence>
