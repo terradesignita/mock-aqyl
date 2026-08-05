@@ -21,7 +21,6 @@ import {
   FOLLOW_UP_FALLBACK_TEXT,
   getPersona,
   hasLikelyDisagreement,
-  pickDefaultTrio,
   QUICK_REPLIES,
   REACTION_EMOJIS,
   type CouncilChatMessage,
@@ -345,7 +344,7 @@ function PersonaGalleryModal({
            DialogContent's full-viewport `inset-0`/centered-on-100vh — so it stays
            visible and undimmed above this modal, per the product requirement that the
            app chrome never disappears behind a council-creation dialog. */}
-        <DialogPrimitive.Overlay className="fixed inset-x-0 top-14 bottom-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+        <DialogPrimitive.Overlay className="fixed inset-x-0 top-14 bottom-0 z-50 bg-black/35 backdrop-blur-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
         <DialogPrimitive.Content className="fixed left-1/2 top-16 z-50 flex h-[85vh] max-h-[calc(100vh-5rem)] w-[90vw] max-w-[1400px] -translate-x-1/2 flex-col gap-4 rounded-modal border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 lg:min-w-[1100px]">
           <DialogHeader className="shrink-0">
             <DialogTitle className="text-2xl font-bold">Соберите консилиум</DialogTitle>
@@ -358,18 +357,9 @@ function PersonaGalleryModal({
             {capacityHint && "Можно выбрать не более трёх участников."}
           </span>
 
-          <div className="flex shrink-0 items-center justify-between gap-2">
-            <span className="text-sm font-bold tabular-nums text-muted-foreground">
-              Выбрано {selected.length} из {MAX_PERSONAS}
-            </span>
-            <button
-              type="button"
-              onClick={() => onChange(pickDefaultTrio())}
-              className="text-xs font-semibold text-primary underline-offset-2 hover:underline"
-            >
-              Подобрать автоматически
-            </button>
-          </div>
+          <span className="shrink-0 text-sm font-bold tabular-nums text-muted-foreground">
+            Выбрано {selected.length} из {MAX_PERSONAS}
+          </span>
 
           {selected.length >= 2 && !hasLikelyDisagreement(selected) && (
             <p
@@ -793,12 +783,12 @@ function SessionView({
           if (group.author === "user") {
             const answered = groups.slice(gi + 1).some((g) => g.author !== "user");
             return (
-              <div key={group.items[0].id} className="ml-12 space-y-1">
+              <div key={group.items[0].id} className="flex flex-col items-end space-y-1">
                 {group.items.map((m, mi) => {
                   const isLastItem = mi === group.items.length - 1;
                   const isRead = isLastItem && (answered || isRevealing);
                   return (
-                    <div key={m.id} className="animate-message-pop">
+                    <div key={m.id} className="max-w-[75%] animate-message-pop">
                       <MessageBubble variant="user" bubbleClassName="p-3">
                         {m.text}
                       </MessageBubble>
