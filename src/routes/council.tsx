@@ -224,15 +224,12 @@ function GalleryCard({
   index: number;
 }) {
   const prefersReducedMotion = useReducedMotion();
-  const descriptionId = `persona-description-${persona.id}`;
 
   return (
     <motion.button
       type="button"
       onClick={onToggle}
-      aria-disabled={disabled}
       aria-pressed={selected}
-      aria-describedby={descriptionId}
       style={personaColorVars(persona)}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
@@ -240,12 +237,12 @@ function GalleryCard({
         prefersReducedMotion ? { duration: 0 } : { duration: 0.24, delay: Math.min(index, 11) * 0.04 }
       }
       className={cn(
-        "group relative flex aspect-[21/9] items-stretch overflow-hidden rounded-2xl border text-left transition-[transform,box-shadow,border-color,opacity] duration-200 active:scale-[0.96]",
+        "group relative flex items-stretch overflow-hidden rounded-2xl border text-left transition-[transform,box-shadow,border-color,opacity] duration-200 active:scale-[0.96]",
         selected
-          ? cn("-translate-y-0.5 shadow-md", PERSONA_BORDER_CLASS)
+          ? cn("-translate-y-1 shadow-md", PERSONA_BORDER_CLASS)
           : cn(
               "border-border",
-              !disabled && "hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md",
+              !disabled && "hover:-translate-y-1 hover:border-primary/30 hover:shadow-md",
             ),
         disabled && "opacity-40",
       )}
@@ -265,12 +262,12 @@ function GalleryCard({
 
       <span
         className={cn(
-          "flex min-w-0 flex-1 flex-col justify-center gap-1 overflow-hidden py-3 pl-3 pr-7 transition-colors duration-200",
+          "flex min-w-0 flex-1 flex-col gap-1 overflow-hidden py-3 pl-3 pr-7 transition-colors duration-200",
           selected ? PERSONA_TINT_CLASS : PERSONA_RESTING_TINT_CLASS,
         )}
       >
         <span
-          className="block w-full truncate text-sm font-semibold text-card-foreground"
+          className="block w-full truncate text-base font-bold text-card-foreground"
           title={persona.name}
         >
           {persona.name}
@@ -284,13 +281,9 @@ function GalleryCard({
         >
           {persona.role}
         </span>
-      </span>
-
-      <span
-        id={descriptionId}
-        className="pointer-events-none absolute inset-0 z-[1] flex items-center bg-card/95 p-3 text-xs leading-relaxed text-card-foreground opacity-0 backdrop-blur-sm transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100 active:opacity-100"
-      >
-        {persona.description}
+        <span className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+          {persona.description}
+        </span>
       </span>
 
       <AnimatePresence>
@@ -1027,7 +1020,16 @@ function CouncilPage() {
               </div>
             )}
             {q && today.length === 0 && earlier.length === 0 && (
-              <p className="px-1 text-xs text-muted-foreground">Ничего не найдено</p>
+              <div className="px-1 text-xs text-muted-foreground">
+                <p>Ничего не найдено по «{sessionQuery.trim()}».</p>
+                <button
+                  type="button"
+                  onClick={() => setSessionQuery("")}
+                  className="mt-1 font-semibold text-primary hover:underline"
+                >
+                  Очистить поиск
+                </button>
+              </div>
             )}
           </div>
 
@@ -1167,7 +1169,7 @@ function SessionRow({
         }}
         aria-label={`Удалить сессию «${session.title}»`}
         title="Удалить сессию"
-        className="absolute right-2 top-2 grid h-6 w-6 shrink-0 place-items-center rounded-md text-muted-foreground opacity-0 transition-opacity hover:bg-secondary hover:text-destructive focus-visible:opacity-100 group-hover:opacity-100"
+        className="absolute right-2 top-2 grid h-6 w-6 shrink-0 place-items-center rounded-md text-muted-foreground opacity-0 transition-opacity hover:bg-secondary hover:text-destructive focus-visible:opacity-100 group-hover:opacity-100 active:opacity-100"
       >
         <Trash2 className="h-3.5 w-3.5" />
       </button>

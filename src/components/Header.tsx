@@ -28,7 +28,7 @@ export function Header({ dark, onToggleDark, className }: HeaderProps) {
           <BiLogo size={30} />
         </Link>
 
-        <nav className="hidden justify-center md:flex">
+        <nav className="flex justify-center">
           <div className="flex items-center gap-1 rounded-2xl border border-border bg-background/70 p-1 shadow-soft">
             {NAV.map((item) => {
               const Icon = item.icon;
@@ -37,14 +37,15 @@ export function Header({ dark, onToggleDark, className }: HeaderProps) {
                   key={item.id}
                   to={item.to}
                   activeOptions={{ exact: item.exact }}
-                  className="flex h-9 items-center gap-2 rounded-xl px-3 text-sm font-semibold transition-colors active:scale-[0.96]"
+                  aria-label={item.label}
+                  className="flex h-9 items-center gap-2 rounded-xl px-2.5 text-sm font-semibold transition-colors active:scale-[0.96] md:px-3"
                   activeProps={{ className: "bg-card text-foreground shadow-soft" }}
                   inactiveProps={{
                     className: "text-muted-foreground hover:bg-secondary hover:text-foreground",
                   }}
                 >
                   <Icon className="h-4 w-4" />
-                  {item.label}
+                  <span className="hidden md:inline">{item.label}</span>
                 </Link>
               );
             })}
