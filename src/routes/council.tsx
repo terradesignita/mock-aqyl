@@ -1,14 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Check, PanelLeft, PanelLeftClose, Plus, Search, Send, Trash2, Users, X } from "lucide-react";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { Check, PanelLeft, PanelLeftClose, Plus, Search, Send, Trash2 } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { toast } from "sonner";
 import { Header } from "@/components/Header";
 import { MessageBubble } from "@/components/MessageBubble";
 import { PersonaAvatar, PersonaSilhouette } from "@/components/PersonaAvatar";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { useCouncilSessions, useTheme } from "@/hooks/useAppState";
 import { clampWidth, useResizablePanel } from "@/hooks/useResizablePanel";
@@ -18,7 +16,6 @@ import {
   buildOpeningMessages,
   buildUserMessage,
   COUNCIL_PERSONAS,
-  FOLLOW_UP_FALLBACK_TEXT,
   getPersona,
   hasLikelyDisagreement,
   QUICK_REPLIES,
@@ -245,7 +242,7 @@ function GalleryCard({
          но крупнее и на всю высоту карточки. Ч/б до выбора, цвет — после. */}
       <span
         className={cn(
-          "grid w-2/5 shrink-0 place-items-center text-white/90 transition-[filter] duration-200",
+          "grid w-1/3 shrink-0 place-items-center text-white/90 transition-[filter] duration-200",
           !selected && "grayscale saturate-[.35]",
         )}
         style={{ backgroundColor: persona.hex }}
@@ -272,7 +269,7 @@ function GalleryCard({
           className="block w-full truncate text-xs text-muted-foreground"
           title={`${persona.role} · в духе ${persona.inspiredBy}`}
         >
-          {persona.role} · в духе {persona.inspiredBy}
+          {persona.role}
         </span>
       </span>
 
@@ -295,22 +292,21 @@ function GalleryCard({
   );
 }
 
-/** Full-screen gallery for the "who's in the council?" step — replaces the old inline
- *  searchable list. Controlled: `open` follows the wizard's own step state (see
- *  NewCouncilPanel) so Radix can play its own open/close transition instead of the
- *  component being mounted/unmounted abruptly. */
-function PersonaGalleryModal({
-  open,
+/** The "who's in the council?" step — an inline section in the main column, not a
+ *  modal. A modal duplicated the sidebar's own session list one layer up (this
+ *  section only ever shows when there's no active session to look at anyway) and
+ *  fought with the app header for z-space; a plain in-flow section has neither
+ *  problem. */
+function PersonaGallerySection({
   selected,
   onChange,
   onConfirm,
-  onClose,
+  onCancel,
 }: {
-  open: boolean;
   selected: string[];
   onChange: (ids: string[]) => void;
   onConfirm: () => void;
-  onClose: () => void;
+  onCancel: () => void;
 }) {
   const [capacityHint, setCapacityHint] = useState(false);
   const capacityHintTimerRef = useRef<number | undefined>(undefined);
@@ -324,10 +320,9 @@ function PersonaGalleryModal({
     }
     if (selected.length >= MAX_PERSONAS) {
       toast.error("Можно выбрать не более трёх участников.");
-      // Toast alone doesn't reach screen readers here: Radix's focus scoping
-      // marks everything outside this dialog (including the Toaster, mounted
-      // in __root.tsx) aria-hidden while it's open. This live region is the
-      // in-dialog fallback that actually gets announced.
+      // Toast alone may not be enough for screen-reader users (toasts can be
+      // easy to miss without a directed live region) — this in-page one is a
+      // reliable fallback that always sits next to the thing it's about.
       setCapacityHint(true);
       window.clearTimeout(capacityHintTimerRef.current);
       capacityHintTimerRef.current = window.setTimeout(() => setCapacityHint(false), 1000);
@@ -337,72 +332,57 @@ function PersonaGalleryModal({
   };
 
   return (
-    <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
-      <DialogPrimitive.Portal>
-        {/* Header is `sticky top-0 z-40`, ~56px tall (src/components/Header.tsx). Both
-           the overlay and the content box are inset below it — instead of the shared
-           DialogContent's full-viewport `inset-0`/centered-on-100vh — so it stays
-           visible and undimmed above this modal, per the product requirement that the
-           app chrome never disappears behind a council-creation dialog. */}
-        <DialogPrimitive.Overlay className="fixed inset-x-0 top-14 bottom-0 z-50 bg-black/35 backdrop-blur-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-        <DialogPrimitive.Content className="fixed left-1/2 top-16 z-50 flex h-[85vh] max-h-[calc(100vh-5rem)] w-[90vw] max-w-[1400px] -translate-x-1/2 flex-col gap-4 rounded-modal border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 lg:min-w-[1100px]">
-          <DialogHeader className="shrink-0">
-            <DialogTitle className="text-2xl font-bold">Соберите консилиум</DialogTitle>
-            <DialogDescription>
-              Выберите от одного до трёх участников для обсуждения вашей задачи.
-            </DialogDescription>
-          </DialogHeader>
+    <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-4 px-6 py-10">
+      <div>
+        <h2 className="text-2xl font-bold text-foreground">Соберите консилиум</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Выберите от одного до трёх участников для обсуждения вашей задачи.
+        </p>
+      </div>
 
-          <span role="status" aria-live="polite" className="sr-only">
-            {capacityHint && "Можно выбрать не более трёх участников."}
-          </span>
+      <span role="status" aria-live="polite" className="sr-only">
+        {capacityHint && "Можно выбрать не более трёх участников."}
+      </span>
 
-          <span className="shrink-0 text-sm font-bold tabular-nums text-muted-foreground">
-            Выбрано {selected.length} из {MAX_PERSONAS}
-          </span>
+      <span className="text-sm font-bold tabular-nums text-muted-foreground">
+        Выбрано {selected.length} из {MAX_PERSONAS}
+      </span>
 
-          {selected.length >= 2 && !hasLikelyDisagreement(selected) && (
-            <p
-              role="status"
-              className="shrink-0 rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-card-foreground"
-            >
-              В этом составе взгляды похожи — спора может не быть. Попробуйте добавить контрарианку
-              или скептика.
-            </p>
-          )}
+      {selected.length >= 2 && !hasLikelyDisagreement(selected) && (
+        <p
+          role="status"
+          className="rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-card-foreground"
+        >
+          В этом составе взгляды похожи — спора может не быть. Попробуйте добавить контрарианку
+          или скептика.
+        </p>
+      )}
 
-          <div className="grid flex-1 grid-cols-2 content-start items-start gap-3 overflow-y-auto pr-1 sm:grid-cols-3 lg:grid-cols-4">
-            {COUNCIL_PERSONAS.map((p) => {
-              const isSelected = selected.includes(p.id);
-              const disabled = !isSelected && selected.length >= MAX_PERSONAS;
-              return (
-                <GalleryCard
-                  key={p.id}
-                  persona={p}
-                  selected={isSelected}
-                  disabled={disabled}
-                  onToggle={() => toggle(p.id)}
-                />
-              );
-            })}
-          </div>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {COUNCIL_PERSONAS.map((p) => {
+          const isSelected = selected.includes(p.id);
+          const disabled = !isSelected && selected.length >= MAX_PERSONAS;
+          return (
+            <GalleryCard
+              key={p.id}
+              persona={p}
+              selected={isSelected}
+              disabled={disabled}
+              onToggle={() => toggle(p.id)}
+            />
+          );
+        })}
+      </div>
 
-          <DialogFooter className="shrink-0">
-            <Button variant="ghost" onClick={onClose}>
-              Отмена
-            </Button>
-            <Button disabled={selected.length === 0} onClick={onConfirm}>
-              Далее
-            </Button>
-          </DialogFooter>
-
-          <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background cursor-pointer transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none">
-            <X className="h-4 w-4" aria-hidden="true" />
-            <span className="sr-only">Закрыть</span>
-          </DialogPrimitive.Close>
-        </DialogPrimitive.Content>
-      </DialogPrimitive.Portal>
-    </Dialog>
+      <div className="flex items-center justify-end gap-2">
+        <Button variant="ghost" onClick={onCancel}>
+          Отмена
+        </Button>
+        <Button disabled={selected.length === 0} onClick={onConfirm}>
+          Далее
+        </Button>
+      </div>
+    </div>
   );
 }
 
@@ -449,13 +429,14 @@ function NewCouncilPanel({
 
   return (
     <>
-      <PersonaGalleryModal
-        open={step === "contacts"}
-        selected={personaIds}
-        onChange={setPersonaIds}
-        onConfirm={() => setStep("topic")}
-        onClose={onCancel}
-      />
+      {step === "contacts" && (
+        <PersonaGallerySection
+          selected={personaIds}
+          onChange={setPersonaIds}
+          onConfirm={() => setStep("topic")}
+          onCancel={onCancel}
+        />
+      )}
       {step === "topic" && (
         <div className="mx-auto w-full max-w-xl px-6 py-10">
           <div className="space-y-5 rounded-2xl border border-border bg-card p-6 shadow-soft">
@@ -604,72 +585,6 @@ function PersonaPicker({
                   {p.role} · в духе {p.inspiredBy}
                 </span>
               </span>
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-/** Landing view when no session is active — a feed of every discussion, not an instructional blank screen. */
-function SessionsOverview({
-  sessions,
-  onOpen,
-}: {
-  sessions: CouncilSession[];
-  onOpen: (id: string) => void;
-}) {
-  if (sessions.length === 0) {
-    return (
-      <div className="flex flex-1 flex-col items-center justify-center px-6">
-        <div className="flex w-full max-w-sm flex-col items-center rounded-2xl border border-dashed border-border py-20 text-center">
-          <Users className="h-8 w-8 text-muted-foreground" />
-          <p className="mt-4 text-sm font-semibold text-foreground">Пока нет ни одного совета</p>
-          <p className="mt-1 max-w-xs text-xs text-muted-foreground">
-            Нажмите «Создать совет», чтобы разобрать первый кейс.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="mx-auto w-full max-w-4xl space-y-4 px-6 py-8">
-      <h2 className="text-xs font-bold text-muted-foreground">
-        Все сессии <span className="ml-1.5 tabular-nums">({sessions.length})</span>
-      </h2>
-      <div className="grid gap-3 sm:grid-cols-2">
-        {sessions.map((s) => {
-          const lastMessage = s.messages.at(-1);
-          const preview =
-            !lastMessage || lastMessage.text === FOLLOW_UP_FALLBACK_TEXT
-              ? s.topic.summary
-              : lastMessage.text;
-          return (
-            <button
-              key={s.id}
-              onClick={() => onOpen(s.id)}
-              className="flex flex-col gap-2 rounded-2xl border border-border bg-card p-4 text-left transition-colors hover:border-primary/40 hover:bg-secondary/20"
-            >
-              <div className="flex items-center justify-between gap-2">
-                <p className="truncate text-sm font-bold text-card-foreground" title={s.title}>
-                  {s.title}
-                </p>
-                {s.unread && (
-                  <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-success">
-                    <span aria-hidden className="h-2 w-2 rounded-full bg-success" />
-                    <span className="sr-only">Непрочитано</span>
-                  </span>
-                )}
-              </div>
-              <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-                {preview}
-              </p>
-              <div className="mt-1 flex items-center justify-between">
-                <AvatarStack personaIds={s.personaIds} />
-                <span className="text-xs text-muted-foreground">{s.date}</span>
-              </div>
             </button>
           );
         })}
@@ -1049,10 +964,7 @@ function CouncilPage() {
 
           <Button
             className="h-11 w-full gap-1.5 rounded-2xl text-sm"
-            onClick={() => {
-              setCreating(true);
-              setActiveId(null);
-            }}
+            onClick={() => setCreating(true)}
           >
             <Plus className="h-4 w-4" /> Создать совет
           </Button>
@@ -1168,7 +1080,7 @@ function CouncilPage() {
           tabIndex={-1}
           className="flex flex-1 flex-col outline-none md:min-h-0 md:min-w-0 md:overflow-y-auto"
         >
-          {creating ? (
+          {creating || !active ? (
             <NewCouncilPanel
               onCancel={() => setCreating(false)}
               onCreate={(session) => {
@@ -1178,15 +1090,13 @@ function CouncilPage() {
                 setJustCreatedId(session.id);
               }}
             />
-          ) : active ? (
+          ) : (
             <SessionView
               session={active}
               revealFromStart={active.id === justCreatedId}
               onFollowUp={submitFollowUp}
               onReact={(messageId, emoji) => toggleReaction(active.id, messageId, emoji)}
             />
-          ) : (
-            <SessionsOverview sessions={sessions} onOpen={openSession} />
           )}
         </main>
       </div>
