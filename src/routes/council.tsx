@@ -1,19 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Check, PanelLeft, PanelLeftClose, Plus, Search, Send, Trash2, Users } from "lucide-react";
+import { Check, PanelLeft, PanelLeftClose, Plus, Search, Send, Trash2, Users, X } from "lucide-react";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { toast } from "sonner";
 import { Header } from "@/components/Header";
 import { MessageBubble } from "@/components/MessageBubble";
-import { PersonaAvatar } from "@/components/PersonaAvatar";
+import { PersonaAvatar, PersonaSilhouette } from "@/components/PersonaAvatar";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import { Dialog, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { useCouncilSessions, useTheme } from "@/hooks/useAppState";
 import { clampWidth, useResizablePanel } from "@/hooks/useResizablePanel";
@@ -69,7 +64,7 @@ function personaAvatarStyle(p: CouncilPersona): React.CSSProperties {
 function PersonaTag({ tag, hex }: { tag: string; hex: string }) {
   return (
     <span
-      className="rounded-full px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wide text-white"
+      className="rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-white"
       style={{ backgroundColor: hex }}
     >
       {tag}
@@ -226,6 +221,8 @@ function GalleryCard({
   disabled: boolean;
   onToggle: () => void;
 }) {
+  const prefersReducedMotion = useReducedMotion();
+
   return (
     <button
       type="button"
@@ -234,32 +231,67 @@ function GalleryCard({
       aria-pressed={selected}
       style={personaColorVars(persona)}
       className={cn(
-        "group relative flex flex-col items-center gap-2 rounded-2xl border p-4 text-center transition-[transform,box-shadow,border-color,background-color,opacity] duration-200",
+        "group relative flex aspect-[21/9] items-stretch overflow-hidden rounded-2xl border text-left transition-[transform,box-shadow,border-color,opacity] duration-200 active:scale-[0.96]",
         selected
-          ? cn("-translate-y-0.5 shadow-md", PERSONA_BORDER_CLASS, PERSONA_TINT_CLASS)
-          : "border-border hover:border-primary/30 hover:shadow-sm",
+          ? cn("-translate-y-0.5 shadow-md", PERSONA_BORDER_CLASS)
+          : cn(
+              "border-border",
+              !disabled && "hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md",
+            ),
         disabled && "opacity-40",
       )}
     >
-      {selected && (
-        <span className="absolute right-3 top-3 grid h-5 w-5 place-items-center rounded-full bg-primary text-primary-foreground">
-          <Check className="h-3 w-3" />
-        </span>
-      )}
-      <PersonaAvatar
-        initials={persona.initials}
-        size="lg"
-        style={{ backgroundColor: persona.hex }}
+      {/* Фото-плейсхолдер: персоны вымышленные (см. гардрейл в PersonaAvatar.tsx),
+         поэтому вместо реального фото — тот же силуэт, что и везде в приложении,
+         но крупнее и на всю высоту карточки. Ч/б до выбора, цвет — после. */}
+      <span
         className={cn(
-          "transition-[filter,transform] duration-200 group-hover:scale-105",
+          "grid w-2/5 shrink-0 place-items-center text-white/90 transition-[filter] duration-200",
           !selected && "grayscale saturate-[.35]",
         )}
-      />
-      <span className="text-sm font-semibold text-card-foreground">{persona.name}</span>
-      <PersonaTag tag={persona.tag} hex={persona.hex} />
-      <span className="line-clamp-2 text-xs text-muted-foreground">
-        {persona.role} · в духе {persona.inspiredBy}
+        style={{ backgroundColor: persona.hex }}
+      >
+        <PersonaSilhouette className="h-10 w-10 transition-transform duration-200 group-hover:scale-110" />
       </span>
+
+      <span
+        className={cn(
+          "flex min-w-0 flex-1 flex-col justify-center gap-1 overflow-hidden py-3 pl-3 pr-7 transition-colors duration-200",
+          selected && PERSONA_TINT_CLASS,
+        )}
+      >
+        <span
+          className="block w-full truncate text-sm font-semibold text-card-foreground"
+          title={persona.name}
+        >
+          {persona.name}
+        </span>
+        <span className="self-start">
+          <PersonaTag tag={persona.tag} hex={persona.hex} />
+        </span>
+        <span
+          className="block w-full truncate text-xs text-muted-foreground"
+          title={`${persona.role} · в духе ${persona.inspiredBy}`}
+        >
+          {persona.role} · в духе {persona.inspiredBy}
+        </span>
+      </span>
+
+      <AnimatePresence>
+        {selected && (
+          <motion.span
+            initial={{ opacity: 0, scale: 0.25, filter: "blur(4px)" }}
+            animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+            exit={{ opacity: 0, scale: 0.25, filter: "blur(4px)" }}
+            transition={
+              prefersReducedMotion ? { duration: 0 } : { type: "spring", duration: 0.3, bounce: 0 }
+            }
+            className="absolute right-2 top-2 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground"
+          >
+            <Check className="h-3 w-3" aria-hidden="true" />
+          </motion.span>
+        )}
+      </AnimatePresence>
     </button>
   );
 }
@@ -281,6 +313,11 @@ function PersonaGalleryModal({
   onConfirm: () => void;
   onClose: () => void;
 }) {
+  const [capacityHint, setCapacityHint] = useState(false);
+  const capacityHintTimerRef = useRef<number | undefined>(undefined);
+
+  useEffect(() => () => window.clearTimeout(capacityHintTimerRef.current), []);
+
   const toggle = (id: string) => {
     if (selected.includes(id)) {
       onChange(selected.filter((x) => x !== id));
@@ -288,6 +325,13 @@ function PersonaGalleryModal({
     }
     if (selected.length >= MAX_PERSONAS) {
       toast.error("Можно выбрать не более трёх участников.");
+      // Toast alone doesn't reach screen readers here: Radix's focus scoping
+      // marks everything outside this dialog (including the Toaster, mounted
+      // in __root.tsx) aria-hidden while it's open. This live region is the
+      // in-dialog fallback that actually gets announced.
+      setCapacityHint(true);
+      window.clearTimeout(capacityHintTimerRef.current);
+      capacityHintTimerRef.current = window.setTimeout(() => setCapacityHint(false), 1000);
       return;
     }
     onChange([...selected, id]);
@@ -295,62 +339,79 @@ function PersonaGalleryModal({
 
   return (
     <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
-      <DialogContent className="flex h-[90vh] max-h-[90vh] w-[90vw] max-w-[1400px] lg:min-w-[1100px] flex-col gap-4 rounded-modal p-6 sm:rounded-modal">
-        <DialogHeader className="shrink-0">
-          <DialogTitle className="text-2xl font-bold">Соберите консилиум</DialogTitle>
-          <DialogDescription>
-            Выберите от одного до трёх участников для обсуждения вашей задачи.
-          </DialogDescription>
-        </DialogHeader>
+      <DialogPrimitive.Portal>
+        {/* Header is `sticky top-0 z-40`, ~56px tall (src/components/Header.tsx). Both
+           the overlay and the content box are inset below it — instead of the shared
+           DialogContent's full-viewport `inset-0`/centered-on-100vh — so it stays
+           visible and undimmed above this modal, per the product requirement that the
+           app chrome never disappears behind a council-creation dialog. */}
+        <DialogPrimitive.Overlay className="fixed inset-x-0 top-14 bottom-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+        <DialogPrimitive.Content className="fixed left-1/2 top-16 z-50 flex h-[85vh] max-h-[calc(100vh-5rem)] w-[90vw] max-w-[1400px] -translate-x-1/2 flex-col gap-4 rounded-modal border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 lg:min-w-[1100px]">
+          <DialogHeader className="shrink-0">
+            <DialogTitle className="text-2xl font-bold">Соберите консилиум</DialogTitle>
+            <DialogDescription>
+              Выберите от одного до трёх участников для обсуждения вашей задачи.
+            </DialogDescription>
+          </DialogHeader>
 
-        <div className="flex shrink-0 items-center justify-between gap-2">
-          <span className="text-sm font-bold tabular-nums text-muted-foreground">
-            Выбрано {selected.length} из {MAX_PERSONAS}
+          <span role="status" aria-live="polite" className="sr-only">
+            {capacityHint && "Можно выбрать не более трёх участников."}
           </span>
-          <button
-            type="button"
-            onClick={() => onChange(pickDefaultTrio())}
-            className="text-xs font-semibold text-primary underline-offset-2 hover:underline"
-          >
-            Подобрать автоматически
-          </button>
-        </div>
 
-        {selected.length >= 2 && !hasLikelyDisagreement(selected) && (
-          <p
-            role="status"
-            className="shrink-0 rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-card-foreground"
-          >
-            В этом составе взгляды похожи — спора может не быть. Попробуйте добавить контрарианку
-            или скептика.
-          </p>
-        )}
+          <div className="flex shrink-0 items-center justify-between gap-2">
+            <span className="text-sm font-bold tabular-nums text-muted-foreground">
+              Выбрано {selected.length} из {MAX_PERSONAS}
+            </span>
+            <button
+              type="button"
+              onClick={() => onChange(pickDefaultTrio())}
+              className="text-xs font-semibold text-primary underline-offset-2 hover:underline"
+            >
+              Подобрать автоматически
+            </button>
+          </div>
 
-        <div className="grid flex-1 grid-cols-2 gap-3 overflow-y-auto pr-1 sm:grid-cols-3 lg:grid-cols-4">
-          {COUNCIL_PERSONAS.map((p) => {
-            const isSelected = selected.includes(p.id);
-            const disabled = !isSelected && selected.length >= MAX_PERSONAS;
-            return (
-              <GalleryCard
-                key={p.id}
-                persona={p}
-                selected={isSelected}
-                disabled={disabled}
-                onToggle={() => toggle(p.id)}
-              />
-            );
-          })}
-        </div>
+          {selected.length >= 2 && !hasLikelyDisagreement(selected) && (
+            <p
+              role="status"
+              className="shrink-0 rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-card-foreground"
+            >
+              В этом составе взгляды похожи — спора может не быть. Попробуйте добавить контрарианку
+              или скептика.
+            </p>
+          )}
 
-        <DialogFooter className="shrink-0">
-          <Button variant="ghost" onClick={onClose}>
-            Отмена
-          </Button>
-          <Button disabled={selected.length === 0} onClick={onConfirm}>
-            Далее
-          </Button>
-        </DialogFooter>
-      </DialogContent>
+          <div className="grid flex-1 grid-cols-2 content-start items-start gap-3 overflow-y-auto pr-1 sm:grid-cols-3 lg:grid-cols-4">
+            {COUNCIL_PERSONAS.map((p) => {
+              const isSelected = selected.includes(p.id);
+              const disabled = !isSelected && selected.length >= MAX_PERSONAS;
+              return (
+                <GalleryCard
+                  key={p.id}
+                  persona={p}
+                  selected={isSelected}
+                  disabled={disabled}
+                  onToggle={() => toggle(p.id)}
+                />
+              );
+            })}
+          </div>
+
+          <DialogFooter className="shrink-0">
+            <Button variant="ghost" onClick={onClose}>
+              Отмена
+            </Button>
+            <Button disabled={selected.length === 0} onClick={onConfirm}>
+              Далее
+            </Button>
+          </DialogFooter>
+
+          <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background cursor-pointer transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none">
+            <X className="h-4 w-4" aria-hidden="true" />
+            <span className="sr-only">Закрыть</span>
+          </DialogPrimitive.Close>
+        </DialogPrimitive.Content>
+      </DialogPrimitive.Portal>
     </Dialog>
   );
 }
@@ -724,7 +785,7 @@ function SessionView({
   const typingPersona = typingAuthor ? getPersona(typingAuthor) : null;
 
   return (
-    <div className="mx-auto flex min-h-full w-full max-w-2xl flex-col px-6 py-8">
+    <div className="mx-auto flex min-h-full w-full max-w-[clamp(42rem,60vw,64rem)] flex-col px-6 py-8">
       <div role="log" aria-live="polite" aria-relevant="additions" className="flex-1 space-y-4">
         <ConversationCover session={session} />
 
