@@ -300,13 +300,9 @@ function GalleryCard({
 function PersonaGallerySection({
   selected,
   onChange,
-  onConfirm,
-  onCancel,
 }: {
   selected: string[];
   onChange: (ids: string[]) => void;
-  onConfirm: () => void;
-  onCancel: () => void;
 }) {
   const [capacityHint, setCapacityHint] = useState(false);
   const capacityHintTimerRef = useRef<number | undefined>(undefined);
@@ -332,7 +328,7 @@ function PersonaGallerySection({
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-4 px-6 py-10">
+    <div className="flex flex-col gap-4">
       <div>
         <h2 className="text-2xl font-bold text-foreground">Соберите консилиум</h2>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -373,15 +369,6 @@ function PersonaGallerySection({
           );
         })}
       </div>
-
-      <div className="flex items-center justify-end gap-2">
-        <Button variant="ghost" onClick={onCancel}>
-          Отмена
-        </Button>
-        <Button disabled={selected.length === 0} onClick={onConfirm}>
-          Далее
-        </Button>
-      </div>
     </div>
   );
 }
@@ -393,15 +380,9 @@ function NewCouncilPanel({
   onCreate: (session: CouncilSession) => void;
   onCancel: () => void;
 }) {
-  const [step, setStep] = useState<"contacts" | "topic">("contacts");
   const [personaIds, setPersonaIds] = useState<string[]>([]);
   const [query, setQuery] = useState("");
   const [card, setCard] = useState<KnowledgeCardData | null>(null);
-  const stepHeadingRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    requestAnimationFrame(() => stepHeadingRef.current?.focus());
-  }, [step]);
 
   const caseResults = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -428,69 +409,78 @@ function NewCouncilPanel({
   };
 
   return (
-    <>
-      {step === "contacts" && (
-        <PersonaGallerySection
-          selected={personaIds}
-          onChange={setPersonaIds}
-          onConfirm={() => setStep("topic")}
-          onCancel={onCancel}
-        />
-      )}
-      {step === "topic" && (
-        <div className="mx-auto w-full max-w-xl px-6 py-10">
-          <div className="space-y-5 rounded-2xl border border-border bg-card p-6 shadow-soft">
-            <div>
-              <label
-                ref={stepHeadingRef as React.RefObject<HTMLLabelElement>}
-                tabIndex={-1}
-                htmlFor="council-case-search"
-                className="mb-2 block text-xs font-bold text-muted-foreground outline-none"
-              >
-                О чём поговорим?
-              </label>
-              <div className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 transition-colors focus-within:border-primary">
-                <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
-                <input
-                  id="council-case-search"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Найдите кейс по названию"
-                  className="h-10 w-full min-w-0 bg-transparent text-base outline-none placeholder:text-muted-foreground sm:text-sm"
-                />
-              </div>
-              <div className="mt-2 max-h-56 space-y-1 overflow-y-auto">
-                {caseResults.map((c) => (
-                  <button
-                    key={c.id}
-                    onClick={() => setCard(c)}
-                    className={cn(
-                      "w-full rounded-lg border px-3 py-2 text-left text-sm transition-colors",
-                      card?.id === c.id
-                        ? "border-primary bg-primary/8 font-semibold text-card-foreground"
-                        : "border-transparent text-muted-foreground hover:bg-secondary/50",
-                    )}
-                  >
-                    <span className="block truncate" title={c.title}>
-                      {c.title}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
+    <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-8 px-6 py-10">
+      <PersonaGallerySection selected={personaIds} onChange={setPersonaIds} />
 
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" onClick={() => setStep("contacts")}>
-                Назад
-              </Button>
-              <Button className="flex-1 gap-1.5" disabled={!card} onClick={start}>
-                <Plus className="h-4 w-4" /> Начать совет
-              </Button>
-            </div>
-          </div>
+      <div className="flex flex-col gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">О чём поговорим?</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Выберите кейс, который разберёт совет.
+          </p>
         </div>
-      )}
-    </>
+
+        <div className="flex w-full max-w-xl items-center gap-2 rounded-xl border border-border bg-background px-3 transition-colors focus-within:border-primary">
+          <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <label htmlFor="council-case-search" className="sr-only">
+            Найдите кейс по названию
+          </label>
+          <input
+            id="council-case-search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Найдите кейс по названию"
+            className="h-10 w-full min-w-0 bg-transparent text-base outline-none placeholder:text-muted-foreground sm:text-sm"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {caseResults.map((c) => {
+            const isSelected = card?.id === c.id;
+            return (
+              <button
+                key={c.id}
+                onClick={() => setCard(c)}
+                aria-pressed={isSelected}
+                className={cn(
+                  "flex flex-col items-start gap-2 rounded-2xl border p-4 text-left transition-[transform,box-shadow,border-color,background-color] duration-200 active:scale-[0.96]",
+                  isSelected
+                    ? "-translate-y-0.5 border-primary bg-primary/8 shadow-md"
+                    : "border-border hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md",
+                )}
+              >
+                <div className="flex w-full items-start justify-between gap-2">
+                  <span
+                    className="truncate text-sm font-semibold text-card-foreground"
+                    title={c.title}
+                  >
+                    {c.title}
+                  </span>
+                  {isSelected && (
+                    <Check className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                  )}
+                </div>
+                <span className="w-fit rounded-full bg-secondary px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-secondary-foreground">
+                  {c.business_unit}
+                </span>
+                <span className="line-clamp-2 text-xs text-muted-foreground" title={c.executive_summary}>
+                  {c.executive_summary}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="sticky bottom-0 -mx-6 flex items-center justify-end gap-2 border-t border-border bg-background px-6 py-4">
+        <Button variant="ghost" onClick={onCancel}>
+          Отмена
+        </Button>
+        <Button disabled={personaIds.length === 0 || !card} onClick={start} className="gap-1.5">
+          <Plus className="h-4 w-4" /> Начать совет
+        </Button>
+      </div>
+    </div>
   );
 }
 
