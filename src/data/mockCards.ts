@@ -28,6 +28,8 @@ export interface KnowledgeCardData {
   media_type: MediaType;
   business_unit: string;
   tags: string[];
+  /** Только что добавлен и распознан — показать бейдж "Новый" до первого открытия. */
+  isNew?: boolean;
 }
 
 export const BUSINESS_UNITS = [
@@ -213,6 +215,7 @@ export const mockCards: KnowledgeCardData[] = [
     media_type: "document",
     business_unit: "Корпоративный центр",
     tags: ["управление рисками", "процессы"],
+    isNew: true,
   },
   {
     id: "card_002",

@@ -43,6 +43,10 @@ const MAX_PERSONAS = 3;
 // см. спеку §2); только заливка (PERSONA_TINT_CLASS) — 10%.
 const PERSONA_BORDER_CLASS = "border-[var(--persona-color)] dark:border-[var(--persona-color-dark)]";
 const PERSONA_TINT_CLASS = "bg-[color-mix(in_oklab,var(--persona-color)_10%,transparent)]";
+/** Слабый оттенок персоны в состоянии покоя — чтобы сетка карточек читалась
+ *  цветной до выбора, а не сплошным ч/б полем. Ч/б силуэт-плейсхолдер (см.
+ *  рационале ниже) остаётся отдельным, самым явным сигналом выбора. */
+const PERSONA_RESTING_TINT_CLASS = "bg-[color-mix(in_oklab,var(--persona-color)_4%,transparent)]";
 
 function personaColorVars(p: CouncilPersona): React.CSSProperties {
   return {
@@ -211,21 +215,30 @@ function GalleryCard({
   selected,
   disabled,
   onToggle,
+  index,
 }: {
   persona: CouncilPersona;
   selected: boolean;
   disabled: boolean;
   onToggle: () => void;
+  index: number;
 }) {
   const prefersReducedMotion = useReducedMotion();
+  const descriptionId = `persona-description-${persona.id}`;
 
   return (
-    <button
+    <motion.button
       type="button"
       onClick={onToggle}
       aria-disabled={disabled}
       aria-pressed={selected}
+      aria-describedby={descriptionId}
       style={personaColorVars(persona)}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={
+        prefersReducedMotion ? { duration: 0 } : { duration: 0.24, delay: Math.min(index, 11) * 0.04 }
+      }
       className={cn(
         "group relative flex aspect-[21/9] items-stretch overflow-hidden rounded-2xl border text-left transition-[transform,box-shadow,border-color,opacity] duration-200 active:scale-[0.96]",
         selected
@@ -242,7 +255,7 @@ function GalleryCard({
          но крупнее и на всю высоту карточки. Ч/б до выбора, цвет — после. */}
       <span
         className={cn(
-          "grid w-1/3 shrink-0 place-items-center text-white/90 transition-[filter] duration-200",
+          "grid w-1/3 shrink-0 place-items-center text-white/90 ring-1 ring-inset ring-black/10 transition-[filter] duration-200 dark:ring-white/10",
           !selected && "grayscale saturate-[.35]",
         )}
         style={{ backgroundColor: persona.hex }}
@@ -253,7 +266,7 @@ function GalleryCard({
       <span
         className={cn(
           "flex min-w-0 flex-1 flex-col justify-center gap-1 overflow-hidden py-3 pl-3 pr-7 transition-colors duration-200",
-          selected && PERSONA_TINT_CLASS,
+          selected ? PERSONA_TINT_CLASS : PERSONA_RESTING_TINT_CLASS,
         )}
       >
         <span
@@ -273,6 +286,13 @@ function GalleryCard({
         </span>
       </span>
 
+      <span
+        id={descriptionId}
+        className="pointer-events-none absolute inset-0 z-[1] flex items-center bg-card/95 p-3 text-xs leading-relaxed text-card-foreground opacity-0 backdrop-blur-sm transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100 active:opacity-100"
+      >
+        {persona.description}
+      </span>
+
       <AnimatePresence>
         {selected && (
           <motion.span
@@ -288,7 +308,7 @@ function GalleryCard({
           </motion.span>
         )}
       </AnimatePresence>
-    </button>
+    </motion.button>
   );
 }
 
@@ -355,7 +375,7 @@ function PersonaGallerySection({
       )}
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {COUNCIL_PERSONAS.map((p) => {
+        {COUNCIL_PERSONAS.map((p, index) => {
           const isSelected = selected.includes(p.id);
           const disabled = !isSelected && selected.length >= MAX_PERSONAS;
           return (
@@ -365,6 +385,7 @@ function PersonaGallerySection({
               selected={isSelected}
               disabled={disabled}
               onToggle={() => toggle(p.id)}
+              index={index}
             />
           );
         })}
@@ -719,7 +740,7 @@ function SessionView({
                 ringClassName={PERSONA_BORDER_CLASS}
                 style={{ backgroundColor: p.hex }}
               />
-              <div className="min-w-0 flex-1 space-y-1">
+              <div className="min-w-0 max-w-[85%] space-y-1">
                 <p className="text-xs font-bold text-card-foreground">
                   {p.name} <span className="font-normal text-muted-foreground">· {p.role}</span>
                   {replyTarget && (

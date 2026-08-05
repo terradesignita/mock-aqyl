@@ -15,6 +15,8 @@ interface KnowledgeCardProps {
   onDelete: (id: string) => void;
   isPrivate: boolean;
   onTogglePrivate: (id: string) => void;
+  isNew?: boolean;
+  onOpen?: (id: string) => void;
 }
 
 type OverlayMode = "open" | "delete" | null;
@@ -27,6 +29,8 @@ export function KnowledgeCard({
   onDelete,
   isPrivate,
   onTogglePrivate,
+  isNew,
+  onOpen,
 }: KnowledgeCardProps) {
   const isInternal = card.scope === "INTERNAL";
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -156,6 +160,11 @@ export function KnowledgeCard({
 
         {/* Title & summary */}
         <div className="mb-4">
+          {isNew && (
+            <span className="mb-1.5 inline-flex items-center rounded-full bg-primary px-2 py-0.5 text-xs font-bold text-primary-foreground">
+              Новый
+            </span>
+          )}
           <p className="text-base font-bold leading-snug text-card-foreground transition-colors group-hover:text-primary">
             {card.title}
           </p>
@@ -189,7 +198,7 @@ export function KnowledgeCard({
             }}
             aria-label="Удалить кейс"
             title="Удалить кейс"
-            className="-m-1 inline-flex items-center gap-1 rounded-md p-1 text-xs font-bold text-muted-foreground/50 transition-colors active:scale-[0.96] hover:text-destructive focus-visible:text-destructive group-hover:text-muted-foreground"
+            className="-m-1 inline-flex items-center gap-1 rounded-md p-1 text-xs font-bold text-muted-foreground opacity-0 transition-opacity active:scale-[0.96] hover:text-destructive focus-visible:text-destructive group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100"
           >
             <Trash2 className="h-4 w-4" />
           </button>
@@ -209,7 +218,10 @@ export function KnowledgeCard({
             ref={openLinkRef}
             to="/card/$id"
             params={{ id: card.id }}
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpen?.(card.id);
+            }}
             className="inline-flex items-center gap-1.5 rounded-full bg-card px-5 py-2.5 text-sm font-bold text-primary shadow-lg transition-transform active:scale-[0.96] hover:bg-card/90"
           >
             Открыть <ArrowRight className="h-4 w-4" />

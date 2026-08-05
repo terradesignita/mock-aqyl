@@ -5,6 +5,8 @@ export interface CouncilPersona {
   role: string;
   /** Реальный лидер — только как отсылка к стилю в bio. Никогда не источник цитаты. */
   inspiredBy: string;
+  /** Одна фраза о философии персоны — раскрывается по hover/focus на карточке в галерее. */
+  description: string;
   /** Основной цвет персоны — hex. Используется в обеих темах для солидной
    *  заливки (аватар, тег) и как база для рамки/кольца. */
   hex: string;
@@ -25,6 +27,7 @@ export const COUNCIL_PERSONAS: CouncilPersona[] = [
     initials: "AK",
     role: "Визионер-фаундер",
     inspiredBy: "Илона Маска",
+    description: "Ставит на горизонт в 10 лет и не боится сжигать ресурсы ради прорыва.",
     hex: "#a75d00",
     tag: "Визионер",
   },
@@ -34,6 +37,7 @@ export const COUNCIL_PERSONAS: CouncilPersona[] = [
     initials: "RN",
     role: "Операционный директор",
     inspiredBy: "Тима Кука",
+    description: "Требует владельца процесса и метрику на каждом шаге — иначе идея не масштабируется.",
     hex: "#7c3aed",
     tag: "Оператор",
   },
@@ -43,6 +47,7 @@ export const COUNCIL_PERSONAS: CouncilPersona[] = [
     initials: "VT",
     role: "Инженер-прагматик",
     inspiredBy: "Стива Возняка",
+    description: "Сначала проверит, реализуемо ли это технически, и только потом обсудит стратегию.",
     hex: "#2563eb",
     tag: "Инженер",
   },
@@ -52,6 +57,7 @@ export const COUNCIL_PERSONAS: CouncilPersona[] = [
     initials: "LA",
     role: "Контрарианка-инвестор",
     inspiredBy: "Джорджа Сороса",
+    description: "Ищет, где консенсус рынка ошибается, и ставит именно на это расхождение.",
     hex: "#0f766e",
     tag: "Скептик",
   },
@@ -61,6 +67,7 @@ export const COUNCIL_PERSONAS: CouncilPersona[] = [
     initials: "DO",
     role: "Промышленник",
     inspiredBy: "Уоррена Баффета",
+    description: "Ценит репутацию направления выше быстрой выгоды и не спешит с решением.",
     hex: "#c34700",
     tag: "Промышленник",
   },
@@ -70,6 +77,7 @@ export const COUNCIL_PERSONAS: CouncilPersona[] = [
     initials: "ME",
     role: "Продакт-лидер",
     inspiredBy: "Джеффа Безоса",
+    description: "Возвращает любой спор к одному вопросу: стало ли лучше конечному пользователю.",
     hex: "#c026d3",
     tag: "Продакт",
   },
@@ -79,6 +87,7 @@ export const COUNCIL_PERSONAS: CouncilPersona[] = [
     initials: "NB",
     role: "Бренд-стратег",
     inspiredBy: "Ричарда Брэнсона",
+    description: "Проверяет, можно ли объяснить решение простой историей — внутри компании и снаружи.",
     hex: "#c13892",
     tag: "Бренд",
   },
@@ -88,6 +97,7 @@ export const COUNCIL_PERSONAS: CouncilPersona[] = [
     initials: "SE",
     role: "Платформенный стратег",
     inspiredBy: "Сатьи Наделлы",
+    description: "Смотрит, кто ещё выигрывает от решения, и выбирает партнёрства вместо контроля.",
     hex: "#4f46e5",
     darkHex: "#5954f3",
     tag: "Платформа",
@@ -98,6 +108,7 @@ export const COUNCIL_PERSONAS: CouncilPersona[] = [
     initials: "AD",
     role: "Директор по M&A",
     inspiredBy: "Ларри Эллисона",
+    description: "Считает, что если мы не сделаем этот шаг первыми, это сделает конкурент.",
     hex: "#ce3452",
     tag: "M&A",
   },
@@ -107,6 +118,7 @@ export const COUNCIL_PERSONAS: CouncilPersona[] = [
     initials: "TN",
     role: "Директор по устойчивости",
     inspiredBy: "Джека Ма",
+    description: "Готовит направление к турбулентности заранее — рынок и регулятор не предупреждают.",
     hex: "#0e7490",
     tag: "Устойчивость",
   },
@@ -116,6 +128,7 @@ export const COUNCIL_PERSONAS: CouncilPersona[] = [
     initials: "DR",
     role: "Операционная эффективность",
     inspiredBy: "Сэма Уолтона",
+    description: "Считает каждый лишний доллар издержек упущенной маржой на масштабе.",
     hex: "#047857",
     tag: "Масштаб",
   },
@@ -125,6 +138,7 @@ export const COUNCIL_PERSONAS: CouncilPersona[] = [
     initials: "ET",
     role: "Директор по трансформации",
     inspiredBy: "Мэри Барра",
+    description: "Уверен: старые процессы не переживут решение без изменений в культуре команды.",
     hex: "#57534e",
     darkHex: "#6f6b66",
     tag: "Трансформация",

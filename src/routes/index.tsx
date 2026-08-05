@@ -14,13 +14,16 @@ import {
   useBookmarks,
   useDismissed,
   useHistory,
+  useOnboardingSeen,
   usePrivateCards,
   useScope,
+  useSeenNewCases,
   useTheme,
   type AdvisorSession,
 } from "@/hooks/useAppState";
 import { AdvisorFlow } from "@/components/advisor/AdvisorFlow";
 import { ADVISOR_EXAMPLES } from "@/data/advisor";
+import { OnboardingModals } from "@/components/OnboardingModals";
 
 const PAGE_SIZE = 12;
 
@@ -52,6 +55,8 @@ function Dashboard() {
   const { bookmarks, toggle: toggleBookmark } = useBookmarks();
   const { dismissed, dismiss } = useDismissed();
   const { privateIds, toggle: togglePrivate } = usePrivateCards();
+  const { seen: seenNewCases, markSeen: markCaseSeen } = useSeenNewCases();
+  const [onboardingSeen, setOnboardingSeen] = useOnboardingSeen();
   const [scope, setScope] = useScope();
   const { history, push, clear } = useHistory();
   const {
@@ -72,6 +77,7 @@ function Dashboard() {
   const [hintDismissed, setHintDismissed] = useState(false);
   const [visibility, setVisibility] = useState<VisibilityFilter>("all");
   const [page, setPage] = useState(0);
+  const [onboardingClosed, setOnboardingClosed] = useState(false);
   const firstRender = useRef(true);
 
   const focusOnAdvisor = advisor && (searchFocused || query.trim().length > 0);
@@ -128,6 +134,14 @@ function Dashboard() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
+      {!onboardingSeen && !onboardingClosed && (
+        <OnboardingModals
+          onClose={(dontShowAgain) => {
+            if (dontShowAgain) setOnboardingSeen(true);
+            setOnboardingClosed(true);
+          }}
+        />
+      )}
       <Header
         dark={dark}
         onToggleDark={toggle}
@@ -289,6 +303,8 @@ function Dashboard() {
                     onDelete={dismiss}
                     isPrivate={privateIds.includes(card.id)}
                     onTogglePrivate={togglePrivate}
+                    isNew={card.isNew === true && !seenNewCases.includes(card.id)}
+                    onOpen={markCaseSeen}
                   />
                 ))}
               </div>
