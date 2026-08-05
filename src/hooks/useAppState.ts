@@ -52,16 +52,6 @@ export function useScope() {
   return useLocalStorage<ScopeFilter>("biaqyl:mode", "ALL");
 }
 
-/** Cases the user has opened at least once — hides the "Новый" badge afterwards. */
-export function useSeenNewCases() {
-  const [seen, setSeen] = useLocalStorage<string[]>("biaqyl:seen-new-cases", []);
-  const markSeen = useCallback(
-    (id: string) => setSeen((prev) => (prev.includes(id) ? prev : [...prev, id])),
-    [setSeen],
-  );
-  return { seen, markSeen };
-}
-
 /** "Больше не показывать" onboarding modals explaining the Кейс/Материал entities. */
 export function useOnboardingSeen() {
   return useLocalStorage<boolean>("biaqyl:onboarding-seen", false);

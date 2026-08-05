@@ -17,7 +17,6 @@ import {
   useOnboardingSeen,
   usePrivateCards,
   useScope,
-  useSeenNewCases,
   useTheme,
   type AdvisorSession,
 } from "@/hooks/useAppState";
@@ -55,7 +54,6 @@ function Dashboard() {
   const { bookmarks, toggle: toggleBookmark } = useBookmarks();
   const { dismissed, dismiss } = useDismissed();
   const { privateIds, toggle: togglePrivate } = usePrivateCards();
-  const { seen: seenNewCases, markSeen: markCaseSeen } = useSeenNewCases();
   const [onboardingSeen, setOnboardingSeen] = useOnboardingSeen();
   const [scope, setScope] = useScope();
   const { history, push, clear } = useHistory();
@@ -303,8 +301,7 @@ function Dashboard() {
                     onDelete={dismiss}
                     isPrivate={privateIds.includes(card.id)}
                     onTogglePrivate={togglePrivate}
-                    isNew={card.isNew === true && !seenNewCases.includes(card.id)}
-                    onOpen={markCaseSeen}
+                    isNew={card.isNew === true}
                   />
                 ))}
               </div>

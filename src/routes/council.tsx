@@ -430,70 +430,72 @@ function NewCouncilPanel({
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-8 px-6 py-10">
-      <PersonaGallerySection selected={personaIds} onChange={setPersonaIds} />
+    <div className="mx-auto flex min-h-full w-full max-w-[1600px] flex-col px-6 py-10">
+      <div className="flex flex-1 flex-col gap-8">
+        <PersonaGallerySection selected={personaIds} onChange={setPersonaIds} />
 
-      <div className="flex flex-col gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">О чём поговорим?</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Выберите кейс, который разберёт совет.
-          </p>
-        </div>
+        <div className="flex flex-col gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-foreground">О чём поговорим?</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Выберите кейс, который разберёт совет.
+            </p>
+          </div>
 
-        <div className="flex w-full max-w-xl items-center gap-2 rounded-xl border border-border bg-background px-3 transition-colors focus-within:border-primary">
-          <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
-          <label htmlFor="council-case-search" className="sr-only">
-            Найдите кейс по названию
-          </label>
-          <input
-            id="council-case-search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Найдите кейс по названию"
-            className="h-10 w-full min-w-0 bg-transparent text-base outline-none placeholder:text-muted-foreground sm:text-sm"
-          />
-        </div>
+          <div className="flex w-full max-w-xl items-center gap-2 rounded-xl border border-border bg-background px-3 transition-colors focus-within:border-primary">
+            <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <label htmlFor="council-case-search" className="sr-only">
+              Найдите кейс по названию
+            </label>
+            <input
+              id="council-case-search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Найдите кейс по названию"
+              className="h-10 w-full min-w-0 bg-transparent text-base outline-none placeholder:text-muted-foreground sm:text-sm"
+            />
+          </div>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {caseResults.map((c) => {
-            const isSelected = card?.id === c.id;
-            return (
-              <button
-                key={c.id}
-                onClick={() => setCard(c)}
-                aria-pressed={isSelected}
-                className={cn(
-                  "flex flex-col items-start gap-2 rounded-2xl border p-4 text-left transition-[transform,box-shadow,border-color,background-color] duration-200 active:scale-[0.96]",
-                  isSelected
-                    ? "-translate-y-0.5 border-primary bg-primary/8 shadow-md"
-                    : "border-border hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md",
-                )}
-              >
-                <div className="flex w-full items-start justify-between gap-2">
-                  <span
-                    className="truncate text-sm font-semibold text-card-foreground"
-                    title={c.title}
-                  >
-                    {c.title}
-                  </span>
-                  {isSelected && (
-                    <Check className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {caseResults.map((c) => {
+              const isSelected = card?.id === c.id;
+              return (
+                <button
+                  key={c.id}
+                  onClick={() => setCard(c)}
+                  aria-pressed={isSelected}
+                  className={cn(
+                    "flex flex-col items-start gap-2 rounded-2xl border p-4 text-left transition-[transform,box-shadow,border-color,background-color] duration-200 active:scale-[0.96]",
+                    isSelected
+                      ? "-translate-y-0.5 border-primary bg-primary/8 shadow-md"
+                      : "border-border hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md",
                   )}
-                </div>
-                <span className="w-fit rounded-full bg-secondary px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-secondary-foreground">
-                  {c.business_unit}
-                </span>
-                <span className="line-clamp-2 text-xs text-muted-foreground" title={c.executive_summary}>
-                  {c.executive_summary}
-                </span>
-              </button>
-            );
-          })}
+                >
+                  <div className="flex w-full items-start justify-between gap-2">
+                    <span
+                      className="truncate text-sm font-semibold text-card-foreground"
+                      title={c.title}
+                    >
+                      {c.title}
+                    </span>
+                    {isSelected && (
+                      <Check className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                    )}
+                  </div>
+                  <span className="w-fit rounded-full bg-secondary px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-secondary-foreground">
+                    {c.business_unit}
+                  </span>
+                  <span className="line-clamp-2 text-xs text-muted-foreground" title={c.executive_summary}>
+                    {c.executive_summary}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      <div className="sticky bottom-0 -mx-6 flex items-center justify-end gap-2 border-t border-border bg-background px-6 py-4">
+      <div className="sticky bottom-0 -mx-6 mt-8 flex items-center justify-end gap-2 border-t border-border bg-background px-6 py-4">
         <Button variant="ghost" onClick={onCancel}>
           Отмена
         </Button>

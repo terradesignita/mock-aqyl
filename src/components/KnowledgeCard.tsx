@@ -16,7 +16,6 @@ interface KnowledgeCardProps {
   isPrivate: boolean;
   onTogglePrivate: (id: string) => void;
   isNew?: boolean;
-  onOpen?: (id: string) => void;
 }
 
 type OverlayMode = "open" | "delete" | null;
@@ -30,7 +29,6 @@ export function KnowledgeCard({
   isPrivate,
   onTogglePrivate,
   isNew,
-  onOpen,
 }: KnowledgeCardProps) {
   const isInternal = card.scope === "INTERNAL";
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -218,10 +216,7 @@ export function KnowledgeCard({
             ref={openLinkRef}
             to="/card/$id"
             params={{ id: card.id }}
-            onClick={(e) => {
-              e.stopPropagation();
-              onOpen?.(card.id);
-            }}
+            onClick={(e) => e.stopPropagation()}
             className="inline-flex items-center gap-1.5 rounded-full bg-card px-5 py-2.5 text-sm font-bold text-primary shadow-lg transition-transform active:scale-[0.96] hover:bg-card/90"
           >
             Открыть <ArrowRight className="h-4 w-4" />
