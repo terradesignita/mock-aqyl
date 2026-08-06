@@ -10,6 +10,7 @@ import {
   Send,
   Sparkle,
   Sparkles,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { HelpHint } from "@/components/HelpHint";
@@ -309,14 +310,23 @@ export function AdvisorFlow({ query, onReset, initialSession, onSave }: Props) {
 
       {stage === "answer" && (
         <div className="animate-in fade-in slide-in-from-bottom-2 space-y-3 duration-300">
-          <button
-            onClick={() => setStage("understanding")}
-            className="flex w-full items-start gap-2 rounded-card border border-dashed border-border bg-secondary/30 px-3.5 py-2.5 text-left text-xs leading-relaxed text-muted-foreground transition-colors hover:border-primary/50 hover:text-card-foreground"
-          >
-            <span className="mt-px shrink-0 font-bold text-primary">Ситуация</span>
-            <span className="flex-1 line-clamp-2">{understanding}</span>
-            <span className="shrink-0 font-bold text-primary">изменить</span>
-          </button>
+          <div className="flex items-start gap-2">
+            <button
+              onClick={() => setStage("understanding")}
+              className="flex flex-1 items-start gap-2 rounded-card border border-dashed border-border bg-secondary/30 px-3.5 py-2.5 text-left text-xs leading-relaxed text-muted-foreground transition-colors hover:border-primary/50 hover:text-card-foreground"
+            >
+              <span className="mt-px shrink-0 font-bold text-primary">Ситуация</span>
+              <span className="flex-1 line-clamp-2">{understanding}</span>
+              <span className="shrink-0 font-bold text-primary">изменить</span>
+            </button>
+            <button
+              onClick={onReset}
+              aria-label="Закрыть рекомендацию и задать новый вопрос"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-card border border-border bg-card text-muted-foreground transition-colors hover:border-primary/50 hover:text-card-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
 
           <AdvisorAnswer answer={answer} />
 
