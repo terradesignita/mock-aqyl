@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Bookmark } from "lucide-react";
+import { HelpHint } from "@/components/HelpHint";
 import { TOPIC_TAGS } from "@/data/mockCards";
 import type { Filters } from "@/lib/search";
 import { cn } from "@/lib/utils";
@@ -165,22 +166,28 @@ export function FiltersBar({
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex w-fit items-center gap-1 rounded-2xl border border-border bg-card p-1 shadow-soft">
-          {VISIBILITY_MODES.map((m) => (
-            <button
-              key={m.key}
-              onClick={() => onVisibilityChange(m.key)}
-              aria-pressed={visibility === m.key}
-              className={cn(
-                "h-8 rounded-xl px-3 text-xs font-semibold transition-colors active:scale-[0.96]",
-                visibility === m.key
-                  ? "bg-primary text-primary-foreground shadow-brand"
-                  : "text-muted-foreground hover:bg-secondary hover:text-foreground",
-              )}
-            >
-              {m.label}
-            </button>
-          ))}
+        <div className="flex items-center gap-1.5">
+          <div className="flex w-fit items-center gap-1 rounded-2xl border border-border bg-card p-1 shadow-soft">
+            {VISIBILITY_MODES.map((m) => (
+              <button
+                key={m.key}
+                onClick={() => onVisibilityChange(m.key)}
+                aria-pressed={visibility === m.key}
+                className={cn(
+                  "h-8 rounded-xl px-3 text-xs font-semibold transition-colors active:scale-[0.96]",
+                  visibility === m.key
+                    ? "bg-primary text-primary-foreground shadow-brand"
+                    : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                )}
+              >
+                {m.label}
+              </button>
+            ))}
+          </div>
+          <HelpHint
+            label="Что значит Приватные и Общие"
+            text="Приватные — кейсы, видимые только вам. Общие — доступны всем сотрудникам и участвуют в общем поиске."
+          />
         </div>
 
         <button

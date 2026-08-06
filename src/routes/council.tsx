@@ -1,9 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Check, PanelLeft, PanelLeftClose, Plus, Search, Send, Trash2 } from "lucide-react";
+import {
+  Check,
+  Info,
+  PanelLeft,
+  PanelLeftClose,
+  Plus,
+  Search,
+  Send,
+  Trash2,
+} from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { toast } from "sonner";
 import { Header } from "@/components/Header";
+import { HelpHint } from "@/components/HelpHint";
 import { HoverRevealIconButton } from "@/components/HoverRevealIconButton";
 import { MessageBubble } from "@/components/MessageBubble";
 import { PersonaAvatar, PersonaSilhouette } from "@/components/PersonaAvatar";
@@ -178,7 +188,7 @@ function ReactionBar({
         "flex items-center gap-1 transition-opacity",
         active.length > 0
           ? "opacity-100"
-          : "opacity-0 group-hover:opacity-100 group-focus-within:opacity-100",
+          : "opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-100",
       )}
     >
       {REACTION_EMOJIS.map((emoji) => {
@@ -281,8 +291,9 @@ function GalleryCard({
         >
           {persona.name}
         </span>
-        <span className="self-start" title={`в духе ${persona.inspiredBy}`}>
-          <PersonaTag tag={persona.role} hex={persona.hex} />
+        <span className="flex flex-wrap items-center gap-1.5">
+          <PersonaTag tag={persona.tag} hex={persona.hex} />
+          <span className="text-[10px] text-muted-foreground">в духе {persona.inspiredBy}</span>
         </span>
         <span className="text-xs leading-relaxed text-muted-foreground">{persona.description}</span>
       </span>
@@ -343,11 +354,12 @@ function PersonaGallerySection({
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
+      <div className="flex items-center gap-1.5">
         <h2 className="text-2xl font-bold text-foreground">Соберите консилиум</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Выберите от одного до трёх участников для обсуждения вашей задачи.
-        </p>
+        <HelpHint
+          label="Что такое консилиум"
+          text="Консилиум — это групповое обсуждение вашей задачи с несколькими AI-персонами. Каждая привносит свой взгляд на вопрос, поэтому вместо одного мнения вы получаете спор и разные точки зрения. Выберите от одного до трёх участников."
+        />
       </div>
 
       <span role="status" aria-live="polite" className="sr-only">
@@ -405,6 +417,15 @@ function NewCouncilPanel({
     return mockCards.filter((c) => c.title.toLowerCase().includes(q)).slice(0, 8);
   }, [query]);
 
+  const missing =
+    personaIds.length === 0 && !card
+      ? "Выберите участников совета и кейс для обсуждения"
+      : personaIds.length === 0
+        ? "Добавьте хотя бы одного участника совета"
+        : !card
+          ? "Выберите кейс, чтобы начать совет"
+          : null;
+
   const start = () => {
     if (!card || personaIds.length === 0) return;
     const topic = {
@@ -429,11 +450,12 @@ function NewCouncilPanel({
         <PersonaGallerySection selected={personaIds} onChange={setPersonaIds} />
 
         <div className="flex flex-col gap-4">
-          <div>
+          <div className="flex items-center gap-1.5">
             <h2 className="text-2xl font-bold text-foreground">О чём поговорим?</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Выберите кейс, который разберёт совет.
-            </p>
+            <HelpHint
+              label="Что здесь нужно выбрать"
+              text="Выберите кейс, который разберёт совет. Персоны будут обсуждать именно его — свою ситуацию, ключевой инсайт и бизнес-юнит."
+            />
           </div>
 
           <div className="flex w-full max-w-xl items-center gap-2 rounded-xl border border-border bg-background px-3 transition-colors focus-within:border-primary">
@@ -496,13 +518,28 @@ function NewCouncilPanel({
         </div>
       </div>
 
-      <div className="sticky bottom-0 -mx-6 mt-8 flex items-center justify-end gap-2 border-t border-border bg-background px-6 py-4">
-        <Button variant="ghost" onClick={onCancel}>
-          Отмена
-        </Button>
-        <Button disabled={personaIds.length === 0 || !card} onClick={start} className="gap-1.5">
-          <Plus className="h-4 w-4" /> Начать совет
-        </Button>
+      <div className="sticky bottom-0 -mx-6 mt-8 flex items-center justify-between gap-2 border-t border-border bg-background px-6 py-4">
+        {missing && (
+          <span
+            id="council-start-gate-hint"
+            className="flex items-center gap-1.5 text-xs text-muted-foreground"
+          >
+            <Info className="h-3.5 w-3.5" /> {missing}
+          </span>
+        )}
+        <span className="ml-auto flex items-center gap-2">
+          <Button variant="ghost" onClick={onCancel}>
+            Отмена
+          </Button>
+          <Button
+            disabled={!!missing}
+            aria-describedby={missing ? "council-start-gate-hint" : undefined}
+            onClick={start}
+            className="gap-1.5"
+          >
+            <Plus className="h-4 w-4" /> Начать совет
+          </Button>
+        </span>
       </div>
     </div>
   );

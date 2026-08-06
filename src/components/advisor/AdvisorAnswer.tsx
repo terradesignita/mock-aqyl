@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner";
 import type { Answer } from "@/data/advisor";
 import { Badge } from "@/components/ui/badge";
+import { HelpHint } from "@/components/HelpHint";
 import { cn } from "@/lib/utils";
 
 const APPLICABILITY_TONE: Record<Answer["caseRef"]["applicability"], string> = {
@@ -117,6 +118,10 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
         >
           Уровень доказательности: {answer.evidenceLevel}
         </Badge>
+        <HelpHint
+          label="Что значит уровень доказательности"
+          text="Шкала: высокий — несколько независимых источников; средний — один надёжный источник; низкий — косвенные данные; недостаточно данных — советник отказывается от рекомендации."
+        />
         <span className="text-xs text-muted-foreground">{answer.evidenceNote}</span>
       </div>
     </section>
@@ -139,12 +144,18 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
         </Section>
 
         <Section title={`Релевантный кейс: ${answer.caseRef.title}`} icon={BookOpen}>
-          <Badge
-            variant="outline"
-            className={cn("font-bold", APPLICABILITY_TONE[answer.caseRef.applicability])}
-          >
-            {answer.caseRef.applicability}
-          </Badge>
+          <div className="flex items-center gap-1.5">
+            <Badge
+              variant="outline"
+              className={cn("font-bold", APPLICABILITY_TONE[answer.caseRef.applicability])}
+            >
+              {answer.caseRef.applicability}
+            </Badge>
+            <HelpHint
+              label="Что значит применимость кейса"
+              text="Насколько похож этот кейс на вашу ситуацию: высокая — условия почти идентичны; частичная — совпадает часть факторов; слабая — только общая логика, детали переносить нельзя."
+            />
+          </div>
           <p className="mt-2 text-sm leading-relaxed text-card-foreground">
             {answer.caseRef.summary}
           </p>
@@ -253,6 +264,10 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
           }
           icon={Quote}
         >
+          <p className="mb-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+            Тип источника и его вес в выводе
+            <HelpHint text="Тип источника: факт из документа, авторский анализ, ваша заметка или сгенерировано ИИ. Вес в выводе: определяющий — на нём строится вывод; подтверждающий — усиливает его; контекстный — просто фон." />
+          </p>
           <ul className="space-y-2">
             {answer.sources.map((s) => (
               <li key={s.id}>
