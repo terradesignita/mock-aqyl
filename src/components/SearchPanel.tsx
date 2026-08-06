@@ -231,7 +231,7 @@ export function SearchPanel({
         </div>
       </div>
 
-      {!advisorQueryActive && history.length > 0 && (
+      {advisor && !advisorQueryActive && history.length > 0 && (
         <div className="mt-3 rounded-2xl border border-border bg-card p-4 shadow-soft">
           <p className="flex items-center gap-1.5 pb-2 text-xs font-semibold text-muted-foreground">
             <History className="h-3.5 w-3.5" /> Недавние вопросы

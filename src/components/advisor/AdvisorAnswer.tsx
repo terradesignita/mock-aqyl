@@ -82,10 +82,6 @@ function Bullets({ items }: { items: string[] }) {
 export function AdvisorAnswer({ answer }: { answer: Answer }) {
   const refusal = answer.evidenceLevel === "недостаточно данных";
 
-  // Confident verdicts lead with the answer, at the top. An honest refusal reads
-  // backwards up there — before the reasoning, "недостаточно данных" looks like
-  // the AI gave up without looking — so it renders as the closing word instead,
-  // after the sections below have shown the reasoning that led to it.
   const verdict = (
     <section
       className={`rounded-card border-2 p-6 shadow-brand ${
@@ -128,8 +124,6 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
 
   return (
     <div className="space-y-3">
-      {!refusal && verdict}
-
       <div className="grid items-start gap-3 xl:grid-cols-2">
         <Section title="Почему сделан такой вывод" icon={ListChecks}>
           <ol className="space-y-2">
@@ -289,7 +283,7 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
         </Section>
       </div>
 
-      {refusal && verdict}
+      {verdict}
     </div>
   );
 }
