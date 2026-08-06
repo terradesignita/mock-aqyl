@@ -67,9 +67,7 @@ export function DeckViewer({ slides, fullscreen }: { slides: Slide[]; fullscreen
     <div className="space-y-3">
       <div className="relative overflow-hidden rounded-2xl border border-border bg-primary text-primary-foreground shadow-xl">
         <div className="aspect-video p-6 sm:p-10">
-          <p className="text-xs font-bold text-primary-foreground/60">
-            {s.kicker}
-          </p>
+          <p className="text-xs font-bold text-primary-foreground/60">{s.kicker}</p>
           <h3
             className={`mt-3 font-bold leading-tight ${
               fullscreen ? "text-4xl" : "text-xl sm:text-2xl"
@@ -96,7 +94,7 @@ export function DeckViewer({ slides, fullscreen }: { slides: Slide[]; fullscreen
               ))}
             </ul>
           )}
-          <p className="absolute bottom-4 right-6 text-xs font-semibold text-primary-foreground/50">
+          <p className="absolute bottom-4 right-6 text-xs font-semibold text-primary-foreground/80">
             {i + 1} / {slides.length}
           </p>
         </div>

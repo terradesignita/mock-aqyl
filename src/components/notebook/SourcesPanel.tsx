@@ -1,4 +1,6 @@
 import { HelpHint } from "@/components/HelpHint";
+import { HoverRevealIconButton } from "@/components/HoverRevealIconButton";
+import { Badge } from "@/components/ui/badge";
 import { useRef, useState } from "react";
 import {
   Download,
@@ -39,13 +41,9 @@ interface Props {
 
 function Counter({ value, tone = "muted" }: { value: number; tone?: "muted" | "primary" }) {
   return (
-    <span
-      className={`inline-grid h-[18px] min-w-[18px] place-items-center rounded-full px-1 text-xs font-bold tabular-nums ${
-        tone === "primary" ? "bg-primary/12 text-primary" : "bg-secondary text-muted-foreground"
-      }`}
-    >
+    <Badge variant={tone === "primary" ? "tint" : "secondary"} size="counter" className="font-bold">
       {value}
-    </span>
+    </Badge>
   );
 }
 
@@ -129,13 +127,12 @@ export function SourcesPanel({
         </button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button
+            <HoverRevealIconButton
               aria-label="Действия с источником"
               onClick={(e) => e.stopPropagation()}
-              className="grid h-6 w-6 shrink-0 place-items-center rounded-md text-muted-foreground opacity-0 transition-opacity hover:bg-secondary hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100 data-[state=open]:opacity-100"
             >
               <MoreVertical className="h-3.5 w-3.5" />
-            </button>
+            </HoverRevealIconButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-52">
             <DropdownMenuLabel className="truncate text-xs">{titleOf(s)}</DropdownMenuLabel>
@@ -166,16 +163,13 @@ export function SourcesPanel({
     );
   };
 
-
   return (
     <div className="flex h-full flex-col bg-card">
       <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2 px-3 pb-2 pt-3.5">
         <p className="flex min-w-0 items-center gap-1.5 truncate text-sm font-bold tracking-tight text-card-foreground">
           Источники
           <Counter value={selected.length} tone="primary" />
-          <span className="text-xs font-medium text-muted-foreground">
-            из {visible.length}
-          </span>
+          <span className="text-xs font-medium text-muted-foreground">из {visible.length}</span>
           <HelpHint
             side="bottom"
             text="Отмеченные источники — контекст для ассистента и артефактов. Снимите галочку, чтобы исключить материал из ответов."
@@ -226,7 +220,9 @@ export function SourcesPanel({
           }`}
         >
           <Plus className="h-4 w-4" />
-          <p className="text-xs font-medium leading-tight">Перетащите файлы сюда или нажмите, чтобы выбрать</p>
+          <p className="text-xs font-medium leading-tight">
+            Перетащите файлы сюда или нажмите, чтобы выбрать
+          </p>
           <p className="text-xs leading-tight opacity-80">PDF, DOCX, PPTX, MP3 или ссылка</p>
         </button>
       </div>
@@ -240,10 +236,11 @@ export function SourcesPanel({
           </p>
           <ul className="space-y-0.5">{files.map(row)}</ul>
           {files.length === 0 && (
-            <p className="px-1 py-1 text-xs text-muted-foreground">Ничего не найдено</p>
+            <p className="px-1 py-1 text-xs text-muted-foreground">
+              Файлов пока нет — загрузите первый
+            </p>
           )}
         </div>
-
       </div>
 
       <div className="max-h-[45%] overflow-y-auto border-t border-border p-3">

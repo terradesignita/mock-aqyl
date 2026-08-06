@@ -8,10 +8,42 @@ import { SourceReaderDialog } from "@/components/notebook/SourceReaderDialog";
 import { buildNotebookSources, type NotebookSource } from "@/lib/sources";
 import { NotebookChat } from "@/components/notebook/NotebookChat";
 import { StudioPanel } from "@/components/notebook/StudioPanel";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { getCardById, type KnowledgeCardData } from "@/data/mockCards";
 import { useBookmarks, useCardTitle, useFeedback, useNotes, useTheme } from "@/hooks/useAppState";
-import { useResizablePanel } from "@/hooks/useResizablePanel";
+import { clampWidth, useResizablePanel } from "@/hooks/useResizablePanel";
+import { cn } from "@/lib/utils";
+
+const PANEL_WIDTH_MIN = 220;
+const PANEL_WIDTH_MAX = 520;
+
+/** Keyboard step handler for a resize separator — Left/Right nudge, Home/End snap to bounds.
+ *  `invert: true` for a separator on a panel's left edge (dragging/pressing left grows it). */
+function resizeKeyDown(
+  setWidth: (fn: (w: number) => number) => void,
+  invert = false,
+): React.KeyboardEventHandler {
+  return (e) => {
+    const step = e.shiftKey ? 40 : 16;
+    const grow = invert ? "ArrowLeft" : "ArrowRight";
+    const shrink = invert ? "ArrowRight" : "ArrowLeft";
+    if (e.key === grow) {
+      e.preventDefault();
+      setWidth((w) => clampWidth(w + step, PANEL_WIDTH_MIN, PANEL_WIDTH_MAX));
+    } else if (e.key === shrink) {
+      e.preventDefault();
+      setWidth((w) => clampWidth(w - step, PANEL_WIDTH_MIN, PANEL_WIDTH_MAX));
+    } else if (e.key === "Home") {
+      e.preventDefault();
+      setWidth(() => PANEL_WIDTH_MIN);
+    } else if (e.key === "End") {
+      e.preventDefault();
+      setWidth(() => PANEL_WIDTH_MAX);
+    }
+  };
+}
 
 export const Route = createFileRoute("/card/$id")({
   loader: ({ params }) => {
@@ -73,14 +105,18 @@ function CardWorkspace() {
   const [selected, setSelected] = useState<string[]>(() => sources.map((s) => s.id));
   const [showSources, setShowSources] = useState(true);
   const [showStudio, setShowStudio] = useState(true);
-  const { width: sourcesWidth, startResize: startSourcesResize } = useResizablePanel(290, {
-    min: 220,
-    max: 520,
-  });
-  const { width: studioWidth, startResize: startStudioResize } = useResizablePanel(320, {
-    min: 220,
-    max: 520,
-  });
+  const [mobileSources, setMobileSources] = useState(false);
+  const [mobileStudio, setMobileStudio] = useState(false);
+  const {
+    width: sourcesWidth,
+    setWidth: setSourcesWidth,
+    startResize: startSourcesResize,
+  } = useResizablePanel(290, { min: PANEL_WIDTH_MIN, max: PANEL_WIDTH_MAX });
+  const {
+    width: studioWidth,
+    setWidth: setStudioWidth,
+    startResize: startStudioResize,
+  } = useResizablePanel(320, { min: PANEL_WIDTH_MIN, max: PANEL_WIDTH_MAX });
 
   const [reader, setReader] = useState<NotebookSource | null>(null);
   const [highlight, setHighlight] = useState<string | null>(null);
@@ -117,27 +153,31 @@ function CardWorkspace() {
                 <button
                   type="button"
                   onClick={startEditingTitle}
+                  title={title}
                   className="group flex min-w-0 items-center gap-1.5 rounded-md px-1.5 py-0.5 text-left transition-colors hover:bg-secondary/50"
                 >
                   <h1 className="truncate text-lg font-bold text-card-foreground">{title}</h1>
                   <Pencil className="h-3.5 w-3.5 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
                 </button>
               )}
-              <span
-                className={`hidden shrink-0 items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-semibold sm:inline-flex ${
+              <Badge
+                variant="secondary"
+                className={cn(
+                  "hidden gap-1.5 sm:inline-flex",
                   isInternal
                     ? "bg-scope-internal/15 text-scope-internal"
-                    : "bg-scope-external/15 text-scope-external"
-                }`}
+                    : "bg-scope-external/15 text-scope-external",
+                )}
               >
                 <span
                   aria-hidden
-                  className={`h-1.5 w-1.5 rounded-full ${
-                    isInternal ? "bg-scope-internal" : "bg-scope-external"
-                  }`}
+                  className={cn(
+                    "h-1.5 w-1.5 rounded-full",
+                    isInternal ? "bg-scope-internal" : "bg-scope-external",
+                  )}
                 />
                 {isInternal ? "Внутренний опыт" : "Мировой опыт"}
-              </span>
+              </Badge>
             </span>
             <span className="hidden truncate text-xs text-muted-foreground sm:block">
               {card.source} · {card.author} · {card.language} · {card.date} · {card.business_unit}
@@ -146,6 +186,24 @@ function CardWorkspace() {
         </div>
 
         <div className="flex shrink-0 items-center gap-1.5">
+          {/* Ниже lg/xl десктопные aside-панели скрыты — без этих кнопок источники и
+             артефакты были бы вообще недостижимы на телефоне/планшете. */}
+          <button
+            onClick={() => setMobileSources(true)}
+            aria-label="Источники"
+            title="Источники"
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-md border border-border text-muted-foreground transition-colors hover:border-primary hover:text-primary lg:hidden"
+          >
+            <PanelLeft className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => setMobileStudio(true)}
+            aria-label="Артефакты"
+            title="Артефакты"
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-md border border-border text-muted-foreground transition-colors hover:border-primary hover:text-primary xl:hidden"
+          >
+            <PanelRight className="h-4 w-4" />
+          </button>
           <Button
             size="sm"
             variant="outline"
@@ -202,13 +260,46 @@ function CardWorkspace() {
             />
             <div
               onMouseDown={startSourcesResize()}
+              onKeyDown={resizeKeyDown(setSourcesWidth)}
               role="separator"
+              tabIndex={0}
               aria-orientation="vertical"
               aria-label="Изменить ширину панели источников"
-              className="absolute inset-y-0 -right-1 z-20 w-2 cursor-col-resize hover:bg-primary/25"
+              aria-valuenow={sourcesWidth}
+              aria-valuemin={PANEL_WIDTH_MIN}
+              aria-valuemax={PANEL_WIDTH_MAX}
+              className="absolute inset-y-0 -right-1 z-20 w-2 cursor-col-resize hover:bg-primary/25 focus-visible:bg-primary/25"
             />
           </aside>
         )}
+
+        <Sheet open={mobileSources} onOpenChange={setMobileSources}>
+          <SheetContent side="left" className="w-[85vw] max-w-sm p-0 lg:hidden">
+            <SheetTitle className="sr-only">Источники</SheetTitle>
+            <SourcesPanel
+              card={card}
+              sources={sources}
+              selected={selected}
+              onToggle={(id) =>
+                setSelected((prev) =>
+                  prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+                )
+              }
+              onToggleAll={() =>
+                setSelected((prev) =>
+                  prev.length === sources.length ? [] : sources.map((s) => s.id),
+                )
+              }
+              onOpenSource={(s) => {
+                setHighlight(null);
+                setReader(s);
+                setMobileSources(false);
+              }}
+              notes={notes}
+              onRemoveNote={removeNote}
+            />
+          </SheetContent>
+        </Sheet>
 
         {!showSources && (
           <button
@@ -257,10 +348,15 @@ function CardWorkspace() {
           >
             <div
               onMouseDown={startStudioResize(true)}
+              onKeyDown={resizeKeyDown(setStudioWidth, true)}
               role="separator"
+              tabIndex={0}
               aria-orientation="vertical"
               aria-label="Изменить ширину панели артефактов"
-              className="absolute inset-y-0 -left-1 z-20 w-2 cursor-col-resize hover:bg-primary/25"
+              aria-valuenow={studioWidth}
+              aria-valuemin={PANEL_WIDTH_MIN}
+              aria-valuemax={PANEL_WIDTH_MAX}
+              className="absolute inset-y-0 -left-1 z-20 w-2 cursor-col-resize hover:bg-primary/25 focus-visible:bg-primary/25"
             />
             <StudioPanel
               card={displayCard}
@@ -272,8 +368,21 @@ function CardWorkspace() {
             />
           </aside>
         )}
-      </div>
 
+        <Sheet open={mobileStudio} onOpenChange={setMobileStudio}>
+          <SheetContent side="right" className="w-[85vw] max-w-sm p-0 xl:hidden">
+            <SheetTitle className="sr-only">Артефакты</SheetTitle>
+            <StudioPanel
+              card={displayCard}
+              onSaveNote={(text) => {
+                addNote(text);
+                toast.success("Артефакт сохранён в заметки");
+                setMobileStudio(false);
+              }}
+            />
+          </SheetContent>
+        </Sheet>
+      </div>
 
       <SourceReaderDialog
         source={reader}

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
   AlertTriangle,
+  ArrowUpRight,
   BookOpen,
   ChevronDown,
   CircleHelp,
@@ -10,7 +11,10 @@ import {
   ShieldQuestion,
   Target,
 } from "lucide-react";
+import { toast } from "sonner";
 import type { Answer } from "@/data/advisor";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 const APPLICABILITY_TONE: Record<Answer["caseRef"]["applicability"], string> = {
   "Высокая применимость": "border-scope-internal/50 bg-scope-internal/10 text-scope-internal",
@@ -77,66 +81,76 @@ function Bullets({ items }: { items: string[] }) {
 
 export function AdvisorAnswer({ answer }: { answer: Answer }) {
   const refusal = answer.evidenceLevel === "недостаточно данных";
+
+  // Confident verdicts lead with the answer, at the top. An honest refusal reads
+  // backwards up there — before the reasoning, "недостаточно данных" looks like
+  // the AI gave up without looking — so it renders as the closing word instead,
+  // after the sections below have shown the reasoning that led to it.
+  const verdict = (
+    <section
+      className={`rounded-card border-2 p-6 shadow-brand ${
+        refusal
+          ? "border-destructive/50 bg-gradient-to-br from-destructive/10 via-destructive/[0.04] to-transparent"
+          : "border-primary/50 bg-gradient-to-br from-primary/10 via-primary/[0.04] to-transparent"
+      }`}
+    >
+      <p className={`text-xs font-bold ${refusal ? "text-destructive" : "text-primary"}`}>
+        {refusal ? "Честный отказ" : "Краткий вывод"}
+      </p>
+      <h2 className="mt-1.5 text-xl font-extrabold leading-snug text-card-foreground">
+        {answer.verdict}
+      </h2>
+      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{answer.verdictDetail}</p>
+
+      <div className="mt-4 rounded-control border-l-4 border-accent bg-accent/10 p-4">
+        <p className="flex items-center gap-2 text-xs font-bold text-accent">
+          <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent/15">
+            <Lightbulb className="h-3.5 w-3.5" />
+          </span>
+          Главный стратегический инсайт
+        </p>
+        <p className="mt-2 text-sm font-semibold leading-relaxed text-card-foreground">
+          {answer.insight}
+        </p>
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <Badge
+          variant="outline"
+          className={cn("gap-1.5 font-bold", EVIDENCE_TONE[answer.evidenceLevel])}
+        >
+          Уровень доказательности: {answer.evidenceLevel}
+        </Badge>
+        <span className="text-xs text-muted-foreground">{answer.evidenceNote}</span>
+      </div>
+    </section>
+  );
+
   return (
     <div className="space-y-3">
-      {/* Первый экран: вывод + инсайт + доказательность */}
-      <section
-        className={`rounded-card border-2 p-6 shadow-brand ${
-          refusal
-            ? "border-destructive/50 bg-gradient-to-br from-destructive/10 via-destructive/[0.04] to-transparent"
-            : "border-primary/50 bg-gradient-to-br from-primary/10 via-primary/[0.04] to-transparent"
-        }`}
-      >
-        <p className={`text-xs font-bold ${refusal ? "text-destructive" : "text-primary"}`}>
-          {refusal ? "Честный отказ" : "Краткий вывод"}
-        </p>
-        <h2 className="mt-1.5 text-xl font-extrabold leading-snug text-card-foreground">
-          {answer.verdict}
-        </h2>
-        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{answer.verdictDetail}</p>
-
-        <div className="mt-4 rounded-control border-l-4 border-accent bg-accent/10 p-4">
-          <p className="flex items-center gap-2 text-xs font-bold text-accent">
-            <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent/15">
-              <Lightbulb className="h-3.5 w-3.5" />
-            </span>
-            Главный стратегический инсайт
-          </p>
-          <p className="mt-2 text-sm font-semibold leading-relaxed text-card-foreground">
-            {answer.insight}
-          </p>
-        </div>
-
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <span
-            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-bold ${EVIDENCE_TONE[answer.evidenceLevel]}`}
-          >
-            Уровень доказательности: {answer.evidenceLevel}
-          </span>
-          <span className="text-xs text-muted-foreground">{answer.evidenceNote}</span>
-        </div>
-      </section>
+      {!refusal && verdict}
 
       <div className="grid items-start gap-3 xl:grid-cols-2">
-        <Section title="Почему сделан такой вывод" icon={ListChecks} defaultOpen>
+        <Section title="Почему сделан такой вывод" icon={ListChecks}>
           <ol className="space-y-2">
             {answer.arguments.map((a, i) => (
               <li key={a} className="flex gap-2.5 text-sm leading-relaxed text-card-foreground">
-                <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-primary/12 text-xs font-bold text-primary">
+                <Badge variant="tint" size="counter" className="h-5 min-w-5 shrink-0 font-bold">
                   {i + 1}
-                </span>
+                </Badge>
                 {a}
               </li>
             ))}
           </ol>
         </Section>
 
-        <Section title={`Релевантный кейс: ${answer.caseRef.title}`} icon={BookOpen} defaultOpen>
-          <span
-            className={`inline-flex rounded-full border px-2.5 py-0.5 text-xs font-bold ${APPLICABILITY_TONE[answer.caseRef.applicability]}`}
+        <Section title={`Релевантный кейс: ${answer.caseRef.title}`} icon={BookOpen}>
+          <Badge
+            variant="outline"
+            className={cn("font-bold", APPLICABILITY_TONE[answer.caseRef.applicability])}
           >
             {answer.caseRef.applicability}
-          </span>
+          </Badge>
           <p className="mt-2 text-sm leading-relaxed text-card-foreground">
             {answer.caseRef.summary}
           </p>
@@ -171,7 +185,7 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
           </div>
         </Section>
 
-        <Section title="Рекомендация и предлагаемые условия" icon={Target} defaultOpen>
+        <Section title="Рекомендация и предлагаемые условия" icon={Target}>
           <p className="rounded-control border-l-4 border-primary bg-primary/6 p-3 text-sm font-semibold leading-relaxed text-card-foreground">
             {answer.recommendation}
           </p>
@@ -182,7 +196,7 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
         </Section>
       </div>
 
-      <Section title="Варианты решения" icon={ListChecks} defaultOpen>
+      <Section title="Варианты решения" icon={ListChecks}>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] border-collapse text-sm">
             <thead>
@@ -203,9 +217,9 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
                   <td className="py-2 pr-3 font-semibold text-card-foreground">
                     {s.name}
                     {s.recommended && (
-                      <span className="ml-2 rounded-full bg-primary px-2 py-0.5 text-xs font-bold text-primary-foreground">
+                      <Badge variant="primary" className="ml-2 font-bold">
                         рекомендуем
-                      </span>
+                      </Badge>
                     )}
                   </td>
                   <td className="py-2 pr-3 text-muted-foreground">{s.speed}</td>
@@ -220,7 +234,7 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
       </Section>
 
       <div className="grid items-start gap-3 xl:grid-cols-2">
-        <Section title="Риски" icon={AlertTriangle} defaultOpen>
+        <Section title="Риски" icon={AlertTriangle}>
           <Bullets items={answer.risks} />
         </Section>
 
@@ -230,11 +244,7 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
       </div>
 
       <div className="grid items-start gap-3 xl:grid-cols-2">
-        <Section
-          title="Чего не хватает для окончательного решения"
-          icon={ShieldQuestion}
-          defaultOpen
-        >
+        <Section title="Чего не хватает для окончательного решения" icon={ShieldQuestion}>
           <Bullets items={answer.missing} />
         </Section>
 
@@ -242,34 +252,44 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
           title={
             <span className="inline-flex items-center gap-2">
               Источники
-              <span className="grid h-5 w-5 place-items-center rounded-full bg-primary/15 text-xs font-bold text-primary">
+              <Badge variant="tint" size="counter" className="h-5 min-w-5 font-bold">
                 {answer.sources.length}
-              </span>
+              </Badge>
             </span>
           }
           icon={Quote}
-          defaultOpen
         >
           <ul className="space-y-2">
             {answer.sources.map((s) => (
-              <li key={s.id} className="rounded-control border border-border bg-secondary/40 p-3">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-sm font-semibold text-card-foreground">{s.title}</span>
-                  <span className="rounded-full bg-card px-2 py-0.5 text-xs font-bold text-muted-foreground">
-                    {s.kind}
-                  </span>
-                  <span className="rounded-full bg-primary/12 px-2 py-0.5 text-xs font-bold text-primary">
-                    {s.influence}
-                  </span>
-                </div>
-                <p className="mt-1.5 border-l-2 border-accent pl-2 text-xs italic leading-relaxed text-muted-foreground">
-                  «{s.quote}»
-                </p>
+              <li key={s.id}>
+                <button
+                  type="button"
+                  onClick={() => toast.success(`Источник «${s.title}» открыт`)}
+                  className="group w-full rounded-control border border-border bg-secondary/40 p-3 text-left transition-colors hover:border-primary/40 hover:bg-secondary/60"
+                >
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center gap-1 text-sm font-semibold text-card-foreground group-hover:text-primary group-hover:underline">
+                      {s.title}
+                      <ArrowUpRight className="h-3.5 w-3.5 shrink-0 opacity-0 transition-opacity group-hover:opacity-100" />
+                    </span>
+                    <Badge variant="secondary" className="bg-card font-bold">
+                      {s.kind}
+                    </Badge>
+                    <Badge variant="tint" className="font-bold">
+                      {s.influence}
+                    </Badge>
+                  </div>
+                  <p className="mt-1.5 border-l-2 border-accent pl-2 text-xs italic leading-relaxed text-muted-foreground">
+                    «{s.quote}»
+                  </p>
+                </button>
               </li>
             ))}
           </ul>
         </Section>
       </div>
+
+      {refusal && verdict}
     </div>
   );
 }

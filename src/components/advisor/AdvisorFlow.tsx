@@ -4,6 +4,7 @@ import {
   ClipboardList,
   Loader2,
   MessageSquarePlus,
+  PenLine,
   Presentation,
   Save,
   Send,
@@ -32,6 +33,10 @@ import type { AdvisorSession } from "@/hooks/useAppState";
 import { ClarifyBlock } from "@/components/advisor/ClarifyBlock";
 import { UnderstandingCard } from "@/components/advisor/UnderstandingCard";
 import { AdvisorAnswer } from "@/components/advisor/AdvisorAnswer";
+
+// ponytail: скрыто, пока не понадобится — вопросы партнёру / версия для акционера /
+// сохранение анализа. Верните в true, когда эти сценарии снова станут нужны.
+const SHOW_FOLLOWUP_ACTIONS = false;
 
 type Stage = "clarify" | "understanding" | "thinking" | "answer";
 
@@ -75,7 +80,7 @@ function Stepper({ stage, onGoTo }: { stage: Stage; onGoTo: (s: Stage) => void }
                     ? "border-primary bg-primary text-primary-foreground shadow-soft"
                     : done
                       ? "border-primary/40 bg-primary/10 text-primary hover:bg-primary/16"
-                      : "border-border bg-secondary/40 text-muted-foreground/60"
+                      : "border-border bg-secondary/40 text-muted-foreground"
                 }`}
               >
                 <span
@@ -186,8 +191,13 @@ export function AdvisorFlow({ query, onReset, initialSession, onSave }: Props) {
     );
   }
 
+  const currentStageLabel = STAGES.find((s) => s.id === stage)?.label ?? "";
+
   return (
     <div className="space-y-4">
+      <span role="status" aria-live="polite" className="sr-only">
+        {`Этап: ${currentStageLabel}`}
+      </span>
       {/* Шапка режима: тип решения, прогресс, сброс */}
       <div className="flex flex-wrap items-center gap-x-2.5 gap-y-2 rounded-card border border-border bg-card px-4 py-2.5 shadow-soft xl:flex-nowrap">
         <span className="grid h-6 w-6 place-items-center rounded-full bg-primary/12">
@@ -203,7 +213,10 @@ export function AdvisorFlow({ query, onReset, initialSession, onSave }: Props) {
       </div>
 
       {stage === "clarify" && (
-        <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+        <div
+          key={questions[Math.min(qIndex, questions.length - 1)]?.id}
+          className="animate-in fade-in slide-in-from-bottom-2 duration-300"
+        >
           <ClarifyBlock
             dilemma={dilemma}
             questions={questions}
@@ -226,13 +239,22 @@ export function AdvisorFlow({ query, onReset, initialSession, onSave }: Props) {
                 Далее
               </Button>
             ) : (
-              <Button size="sm" disabled={!enough} onClick={() => setStage("understanding")}>
+              <Button
+                size="sm"
+                disabled={!enough}
+                aria-describedby={!enough ? "clarify-gate-hint" : undefined}
+                onClick={() => setStage("understanding")}
+              >
                 Далее
               </Button>
             )}
             {!enough && qIndex === questions.length - 1 && (
-              <span className="text-xs text-muted-foreground">
-                Ответьте на ключевые вопросы — без этого рекомендация не формируется.
+              <span
+                id="clarify-gate-hint"
+                className="flex items-center gap-1.5 text-xs text-muted-foreground"
+              >
+                <PenLine className="h-3.5 w-3.5" /> Ответьте на ключевые вопросы — без этого
+                рекомендация не формируется.
               </span>
             )}
           </div>
@@ -268,7 +290,7 @@ export function AdvisorFlow({ query, onReset, initialSession, onSave }: Props) {
                     ? "text-muted-foreground"
                     : i === step
                       ? "font-semibold text-card-foreground"
-                      : "text-muted-foreground/40"
+                      : "text-muted-foreground"
                 }`}
               >
                 {i === step ? (
@@ -298,28 +320,30 @@ export function AdvisorFlow({ query, onReset, initialSession, onSave }: Props) {
 
           <AdvisorAnswer answer={answer} />
 
-          <div className="flex flex-wrap gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              className="gap-1.5"
-              onClick={() => setShowNegotiation((v) => !v)}
-            >
-              <ClipboardList className="h-3.5 w-3.5" /> Подготовить вопросы партнёру
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              className="gap-1.5"
-              onClick={() => setShowShareholder((v) => !v)}
-            >
-              <Presentation className="h-3.5 w-3.5" /> Сделать версию для акционера
-            </Button>
-            <Button size="sm" variant="outline" className="gap-1.5" onClick={handleSave}>
-              {saved ? <Check className="h-3.5 w-3.5" /> : <Save className="h-3.5 w-3.5" />}
-              {saved ? "Сохранено" : "Сохранить анализ"}
-            </Button>
-          </div>
+          {SHOW_FOLLOWUP_ACTIONS && (
+            <div className="flex flex-wrap gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1.5"
+                onClick={() => setShowNegotiation((v) => !v)}
+              >
+                <ClipboardList className="h-3.5 w-3.5" /> Подготовить вопросы партнёру
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1.5"
+                onClick={() => setShowShareholder((v) => !v)}
+              >
+                <Presentation className="h-3.5 w-3.5" /> Сделать версию для акционера
+              </Button>
+              <Button size="sm" variant="outline" className="gap-1.5" onClick={handleSave}>
+                {saved ? <Check className="h-3.5 w-3.5" /> : <Save className="h-3.5 w-3.5" />}
+                {saved ? "Сохранено" : "Сохранить анализ"}
+              </Button>
+            </div>
+          )}
 
           {showNegotiation && (
             <div className="rounded-card border border-border bg-card p-4 shadow-soft">

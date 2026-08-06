@@ -26,7 +26,6 @@ import { OnboardingModals } from "@/components/OnboardingModals";
 
 const PAGE_SIZE = 12;
 
-
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -108,8 +107,7 @@ function Dashboard() {
       searchCards(debounced, scope, filters, onlyBookmarks ? bookmarks : null).filter(
         (c) =>
           !dismissed.includes(c.id) &&
-          (visibility === "all" ||
-            (visibility === "private") === privateIds.includes(c.id)),
+          (visibility === "all" || (visibility === "private") === privateIds.includes(c.id)),
       ),
     [debounced, scope, filters, onlyBookmarks, bookmarks, dismissed, visibility, privateIds],
   );
@@ -235,9 +233,7 @@ function Dashboard() {
                   </div>
                 )}
 
-                <p className="mt-5 text-xs font-semibold text-muted-foreground">
-                  Например
-                </p>
+                <p className="mt-5 text-xs font-semibold text-muted-foreground">Например</p>
                 <div className="mt-2 flex flex-wrap justify-center gap-2">
                   {ADVISOR_EXAMPLES.map((e) => (
                     <button
@@ -270,86 +266,85 @@ function Dashboard() {
           />
 
           <div className="mx-auto max-w-[1600px] px-4 pb-8 sm:px-6">
-          {loading ? (
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <CardSkeleton key={i} />
-              ))}
-            </div>
-          ) : results.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-20 text-center">
-              <SearchX className="h-8 w-8 text-muted-foreground" />
-              <p className="mt-4 text-sm font-semibold text-foreground">
-                {debounced ? "Ничего не нашлось" : "Введите вопрос, чтобы начать поиск"}
-              </p>
-              <p className="mt-1 max-w-sm text-xs text-muted-foreground">
-                {debounced
-                  ? "Попробуйте другую формулировку или сбросьте фильтры."
-                  : "Или выберите одну из популярных тем выше."}
-              </p>
-            </div>
-          ) : (
-            <>
+            {loading ? (
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-                {pageResults.map((card, i) => (
-                  <KnowledgeCard
-                    key={card.id}
-                    card={card}
-                    index={i}
-                    bookmarked={bookmarks.includes(card.id)}
-                    onToggleBookmark={toggleBookmark}
-                    onDelete={dismiss}
-                    isPrivate={privateIds.includes(card.id)}
-                    onTogglePrivate={togglePrivate}
-                    isNew={card.isNew === true}
-                  />
+                {Array.from({ length: pageResults.length || 6 }).map((_, i) => (
+                  <CardSkeleton key={i} />
                 ))}
               </div>
-
-              {pageCount > 1 && (
-                <nav
-                  aria-label="Страницы результатов"
-                  className="mt-6 flex flex-wrap items-center justify-center gap-1.5"
-                >
-                  <button
-                    onClick={() => setPage((p) => Math.max(0, p - 1))}
-                    disabled={currentPage === 0}
-                    aria-label="Предыдущая страница"
-                    className="grid h-9 w-9 place-items-center rounded-xl border border-border bg-card text-muted-foreground transition-colors active:scale-[0.96] hover:border-primary hover:text-primary disabled:pointer-events-none disabled:opacity-40"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </button>
-                  {Array.from({ length: pageCount }).map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setPage(i)}
-                      aria-current={i === currentPage ? "page" : undefined}
-                      className={cn(
-                        "h-9 min-w-9 rounded-xl border px-3 text-sm font-semibold transition-colors active:scale-[0.96]",
-                        i === currentPage
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "border-border bg-card text-muted-foreground hover:border-primary hover:text-primary",
-                      )}
-                    >
-                      {i + 1}
-                    </button>
+            ) : results.length === 0 ? (
+              <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-20 text-center">
+                <SearchX className="h-8 w-8 text-muted-foreground" />
+                <p className="mt-4 text-sm font-semibold text-foreground">
+                  {debounced ? "Ничего не нашлось" : "Введите вопрос, чтобы начать поиск"}
+                </p>
+                <p className="mt-1 max-w-sm text-xs text-muted-foreground">
+                  {debounced
+                    ? "Попробуйте другую формулировку или сбросьте фильтры."
+                    : "Или выберите одну из популярных тем выше."}
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+                  {pageResults.map((card, i) => (
+                    <KnowledgeCard
+                      key={card.id}
+                      card={card}
+                      index={i}
+                      bookmarked={bookmarks.includes(card.id)}
+                      onToggleBookmark={toggleBookmark}
+                      onDelete={dismiss}
+                      isPrivate={privateIds.includes(card.id)}
+                      onTogglePrivate={togglePrivate}
+                      isNew={card.isNew === true}
+                    />
                   ))}
-                  <button
-                    onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
-                    disabled={currentPage === pageCount - 1}
-                    aria-label="Следующая страница"
-                    className="grid h-9 w-9 place-items-center rounded-xl border border-border bg-card text-muted-foreground transition-colors active:scale-[0.96] hover:border-primary hover:text-primary disabled:pointer-events-none disabled:opacity-40"
+                </div>
+
+                {pageCount > 1 && (
+                  <nav
+                    aria-label="Страницы результатов"
+                    className="mt-6 flex flex-wrap items-center justify-center gap-1.5"
                   >
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
-                </nav>
-              )}
-            </>
-          )}
+                    <button
+                      onClick={() => setPage((p) => Math.max(0, p - 1))}
+                      disabled={currentPage === 0}
+                      aria-label="Предыдущая страница"
+                      className="grid h-9 w-9 place-items-center rounded-xl border border-border bg-card text-muted-foreground transition-colors active:scale-[0.96] hover:border-primary hover:text-primary disabled:pointer-events-none disabled:opacity-40"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </button>
+                    {Array.from({ length: pageCount }).map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setPage(i)}
+                        aria-current={i === currentPage ? "page" : undefined}
+                        className={cn(
+                          "h-9 min-w-9 rounded-xl border px-3 text-sm font-semibold transition-colors active:scale-[0.96]",
+                          i === currentPage
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-border bg-card text-muted-foreground hover:border-primary hover:text-primary",
+                        )}
+                      >
+                        {i + 1}
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+                      disabled={currentPage === pageCount - 1}
+                      aria-label="Следующая страница"
+                      className="grid h-9 w-9 place-items-center rounded-xl border border-border bg-card text-muted-foreground transition-colors active:scale-[0.96] hover:border-primary hover:text-primary disabled:pointer-events-none disabled:opacity-40"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </nav>
+                )}
+              </>
+            )}
           </div>
         </div>
       </main>
-
 
       <div className={cn("transition-opacity duration-300", focusOnAdvisor && "opacity-70")}>
         <Footer />

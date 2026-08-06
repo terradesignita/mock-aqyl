@@ -18,13 +18,20 @@ export function useTheme() {
   return { dark, toggle: () => setDark((d) => !d) };
 }
 
-export function useBookmarks() {
-  const [bookmarks, setBookmarks] = useLocalStorage<string[]>("biaqyl:favourites", []);
+/** Generic localStorage-backed set of ids, toggled in/out — shared by any "which ids are
+ *  flagged" state (bookmarks, private cards, ...) that only differs by storage key. */
+function useToggleSet(key: string) {
+  const [items, setItems] = useLocalStorage<string[]>(key, []);
   const toggle = useCallback(
     (id: string) =>
-      setBookmarks((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id])),
-    [setBookmarks],
+      setItems((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id])),
+    [setItems],
   );
+  return { items, toggle };
+}
+
+export function useBookmarks() {
+  const { items: bookmarks, toggle } = useToggleSet("biaqyl:favourites");
   return { bookmarks, toggle };
 }
 
@@ -39,12 +46,7 @@ export function useDismissed() {
 
 /** Card visibility toggle (Общий/Приватный) — separate from `scope` (internal/external origin). */
 export function usePrivateCards() {
-  const [privateIds, setPrivateIds] = useLocalStorage<string[]>("biaqyl:private-cards", []);
-  const toggle = useCallback(
-    (id: string) =>
-      setPrivateIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id])),
-    [setPrivateIds],
-  );
+  const { items: privateIds, toggle } = useToggleSet("biaqyl:private-cards");
   return { privateIds, toggle };
 }
 

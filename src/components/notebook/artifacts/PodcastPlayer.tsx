@@ -127,10 +127,14 @@ export function PodcastPlayer({ lines, fullscreen }: { lines: Line[]; fullscreen
             seek(((e.clientX - r.left) / r.width) * duration);
           }}
           onKeyDown={(e) => {
-            if (e.key === "ArrowUp") seek(time + 5);
-            if (e.key === "ArrowDown") seek(time - 5);
+            if (e.key === "ArrowRight") seek(time + 5);
+            else if (e.key === "ArrowLeft") seek(time - 5);
+            else if (e.key === "Home") seek(0);
+            else if (e.key === "End") seek(duration);
+            else return;
+            e.preventDefault();
           }}
-          className="mt-4 h-2 cursor-pointer rounded-full bg-primary-foreground/20"
+          className="mt-4 h-2 cursor-pointer rounded-full bg-primary-foreground/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
         >
           <div
             className="h-2 rounded-full bg-accent transition-[width] duration-150"
@@ -147,21 +151,21 @@ export function PodcastPlayer({ lines, fullscreen }: { lines: Line[]; fullscreen
           <button
             onClick={() => seek(time - 10)}
             aria-label="Назад 10 секунд"
-            className="rounded-full p-2 text-primary-foreground/80 transition-colors hover:bg-primary-foreground/10"
+            className="rounded-full p-2 text-primary-foreground/80 transition-[background-color,transform] active:scale-[0.96] hover:bg-primary-foreground/10"
           >
             <RotateCcw className="h-4 w-4" />
           </button>
           <button
             onClick={toggle}
             aria-label={playing ? "Пауза" : "Слушать"}
-            className="flex h-12 w-12 items-center justify-center rounded-full bg-accent text-accent-foreground transition-transform hover:scale-105"
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-accent text-accent-foreground transition-transform hover:scale-105 active:scale-[0.96]"
           >
             {playing ? <Pause className="h-5 w-5" /> : <Play className="ml-0.5 h-5 w-5" />}
           </button>
           <button
             onClick={() => seek(time + 10)}
             aria-label="Вперёд 10 секунд"
-            className="rounded-full p-2 text-primary-foreground/80 transition-colors hover:bg-primary-foreground/10"
+            className="rounded-full p-2 text-primary-foreground/80 transition-[background-color,transform] active:scale-[0.96] hover:bg-primary-foreground/10"
           >
             <RotateCw className="h-4 w-4" />
           </button>

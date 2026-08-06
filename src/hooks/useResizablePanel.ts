@@ -16,6 +16,12 @@ interface ResizablePanelOptions {
  *
  * Pass `invert: true` for panels anchored on the right side of the layout
  * (handle on the panel's left edge, so dragging left grows the panel).
+ *
+ * ponytail: intentionally not `react-resizable-panels` — that library's
+ * `PanelGroup` expects to own the whole row and doesn't have a CSS-only way to
+ * collapse to a stacked mobile layout below `md:` the way this app's plain
+ * flexbox + `md:w-[var(--panel-w)]` does. Revisit if a panel here ever needs
+ * more than one resizable sibling or persisted layouts.
  */
 export function useResizablePanel(initial: number, { min, max }: ResizablePanelOptions) {
   const [width, setWidth] = useState(initial);

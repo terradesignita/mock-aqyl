@@ -85,9 +85,7 @@ export function CardsDeck({ cards }: { cards: InsightCard[] }) {
             <span className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-primary-foreground/10 blur-xl transition-transform duration-700 group-hover:scale-150" />
             <span className="pointer-events-none absolute inset-0 translate-x-[-120%] bg-gradient-to-r from-transparent via-primary-foreground/25 to-transparent transition-transform duration-[1100ms] group-hover:translate-x-[120%]" />
             <div className="relative">
-              <p className="text-xs font-bold text-primary-foreground/70">
-                {c.tag}
-              </p>
+              <p className="text-xs font-bold text-primary-foreground/70">{c.tag}</p>
               <h4 className="mt-2 text-base font-bold leading-tight">{c.title}</h4>
             </div>
             <p className="relative line-clamp-5 text-xs leading-relaxed text-primary-foreground/90">
@@ -118,14 +116,14 @@ export function CardsDeck({ cards }: { cards: InsightCard[] }) {
           <button
             onClick={() => scrollBy(-1)}
             aria-label="Предыдущая карточка"
-            className="rounded-full border border-border p-1.5 text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+            className="rounded-full border border-border p-1.5 text-muted-foreground transition-colors active:scale-[0.96] hover:border-primary hover:text-primary"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
           <button
             onClick={() => scrollBy(1)}
             aria-label="Следующая карточка"
-            className="rounded-full border border-border p-1.5 text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+            className="rounded-full border border-border p-1.5 text-muted-foreground transition-colors active:scale-[0.96] hover:border-primary hover:text-primary"
           >
             <ChevronRight className="h-4 w-4" />
           </button>

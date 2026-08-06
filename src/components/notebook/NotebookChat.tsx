@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import type { KnowledgeCardData } from "@/data/mockCards";
 import type { NotebookSource } from "@/lib/sources";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { pluralRu } from "@/lib/utils";
 import { MessageBubble } from "@/components/MessageBubble";
 
 interface ChatMessage {
@@ -275,9 +276,7 @@ export function NotebookChat({
               <Quote className="h-3 w-3 text-primary" /> Источник [{n}]
             </p>
             <p className="mt-1.5 text-[12px] leading-relaxed text-muted-foreground">«{quote}»</p>
-            <p className="mt-2 truncate text-xs font-medium text-primary">
-              {src?.title ?? anchor}
-            </p>
+            <p className="mt-2 truncate text-xs font-medium text-primary">{src?.title ?? anchor}</p>
             <p className="text-xs text-muted-foreground">{src?.meta}</p>
             <p className="mt-2 text-xs text-muted-foreground opacity-70">
               Нажмите, чтобы открыть в читалке
@@ -310,7 +309,6 @@ export function NotebookChat({
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-5 sm:px-8">
-
         <div className="mx-auto w-full max-w-3xl space-y-4">
           {messages.length === 0 && (
             <div className="rounded-2xl border border-border bg-card p-5">
@@ -451,7 +449,8 @@ export function NotebookChat({
                 ))}
               </span>
               <span className="text-sm text-muted-foreground">
-                Анализирую {selectedCitations.length} источника(ов)...
+                Анализирую {selectedCitations.length}{" "}
+                {pluralRu(selectedCitations.length, "источник", "источника", "источников")}...
               </span>
             </div>
           )}
@@ -479,10 +478,10 @@ export function NotebookChat({
               onClick={() => setPillOffset((o) => o + 6)}
               className="inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/10"
             >
-              <Shuffle className="h-3 w-3 transition-transform duration-300 group-hover:rotate-180" /> Ещё варианты
+              <Shuffle className="h-3 w-3 transition-transform duration-300 group-hover:rotate-180" />{" "}
+              Ещё варианты
             </button>
           </div>
-
 
           <div className="flex items-end gap-2 rounded-2xl border border-border bg-card p-2 shadow-sm focus-within:border-primary">
             <label htmlFor="notebook-chat-question" className="sr-only">
@@ -531,8 +530,6 @@ export function NotebookChat({
           <p className="mt-2 text-center text-xs leading-relaxed text-muted-foreground/60">
             AQYL — ИИ и может ошибаться. Пожалуйста, перепроверяйте факты и цитируемые источники.
           </p>
-
-
         </div>
       </div>
     </div>

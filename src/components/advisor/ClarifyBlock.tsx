@@ -14,14 +14,7 @@ interface Props {
 
 const UNKNOWN = "__unknown";
 
-export function ClarifyBlock({
-  dilemma,
-  questions,
-  selection,
-  onChange,
-  index,
-  onIndex,
-}: Props) {
+export function ClarifyBlock({ dilemma, questions, selection, onChange, index, onIndex }: Props) {
   const [ownOpen, setOwnOpen] = useState(false);
   const q = questions[Math.min(index, questions.length - 1)];
   if (!q) return null;
@@ -47,6 +40,9 @@ export function ClarifyBlock({
 
   return (
     <div className="rounded-card border border-border bg-card p-5 shadow-soft">
+      <span role="status" aria-live="polite" className="sr-only">
+        {`Вопрос ${index + 1} из ${questions.length}: ${q.title}`}
+      </span>
       {/* Точки-прогресс: сколько вопросов и где мы сейчас */}
       <div className="flex items-center gap-2">
         {questions.map((item, i) => {
@@ -85,14 +81,20 @@ export function ClarifyBlock({
         </span>
       </div>
 
-      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+      <div
+        className="mt-3 grid gap-2 sm:grid-cols-2"
+        role={q.multi ? undefined : "radiogroup"}
+        aria-label={q.multi ? undefined : q.title}
+      >
         {options.map((o) => {
           const on = picked.includes(o.id);
           return (
             <button
               key={o.id}
               type="button"
-              aria-pressed={on}
+              role={q.multi ? undefined : "radio"}
+              aria-checked={q.multi ? undefined : on}
+              aria-pressed={q.multi ? on : undefined}
               onClick={() => toggle(o.id)}
               className={`flex items-start gap-2.5 rounded-control border px-3.5 py-3 text-left text-sm transition-colors active:scale-[0.96] ${
                 on
@@ -123,7 +125,9 @@ export function ClarifyBlock({
             id={`clarify-own-${q.id}`}
             autoFocus={ownOpen}
             value={own}
-            onChange={(e) => onChange({ ...selection, own: { ...selection.own, [q.id]: e.target.value } })}
+            onChange={(e) =>
+              onChange({ ...selection, own: { ...selection.own, [q.id]: e.target.value } })
+            }
             rows={2}
             placeholder={`Свой вариант: ${q.ownPlaceholder}`}
             className="mt-2.5 w-full resize-y rounded-control border border-border bg-secondary/40 px-3 py-2 text-base outline-none transition-colors placeholder:text-muted-foreground focus:border-primary sm:text-sm"

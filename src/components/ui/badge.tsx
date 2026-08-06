@@ -3,30 +3,42 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 
+/**
+ * Shared shape for every status/tag pill in the app (previously hand-rolled per call site).
+ * `variant` covers the common tones; for a one-off tone, use `variant="secondary"` (transparent
+ * border, no bg/text opinion baked in) and override `bg-*`/`text-*` via `className` — tailwind-merge
+ * resolves the conflict so your override wins.
+ */
 const badgeVariants = cva(
-  "inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  "inline-flex w-fit shrink-0 items-center gap-1 whitespace-nowrap rounded-full border text-xs font-semibold",
   {
     variants: {
       variant: {
-        default: "border-transparent bg-primary text-primary-foreground shadow hover:bg-primary/80",
-        secondary:
-          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        destructive:
-          "border-transparent bg-destructive text-destructive-foreground shadow hover:bg-destructive/80",
-        outline: "text-foreground",
+        secondary: "border-transparent bg-secondary text-secondary-foreground",
+        primary: "border-transparent bg-primary text-primary-foreground",
+        tint: "border-transparent bg-primary/12 text-primary",
+        warning: "border-warning/40 bg-warning/10 text-warning",
+        outline: "border-border text-foreground",
+      },
+      size: {
+        default: "px-2.5 py-0.5",
+        sm: "px-2 py-0.5",
+        xs: "px-1.5 py-px text-[10px]",
+        counter: "h-5 min-w-5 justify-center px-1 tabular-nums",
       },
     },
     defaultVariants: {
-      variant: "default",
+      variant: "secondary",
+      size: "default",
     },
   },
 );
 
 export interface BadgeProps
-  extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof badgeVariants> {}
+  extends React.HTMLAttributes<HTMLSpanElement>, VariantProps<typeof badgeVariants> {}
 
-function Badge({ className, variant, ...props }: BadgeProps) {
-  return <div className={cn(badgeVariants({ variant }), className)} {...props} />;
+function Badge({ className, variant, size, ...props }: BadgeProps) {
+  return <span className={cn(badgeVariants({ variant, size }), className)} {...props} />;
 }
 
 export { Badge, badgeVariants };

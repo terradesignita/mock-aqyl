@@ -121,7 +121,12 @@ export function SearchPanel({
           Добрый день, Марат
         </h1>
         {totalLabel && (
-          <p className={cn("text-sm", advisor ? "font-semibold text-primary" : "text-muted-foreground")}>
+          <p
+            className={cn(
+              "text-sm",
+              advisor ? "font-semibold text-primary" : "text-muted-foreground",
+            )}
+          >
             {totalLabel}
           </p>
         )}
@@ -130,52 +135,49 @@ export function SearchPanel({
       <div className="mt-4 grid gap-3">
         <div className="group grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-border bg-card px-3 py-2 shadow-soft transition-shadow focus-within:shadow-[0_0_0_4px_color-mix(in_oklab,var(--primary)_14%,transparent)]">
           <div className="flex items-center gap-1.5 border-r border-border py-1 pr-3">
-          <button
-            type="button"
-            role="switch"
-            aria-checked={advisor}
-            aria-label="Режим AI-советника"
-            onClick={() => onAdvisorChange(!advisor)}
-            className="flex items-center gap-2"
-          >
-            <span
-              className={cn(
-                "grid h-7 w-11 place-items-start rounded-full p-1 transition-colors",
-                advisor ? "bg-primary" : "bg-secondary",
-              )}
+            <button
+              type="button"
+              role="switch"
+              aria-checked={advisor}
+              aria-label="Режим AI-советника"
+              onClick={() => onAdvisorChange(!advisor)}
+              className="flex items-center gap-2"
             >
               <span
                 className={cn(
-                  "grid h-5 w-5 place-items-center rounded-full transition-transform",
-                  advisor
-                    ? "translate-x-4 bg-primary-foreground"
-                    : "translate-x-0 bg-card",
+                  "grid h-7 w-11 place-items-start rounded-full p-1 transition-colors",
+                  advisor ? "bg-primary" : "bg-secondary",
                 )}
               >
-                <Sparkles
-                  className={cn("h-3 w-3", advisor ? "text-primary" : "text-muted-foreground")}
-                />
+                <span
+                  className={cn(
+                    "grid h-5 w-5 place-items-center rounded-full transition-transform",
+                    advisor ? "translate-x-4 bg-primary-foreground" : "translate-x-0 bg-card",
+                  )}
+                >
+                  <Sparkles
+                    className={cn("h-3 w-3", advisor ? "text-primary" : "text-muted-foreground")}
+                  />
+                </span>
               </span>
-            </span>
-            <span
-              className={cn(
-                "hidden text-sm font-bold sm:inline",
-                advisor ? "text-primary" : "text-muted-foreground",
-              )}
-            >
-              {advisor ? "AI-советник" : "Поиск"}
-            </span>
-          </button>
-          <HelpHint
-            side="bottom"
-            text={
-              advisor
-                ? "Включите, если нужно принять решение: советник задаст уточняющие вопросы и даст рекомендацию со сценариями. Выключено — обычный поиск материалов."
-                : "Обычный поиск ищет только по кейсам: названиям, описаниям и тегам. Включите AI-советника, если нужно принять управленческое решение, а не просто найти материал."
-            }
-          />
+              <span
+                className={cn(
+                  "hidden text-sm font-bold sm:inline",
+                  advisor ? "text-primary" : "text-muted-foreground",
+                )}
+              >
+                {advisor ? "AI-советник" : "Поиск"}
+              </span>
+            </button>
+            <HelpHint
+              side="bottom"
+              text={
+                advisor
+                  ? "Включите, если нужно принять решение: советник задаст уточняющие вопросы и даст рекомендацию со сценариями. Выключено — обычный поиск материалов."
+                  : "Обычный поиск ищет только по кейсам: названиям, описаниям и тегам. Включите AI-советника, если нужно принять управленческое решение, а не просто найти материал."
+              }
+            />
           </div>
-
 
           <label htmlFor="main-search-query" className="sr-only">
             {advisor ? "Опишите бизнес-ситуацию для AI-советника" : "Поиск по материалам BI AQYL"}
@@ -229,9 +231,7 @@ export function SearchPanel({
         </div>
       </div>
 
-
-
-      {advisor && !advisorQueryActive && history.length > 0 && (
+      {!advisorQueryActive && history.length > 0 && (
         <div className="mt-3 rounded-2xl border border-border bg-card p-4 shadow-soft">
           <p className="flex items-center gap-1.5 pb-2 text-xs font-semibold text-muted-foreground">
             <History className="h-3.5 w-3.5" /> Недавние вопросы
@@ -259,10 +259,14 @@ export function SearchPanel({
                   <Search
                     className={cn(
                       "shrink-0",
-                      i === 0 ? "mt-0.5 h-4 w-4 text-primary" : "mt-0.5 h-3 w-3 text-muted-foreground/60",
+                      i === 0
+                        ? "mt-0.5 h-4 w-4 text-primary"
+                        : "mt-0.5 h-3 w-3 text-muted-foreground/60",
                     )}
                   />
-                  <span className="min-w-0 truncate">{h}</span>
+                  <span className="min-w-0 truncate" title={h}>
+                    {h}
+                  </span>
                 </button>
               </li>
             ))}
@@ -367,8 +371,6 @@ export function SearchPanel({
           </div>
         </div>
       )}
-
-
     </section>
   );
 }

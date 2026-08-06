@@ -4,9 +4,21 @@ import { Check, PanelLeft, PanelLeftClose, Plus, Search, Send, Trash2 } from "lu
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { toast } from "sonner";
 import { Header } from "@/components/Header";
+import { HoverRevealIconButton } from "@/components/HoverRevealIconButton";
 import { MessageBubble } from "@/components/MessageBubble";
 import { PersonaAvatar, PersonaSilhouette } from "@/components/PersonaAvatar";
-import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useCouncilSessions, useTheme } from "@/hooks/useAppState";
 import { clampWidth, useResizablePanel } from "@/hooks/useResizablePanel";
@@ -41,7 +53,8 @@ const MAX_PERSONAS = 3;
 // через --persona-color/--persona-color-dark в style. Рамка/кольцо — всегда
 // 100% непрозрачности (тонированная рамка не держит WCAG 3:1 в тёмной теме,
 // см. спеку §2); только заливка (PERSONA_TINT_CLASS) — 10%.
-const PERSONA_BORDER_CLASS = "border-[var(--persona-color)] dark:border-[var(--persona-color-dark)]";
+const PERSONA_BORDER_CLASS =
+  "border-[var(--persona-color)] dark:border-[var(--persona-color-dark)]";
 const PERSONA_TINT_CLASS = "bg-[color-mix(in_oklab,var(--persona-color)_10%,transparent)]";
 /** Слабый оттенок персоны в состоянии покоя — чтобы сетка карточек читалась
  *  цветной до выбора, а не сплошным ч/б полем. Ч/б силуэт-плейсхолдер (см.
@@ -72,13 +85,7 @@ function PersonaTag({ tag, hex }: { tag: string; hex: string }) {
   );
 }
 
-function AvatarStack({
-  personaIds,
-  size = "xs",
-}: {
-  personaIds: string[];
-  size?: "xs" | "lg";
-}) {
+function AvatarStack({ personaIds, size = "xs" }: { personaIds: string[]; size?: "xs" | "lg" }) {
   const shown = personaIds.slice(0, 2);
   const rest = personaIds.length - shown.length;
   const names = personaIds.map((id) => getPersona(id).name).join(", ");
@@ -150,8 +157,8 @@ function ConversationCover({ session }: { session: CouncilSession }) {
         {session.topic.summary}
       </p>
       <p className="mt-2 text-xs text-muted-foreground">
-        {session.personaIds.length}{" "}
-        {session.personaIds.length === 1 ? "участник" : "участника"} · на связи
+        {session.personaIds.length} {session.personaIds.length === 1 ? "участник" : "участника"} ·
+        на связи
       </p>
     </div>
   );
@@ -234,7 +241,9 @@ function GalleryCard({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={
-        prefersReducedMotion ? { duration: 0 } : { duration: 0.24, delay: Math.min(index, 11) * 0.04 }
+        prefersReducedMotion
+          ? { duration: 0 }
+          : { duration: 0.24, delay: Math.min(index, 11) * 0.04 }
       }
       className={cn(
         "group relative flex items-stretch overflow-hidden rounded-2xl border text-left transition-[transform,box-shadow,border-color,opacity] duration-200 active:scale-[0.96]",
@@ -354,8 +363,8 @@ function PersonaGallerySection({
           role="status"
           className="rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-card-foreground"
         >
-          В этом составе взгляды похожи — спора может не быть. Попробуйте добавить контрарианку
-          или скептика.
+          В этом составе взгляды похожи — спора может не быть. Попробуйте добавить контрарианку или
+          скептика.
         </p>
       )}
 
@@ -467,10 +476,17 @@ function NewCouncilPanel({
                       <Check className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
                     )}
                   </div>
-                  <span className="w-fit rounded-full bg-secondary px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-secondary-foreground">
+                  <Badge
+                    variant="secondary"
+                    size="xs"
+                    className="font-extrabold uppercase tracking-wide"
+                  >
                     {c.business_unit}
-                  </span>
-                  <span className="line-clamp-2 text-xs text-muted-foreground" title={c.executive_summary}>
+                  </Badge>
+                  <span
+                    className="line-clamp-2 text-xs text-muted-foreground"
+                    title={c.executive_summary}
+                  >
                     {c.executive_summary}
                   </span>
                 </button>
@@ -770,7 +786,10 @@ function SessionView({
             />
             <div className="flex items-center gap-1.5 rounded-2xl rounded-tl-sm border border-border bg-card px-3 py-2.5">
               <span className="sr-only">{typingPersona.name} печатает…</span>
-              <span aria-hidden className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground" />
+              <span
+                aria-hidden
+                className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground"
+              />
               <span
                 aria-hidden
                 className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground"
@@ -893,7 +912,6 @@ function CouncilPage() {
   // otherwise get dumped at <body> with no announcement of the context change.
   useEffect(() => {
     focusNext(mainRef);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [creating, activeId]);
 
   return (
@@ -917,10 +935,14 @@ function CouncilPage() {
               const step = e.shiftKey ? 40 : 16;
               if (e.key === "ArrowLeft") {
                 e.preventDefault();
-                setSessionsWidth((w) => clampWidth(w - step, SESSIONS_WIDTH_MIN, SESSIONS_WIDTH_MAX));
+                setSessionsWidth((w) =>
+                  clampWidth(w - step, SESSIONS_WIDTH_MIN, SESSIONS_WIDTH_MAX),
+                );
               } else if (e.key === "ArrowRight") {
                 e.preventDefault();
-                setSessionsWidth((w) => clampWidth(w + step, SESSIONS_WIDTH_MIN, SESSIONS_WIDTH_MAX));
+                setSessionsWidth((w) =>
+                  clampWidth(w + step, SESSIONS_WIDTH_MIN, SESSIONS_WIDTH_MAX),
+                );
               } else if (e.key === "Home") {
                 e.preventDefault();
                 setSessionsWidth(SESSIONS_WIDTH_MIN);
@@ -942,9 +964,9 @@ function CouncilPage() {
           <div className="flex items-center gap-2 pb-2">
             <p className="flex min-w-0 flex-1 items-center gap-1.5 truncate text-sm font-bold tracking-tight text-card-foreground">
               Сессии
-              <span className="inline-grid h-[18px] min-w-[18px] place-items-center rounded-full bg-secondary px-1 text-xs font-bold tabular-nums text-muted-foreground">
+              <Badge variant="secondary" size="counter" className="font-bold">
                 {sessions.length}
-              </span>
+              </Badge>
             </p>
             <button
               ref={sessionsCollapseRef}
@@ -1123,6 +1145,7 @@ function SessionRow({
   onDelete: (id: string) => void;
 }) {
   const accentHex = getPersona(session.personaIds[0]).hex;
+  const [confirmOpen, setConfirmOpen] = useState(false);
   return (
     <div
       style={{ "--row-accent": accentHex } as React.CSSProperties}
@@ -1154,17 +1177,38 @@ function SessionRow({
           <span className="text-xs text-muted-foreground">{session.date}</span>
         </div>
       </button>
-      <button
+      <HoverRevealIconButton
+        tone="destructive"
         onClick={(e) => {
           e.stopPropagation();
-          onDelete(session.id);
+          setConfirmOpen(true);
         }}
         aria-label={`Удалить сессию «${session.title}»`}
         title="Удалить сессию"
-        className="absolute right-2 top-2 grid h-6 w-6 shrink-0 place-items-center rounded-md text-muted-foreground opacity-0 transition-opacity hover:bg-secondary hover:text-destructive focus-visible:opacity-100 group-hover:opacity-100 active:opacity-100"
+        className="absolute right-2 top-2"
       >
         <Trash2 className="h-3.5 w-3.5" />
-      </button>
+      </HoverRevealIconButton>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Удалить сессию?</AlertDialogTitle>
+            <AlertDialogDescription>
+              «{session.title}» и вся переписка совета будут удалены без возможности восстановления.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogAction
+              className={buttonVariants({ variant: "destructive" })}
+              onClick={() => onDelete(session.id)}
+            >
+              Да, удалить
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
