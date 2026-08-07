@@ -274,6 +274,7 @@ function GalleryCard({
         <img
           src={persona.image}
           alt={persona.name}
+          aria-hidden
           className={cn(
             "absolute inset-0 h-full w-full object-cover transition-[filter,opacity,transform] duration-200 group-hover:scale-[1.03]",
             !selected && "grayscale-[.35] saturate-[.7]",
@@ -628,6 +629,7 @@ function PersonaPicker({
                 initials={p.initials}
                 src={p.image}
                 alt={p.name}
+                aria-hidden
                 size="md"
                 ringClassName={PERSONA_BORDER_CLASS}
                 style={personaAvatarStyle(p)}
@@ -783,6 +785,7 @@ function SessionView({
                 initials={p.initials}
                 src={p.image}
                 alt={p.name}
+                aria-hidden
                 size="md"
                 ringClassName={PERSONA_BORDER_CLASS}
                 style={{ backgroundColor: p.hex }}
@@ -821,6 +824,7 @@ function SessionView({
               initials={typingPersona.initials}
               src={typingPersona.image}
               alt={typingPersona.name}
+              aria-hidden
               size="md"
               className="animate-typing-ring"
               style={

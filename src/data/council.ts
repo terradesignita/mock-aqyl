@@ -28,7 +28,8 @@ export const COUNCIL_PERSONAS: CouncilPersona[] = [
     name: "Илон Маск",
     initials: "EM",
     role: "Радикальный инженер и визионер",
-    description: "Разбирает проблему до базовых фактов, удаляет лишнее и ищет путь к десятикратному улучшению.",
+    description:
+      "Разбирает проблему до базовых фактов, удаляет лишнее и ищет путь к десятикратному улучшению.",
     image: "/personas/elon-musk.webp",
     hex: "#a75d00",
     tag: "Первые принципы",
@@ -38,7 +39,8 @@ export const COUNCIL_PERSONAS: CouncilPersona[] = [
     name: "Джефф Безос",
     initials: "JB",
     role: "Долгосрочный оператор",
-    description: "Начинает с клиента и строит масштабируемые механизмы вместо разовых героических усилий.",
+    description:
+      "Начинает с клиента и строит масштабируемые механизмы вместо разовых героических усилий.",
     image: "/personas/jeff-bezos.webp",
     hex: "#7c3aed",
     tag: "Клиент",
@@ -48,7 +50,8 @@ export const COUNCIL_PERSONAS: CouncilPersona[] = [
     name: "Демис Хассабис",
     initials: "DH",
     role: "Научный стратег",
-    description: "Разделяет инженерную задачу и научную неизвестность, требуя точного эксперимента и проверки обобщения.",
+    description:
+      "Разделяет инженерную задачу и научную неизвестность, требуя точного эксперимента и проверки обобщения.",
     image: "/personas/demis-hassabis.webp",
     hex: "#2563eb",
     tag: "Наука",
@@ -68,7 +71,8 @@ export const COUNCIL_PERSONAS: CouncilPersona[] = [
     name: "Уоррен Баффет",
     initials: "WB",
     role: "Дисциплинированный инвестор",
-    description: "Проверяет понятность экономики, качество управления, цену ошибки и долгосрочную устойчивость.",
+    description:
+      "Проверяет понятность экономики, качество управления, цену ошибки и долгосрочную устойчивость.",
     image: "/personas/warren-buffett.webp",
     hex: "#c34700",
     tag: "Ценность",
@@ -78,7 +82,8 @@ export const COUNCIL_PERSONAS: CouncilPersona[] = [
     name: "Стив Джобс",
     initials: "SJ",
     role: "Продуктовый редактор",
-    description: "Защищает простоту и цельность опыта, возвращая спор к вопросу: зачем это человеку.",
+    description:
+      "Защищает простоту и цельность опыта, возвращая спор к вопросу: зачем это человеку.",
     image: "/personas/steve-jobs.webp",
     hex: "#c026d3",
     tag: "Продукт",
@@ -88,7 +93,8 @@ export const COUNCIL_PERSONAS: CouncilPersona[] = [
     name: "Айдын Рахимбаев",
     initials: "AR",
     role: "Предприниматель и лидер девелопмента",
-    description: "Оценивает идеи через пользу людям, качество среды, масштаб исполнения и ответственность за результат.",
+    description:
+      "Оценивает идеи через пользу людям, качество среды, масштаб исполнения и ответственность за результат.",
     image: "/personas/aydin-rakhimbayev.webp",
     hex: "#c13892",
     tag: "Девелопмент",
@@ -98,7 +104,8 @@ export const COUNCIL_PERSONAS: CouncilPersona[] = [
     name: "Дженсен Хуанг",
     initials: "JH",
     role: "Архитектор технологических платформ",
-    description: "Рассматривает AI, вычисления, экосистему и экономику отрасли как единый полный стек.",
+    description:
+      "Рассматривает AI, вычисления, экосистему и экономику отрасли как единый полный стек.",
     image: "/personas/jensen-huang.webp",
     hex: "#4f46e5",
     darkHex: "#5954f3",
@@ -109,7 +116,8 @@ export const COUNCIL_PERSONAS: CouncilPersona[] = [
     name: "Сэм Альтман",
     initials: "SA",
     role: "Стратег AI-продуктов",
-    description: "Сочетает большую ставку со скоростью обучения, дистрибуцией и ранним реальным использованием.",
+    description:
+      "Сочетает большую ставку со скоростью обучения, дистрибуцией и ранним реальным использованием.",
     image: "/personas/sam-altman.webp",
     hex: "#ce3452",
     tag: "Стартап",
@@ -119,7 +127,8 @@ export const COUNCIL_PERSONAS: CouncilPersona[] = [
     name: "Рэй Далио",
     initials: "RD",
     role: "Системный диагност",
-    description: "Превращает решения в явные принципы, причинно-следственные модели и циклы обратной связи.",
+    description:
+      "Превращает решения в явные принципы, причинно-следственные модели и циклы обратной связи.",
     image: "/personas/ray-dalio.webp",
     hex: "#0e7490",
     tag: "Принципы",
@@ -129,7 +138,8 @@ export const COUNCIL_PERSONAS: CouncilPersona[] = [
     name: "Эндрю Ын",
     initials: "AN",
     role: "Прагматичный AI-лидер",
-    description: "Переводит бизнес-задачу в выполнимый AI-проект с данными, метриками и короткими итерациями.",
+    description:
+      "Переводит бизнес-задачу в выполнимый AI-проект с данными, метриками и короткими итерациями.",
     image: "/personas/andrew-ng.webp",
     hex: "#047857",
     tag: "AI-практик",
@@ -139,7 +149,8 @@ export const COUNCIL_PERSONAS: CouncilPersona[] = [
     name: "Сатья Наделла",
     initials: "SN",
     role: "Лидер корпоративной трансформации",
-    description: "Соединяет технологию, культуру, партнёрства и практическую ценность для организации.",
+    description:
+      "Соединяет технологию, культуру, партнёрства и практическую ценность для организации.",
     image: "/personas/satya-nadella.webp",
     hex: "#57534e",
     darkHex: "#6f6b66",
