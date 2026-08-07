@@ -7,7 +7,11 @@ import { Header } from "@/components/Header";
 import { HelpHint } from "@/components/HelpHint";
 import { HoverRevealIconButton } from "@/components/HoverRevealIconButton";
 import { MessageBubble } from "@/components/MessageBubble";
-import { PersonaAvatar, PersonaSilhouette } from "@/components/PersonaAvatar";
+import {
+  hideBrokenPersonaImage,
+  PersonaAvatar,
+  PersonaSilhouette,
+} from "@/components/PersonaAvatar";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -275,12 +279,13 @@ function GalleryCard({
           src={persona.image}
           alt={persona.name}
           aria-hidden
+          ref={hideBrokenPersonaImage}
           className={cn(
             "absolute inset-0 h-full w-full object-cover transition-[filter,opacity,transform] duration-200 group-hover:scale-[1.03]",
             !selected && "grayscale-[.35] saturate-[.7]",
           )}
           onError={(event) => {
-            event.currentTarget.style.opacity = "0";
+            hideBrokenPersonaImage(event.currentTarget);
           }}
         />
       </span>

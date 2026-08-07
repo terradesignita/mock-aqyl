@@ -36,6 +36,13 @@ export function PersonaSilhouette({ className }: { className?: string }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
+export function hideBrokenPersonaImage(image: HTMLImageElement | null): void {
+  if (image?.complete && image.naturalWidth === 0) {
+    image.style.opacity = "0";
+  }
+}
+
 export function PersonaAvatar({
   initials,
   src,
@@ -72,9 +79,10 @@ export function PersonaAvatar({
           key={src}
           src={src}
           alt={alt ?? initials}
+          ref={hideBrokenPersonaImage}
           className="absolute inset-0 h-full w-full object-cover transition-opacity"
           onError={(event) => {
-            event.currentTarget.style.opacity = "0";
+            hideBrokenPersonaImage(event.currentTarget);
           }}
         />
       ) : null}
