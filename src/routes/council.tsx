@@ -292,7 +292,7 @@ function GalleryCard({
         )}
       >
         <span
-          className="block w-full truncate text-base font-bold text-card-foreground"
+          className="block w-full break-words text-base font-bold leading-tight text-card-foreground"
           title={persona.name}
         >
           {persona.name}
