@@ -1,7 +1,8 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { hideBrokenPersonaImage, PersonaAvatar } from "./PersonaAvatar";
+import { hideBrokenPersonaImage } from "../lib/persona-image";
+import { PersonaAvatar } from "./PersonaAvatar";
 
 describe("PersonaAvatar", () => {
   it("renders a portrait and a stable silhouette fallback", () => {

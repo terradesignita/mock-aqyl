@@ -7,11 +7,7 @@ import { Header } from "@/components/Header";
 import { HelpHint } from "@/components/HelpHint";
 import { HoverRevealIconButton } from "@/components/HoverRevealIconButton";
 import { MessageBubble } from "@/components/MessageBubble";
-import {
-  hideBrokenPersonaImage,
-  PersonaAvatar,
-  PersonaSilhouette,
-} from "@/components/PersonaAvatar";
+import { PersonaAvatar, PersonaSilhouette } from "@/components/PersonaAvatar";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,6 +20,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { hideBrokenPersonaImage } from "@/lib/persona-image";
 import { cn } from "@/lib/utils";
 import { useCouncilSessions, useTheme } from "@/hooks/useAppState";
 import { clampWidth, useResizablePanel } from "@/hooks/useResizablePanel";

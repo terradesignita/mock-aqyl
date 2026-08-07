@@ -1,4 +1,5 @@
 import type { HTMLAttributes } from "react";
+import { hideBrokenPersonaImage } from "../lib/persona-image";
 import { cn } from "../lib/utils";
 
 const SIZE_CLASS = {
@@ -34,13 +35,6 @@ export function PersonaSilhouette({ className }: { className?: string }) {
       <path d="M4 20.5c0-4.7 3.6-7.5 8-7.5s8 2.8 8 7.5c0 .8-.6 1.5-1.4 1.5H5.4c-.8 0-1.4-.7-1.4-1.5Z" />
     </svg>
   );
-}
-
-// eslint-disable-next-line react-refresh/only-export-components
-export function hideBrokenPersonaImage(image: HTMLImageElement | null): void {
-  if (image?.complete && image.naturalWidth === 0) {
-    image.style.opacity = "0";
-  }
 }
 
 export function PersonaAvatar({
