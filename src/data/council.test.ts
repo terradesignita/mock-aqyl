@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   COUNCIL_PERSONAS,
+  COUNCIL_PERSONA_DISCLAIMER,
   SEED_COUNCIL_SESSIONS,
   buildPersonaTake,
   buildOpeningMessages,
@@ -62,6 +63,36 @@ describe("real leader names never leak into generated text", () => {
 });
 
 describe("COUNCIL_PERSONAS", () => {
+  const EXPECTED_REAL_LEADERS = [
+    "Илон Маск",
+    "Стив Джобс",
+    "Джефф Безос",
+    "Дженсен Хуанг",
+    "Сатья Наделла",
+    "Уоррен Баффет",
+    "Рэй Далио",
+    "Питер Тиль",
+    "Эндрю Ын",
+    "Демис Хассабис",
+    "Сэм Альтман",
+    "Айдын Рахимбаев",
+  ];
+
+  const FICTIONAL_NAMES = [
+    "Артур Ким",
+    "Роза Ниязова",
+    "Виктор Тен",
+    "Лейла Асанова",
+    "Данияр Оспанов",
+    "Мила Ержанова",
+    "Николь Багрова",
+    "Самат Ержигитов",
+    "Алина Достаева",
+    "Тимур Нурланов",
+    "Диана Рахимова",
+    "Ержан Тулегенов",
+  ];
+
   it("has 12 personas with unique ids", () => {
     expect(COUNCIL_PERSONAS).toHaveLength(12);
     expect(new Set(COUNCIL_PERSONAS.map((p) => p.id)).size).toBe(12);
@@ -72,10 +103,34 @@ describe("COUNCIL_PERSONAS", () => {
     expect(new Set(COUNCIL_PERSONAS.map((p) => p.initials)).size).toBe(12);
   });
 
-  it("every persona names a real-world style reference", () => {
-    for (const p of COUNCIL_PERSONAS) {
-      expect(p.inspiredBy.length).toBeGreaterThan(0);
+  it("uses the approved 12 real-world leader profiles", () => {
+    expect(COUNCIL_PERSONAS.map((persona) => persona.name)).toEqual(
+      expect.arrayContaining(EXPECTED_REAL_LEADERS),
+    );
+    expect(COUNCIL_PERSONAS.map((persona) => persona.name)).toHaveLength(12);
+    for (const name of FICTIONAL_NAMES) {
+      expect(COUNCIL_PERSONAS.some((persona) => persona.name === name)).toBe(false);
     }
+  });
+
+  it("gives every leader a unique project-local WebP portrait", () => {
+    const images = COUNCIL_PERSONAS.map((persona) => persona.image);
+    expect(new Set(images).size).toBe(12);
+    for (const image of images) {
+      expect(image).toMatch(/^\/personas\/[a-z0-9-]+\.webp$/);
+    }
+  });
+
+  it("does not retain the obsolete inspiredBy presentation field", () => {
+    for (const p of COUNCIL_PERSONAS) {
+      expect("inspiredBy" in p).toBe(false);
+    }
+  });
+
+  it("exposes the approved public-approach disclaimer", () => {
+    expect(COUNCIL_PERSONA_DISCLAIMER).toBe(
+      "Цифровые модели публично известных подходов. Это не реальные люди и не их текущие или частные мнения.",
+    );
   });
 });
 
