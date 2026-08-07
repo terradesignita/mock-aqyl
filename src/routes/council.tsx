@@ -1,15 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  Check,
-  Info,
-  PanelLeft,
-  PanelLeftClose,
-  Plus,
-  Search,
-  Send,
-  Trash2,
-} from "lucide-react";
+import { Check, Info, PanelLeft, PanelLeftClose, Plus, Search, Send, Trash2 } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { toast } from "sonner";
 import { Header } from "@/components/Header";
@@ -37,6 +28,7 @@ import {
   buildFollowUpReplies,
   buildOpeningMessages,
   buildUserMessage,
+  COUNCIL_PERSONA_DISCLAIMER,
   COUNCIL_PERSONAS,
   getPersona,
   hasLikelyDisagreement,
@@ -109,6 +101,8 @@ function AvatarStack({ personaIds, size = "xs" }: { personaIds: string[]; size?:
             key={id}
             aria-hidden
             initials={p.initials}
+            src={p.image}
+            alt={p.name}
             size={size}
             ring
             style={{ backgroundColor: p.hex }}
@@ -169,6 +163,9 @@ function ConversationCover({ session }: { session: CouncilSession }) {
       <p className="mt-2 text-xs text-muted-foreground">
         {session.personaIds.length} {session.personaIds.length === 1 ? "участник" : "участника"} ·
         на связи
+      </p>
+      <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+        AI-модели публичных подходов. Не являются реальными людьми и не выражают их частные взгляды.
       </p>
     </div>
   );
@@ -266,17 +263,25 @@ function GalleryCard({
         disabled && "opacity-40",
       )}
     >
-      {/* Фото-плейсхолдер: персоны вымышленные (см. гардрейл в PersonaAvatar.tsx),
-         поэтому вместо реального фото — тот же силуэт, что и везде в приложении,
-         но крупнее и на всю высоту карточки. Ч/б до выбора, цвет — после. */}
-      <span
-        className={cn(
-          "grid w-1/3 shrink-0 place-items-center text-white/90 ring-1 ring-inset ring-black/10 transition-[filter] duration-200 dark:ring-white/10",
-          !selected && "grayscale saturate-[.35]",
-        )}
-        style={{ backgroundColor: persona.hex }}
-      >
-        <PersonaSilhouette className="h-10 w-10 transition-transform duration-200 group-hover:scale-110" />
+      <span className="relative w-1/3 shrink-0 overflow-hidden bg-muted ring-1 ring-inset ring-black/10 dark:ring-white/10">
+        <span
+          className="absolute inset-0 grid place-items-center text-white/90"
+          style={{ backgroundColor: persona.hex }}
+          aria-hidden
+        >
+          <PersonaSilhouette className="h-10 w-10" />
+        </span>
+        <img
+          src={persona.image}
+          alt={persona.name}
+          className={cn(
+            "absolute inset-0 h-full w-full object-cover transition-[filter,opacity,transform] duration-200 group-hover:scale-[1.03]",
+            !selected && "grayscale-[.35] saturate-[.7]",
+          )}
+          onError={(event) => {
+            event.currentTarget.style.opacity = "0";
+          }}
+        />
       </span>
 
       <span
@@ -293,8 +298,8 @@ function GalleryCard({
         </span>
         <span className="flex flex-wrap items-center gap-1.5">
           <PersonaTag tag={persona.tag} hex={persona.hex} />
-          <span className="text-[10px] text-muted-foreground">в духе {persona.inspiredBy}</span>
         </span>
+        <span className="text-[10px] leading-tight text-muted-foreground">{persona.role}</span>
         <span className="text-xs leading-relaxed text-muted-foreground">{persona.description}</span>
       </span>
 
@@ -361,6 +366,10 @@ function PersonaGallerySection({
           text="Консилиум — это групповое обсуждение вашей задачи с несколькими AI-персонами. Каждая привносит свой взгляд на вопрос, поэтому вместо одного мнения вы получаете спор и разные точки зрения. Выберите от одного до трёх участников."
         />
       </div>
+
+      <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
+        {COUNCIL_PERSONA_DISCLAIMER}
+      </p>
 
       <span role="status" aria-live="polite" className="sr-only">
         {capacityHint && "Можно выбрать не более трёх участников."}
@@ -558,11 +567,7 @@ function PersonaPicker({
   const [query, setQuery] = useState("");
   const q = query.trim().toLowerCase();
   const results = COUNCIL_PERSONAS.filter(
-    (p) =>
-      !q ||
-      p.name.toLowerCase().includes(q) ||
-      p.role.toLowerCase().includes(q) ||
-      p.inspiredBy.toLowerCase().includes(q),
+    (p) => !q || p.name.toLowerCase().includes(q) || p.role.toLowerCase().includes(q),
   );
 
   const toggle = (id: string) =>
@@ -621,6 +626,8 @@ function PersonaPicker({
             >
               <PersonaAvatar
                 initials={p.initials}
+                src={p.image}
+                alt={p.name}
                 size="md"
                 ringClassName={PERSONA_BORDER_CLASS}
                 style={personaAvatarStyle(p)}
@@ -632,9 +639,7 @@ function PersonaPicker({
                   </span>
                   <PersonaTag tag={p.tag} hex={p.hex} />
                 </span>
-                <span className="block truncate text-xs text-muted-foreground">
-                  {p.role} · в духе {p.inspiredBy}
-                </span>
+                <span className="block truncate text-xs text-muted-foreground">{p.role}</span>
               </span>
             </button>
           );
@@ -776,6 +781,8 @@ function SessionView({
             <div key={group.items[0].id} className="flex gap-3" style={personaColorVars(p)}>
               <PersonaAvatar
                 initials={p.initials}
+                src={p.image}
+                alt={p.name}
                 size="md"
                 ringClassName={PERSONA_BORDER_CLASS}
                 style={{ backgroundColor: p.hex }}
@@ -812,6 +819,8 @@ function SessionView({
           <div className="flex items-center gap-3">
             <PersonaAvatar
               initials={typingPersona.initials}
+              src={typingPersona.image}
+              alt={typingPersona.name}
               size="md"
               className="animate-typing-ring"
               style={
@@ -1096,6 +1105,8 @@ function CouncilPage() {
                         <PersonaAvatar
                           key={id}
                           initials={p.initials}
+                          src={p.image}
+                          alt={p.name}
                           size="sm"
                           style={{ backgroundColor: p.hex }}
                         />
