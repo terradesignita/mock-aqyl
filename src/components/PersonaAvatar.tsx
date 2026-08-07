@@ -1,5 +1,5 @@
 import type { HTMLAttributes } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "../lib/utils";
 
 const SIZE_CLASS = {
   xs: "h-6 w-6",
@@ -10,6 +10,8 @@ const SIZE_CLASS = {
 
 export interface PersonaAvatarProps extends HTMLAttributes<HTMLSpanElement> {
   initials: string;
+  src?: string;
+  alt?: string;
   size?: keyof typeof SIZE_CLASS;
   /** border-2 border-card — для стека перекрывающихся аватаров. */
   ring?: boolean;
@@ -19,10 +21,7 @@ export interface PersonaAvatarProps extends HTMLAttributes<HTMLSpanElement> {
   ringClassName?: string;
 }
 
-/** Обобщённый силуэт бюста — намеренно без черт лица, пола, этничности.
- *  Персоны в этом проекте вымышленные: фото реального узнаваемого человека
- *  под чужим именем создавало бы риск того, что вымышленные высказывания
- *  свяжут с конкретным живым человеком (см. обсуждение в чате). */
+/** Обобщённый силуэт бюста для отображения при ошибке загрузки изображения. */
 export function PersonaSilhouette({ className }: { className?: string }) {
   return (
     <svg
@@ -39,6 +38,8 @@ export function PersonaSilhouette({ className }: { className?: string }) {
 
 export function PersonaAvatar({
   initials,
+  src,
+  alt,
   size = "md",
   ring,
   ringClassName,
@@ -47,11 +48,11 @@ export function PersonaAvatar({
 }: PersonaAvatarProps) {
   return (
     <span
-      role="img"
-      aria-label={initials}
+      role={src ? undefined : "img"}
+      aria-label={src ? undefined : (alt ?? initials)}
       {...rest}
       className={cn(
-        "grid shrink-0 place-items-center rounded-full text-white/90",
+        "relative grid shrink-0 place-items-center overflow-hidden rounded-full text-white/90",
         SIZE_CLASS[size],
         ring && "border-2 border-card",
         ringClassName && "border-2",
@@ -59,7 +60,23 @@ export function PersonaAvatar({
         className,
       )}
     >
-      <PersonaSilhouette />
+      <span
+        data-avatar-fallback="true"
+        className="absolute inset-0 grid place-items-center"
+        aria-hidden
+      >
+        <PersonaSilhouette />
+      </span>
+      {src ? (
+        <img
+          src={src}
+          alt={alt ?? initials}
+          className="absolute inset-0 h-full w-full object-cover transition-opacity"
+          onError={(event) => {
+            event.currentTarget.style.opacity = "0";
+          }}
+        />
+      ) : null}
     </span>
   );
 }
