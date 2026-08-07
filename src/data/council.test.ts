@@ -93,6 +93,21 @@ describe("COUNCIL_PERSONAS", () => {
     "Ержан Тулегенов",
   ];
 
+  const EXPECTED_TAGS_BY_ID = {
+    founder: "Первые принципы",
+    product: "Продукт",
+    operator: "Клиент",
+    platform: "Полный стек",
+    transform: "Трансформация",
+    industrialist: "Ценность",
+    resilience: "Принципы",
+    contrarian: "Контрарианец",
+    scale: "AI-практик",
+    engineer: "Наука",
+    competitor: "Стартап",
+    brand: "Девелопмент",
+  };
+
   it("has 12 personas with unique ids", () => {
     expect(COUNCIL_PERSONAS).toHaveLength(12);
     expect(new Set(COUNCIL_PERSONAS.map((p) => p.id)).size).toBe(12);
@@ -119,6 +134,12 @@ describe("COUNCIL_PERSONAS", () => {
     for (const image of images) {
       expect(image).toMatch(/^\/personas\/[a-z0-9-]+\.webp$/);
     }
+  });
+
+  it("uses the approved tag for every stable persona id", () => {
+    expect(
+      Object.fromEntries(COUNCIL_PERSONAS.map((persona) => [persona.id, persona.tag])),
+    ).toEqual(EXPECTED_TAGS_BY_ID);
   });
 
   it("does not retain the obsolete inspiredBy presentation field", () => {

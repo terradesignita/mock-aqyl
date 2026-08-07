@@ -31,7 +31,7 @@ export const COUNCIL_PERSONAS: CouncilPersona[] = [
     description: "Разбирает проблему до базовых фактов, удаляет лишнее и ищет путь к десятикратному улучшению.",
     image: "/personas/elon-musk.webp",
     hex: "#a75d00",
-    tag: "Визионер",
+    tag: "Первые принципы",
   },
   {
     id: "operator",
