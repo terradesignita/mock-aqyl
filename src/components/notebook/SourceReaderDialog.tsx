@@ -7,14 +7,18 @@ import {
   ExternalLink,
   FileText,
   Link2,
+  ListTree,
   Maximize2,
   Minimize2,
   MessageSquarePlus,
+  Sparkle,
   Type,
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { NotebookSource } from "@/lib/sources";
+import { sourceToMarkdown, type NotebookSource } from "@/lib/sources";
+import { downloadFile, safeFileName } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 
 interface Props {
   source: NotebookSource | null;
@@ -77,10 +81,24 @@ export function SourceReaderDialog({
   onAskAbout,
   highlight,
 }: Props) {
+  const t = useT();
   const [full, setFull] = useState(false);
   const [fontStep, setFontStep] = useState(1);
   const [copied, setCopied] = useState(false);
   const markRef = useRef<HTMLElement | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const sectionRefs = useRef<(HTMLElement | null)[]>([]);
+
+  /** Прокрутка внутри читалки, а не всей страницы — попап сам себе скролл-контейнер. */
+  const scrollToSection = (index: number) => {
+    const target = sectionRefs.current[index];
+    const container = scrollRef.current;
+    if (!target || !container) return;
+    container.scrollTo({
+      top: target.offsetTop - container.offsetTop - 8,
+      behavior: "smooth",
+    });
+  };
 
   useEffect(() => {
     if (!open) {
@@ -111,12 +129,7 @@ export function SourceReaderDialog({
   };
 
   const download = () => {
-    const blob = new Blob([plain], { type: "text/markdown;charset=utf-8" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `${source.id}.md`;
-    a.click();
-    URL.revokeObjectURL(a.href);
+    downloadFile(sourceToMarkdown(source), `${safeFileName(source.title, source.id)}.md`);
   };
 
   const Icon = source.kind === "link" ? Link2 : FileText;
@@ -149,7 +162,7 @@ export function SourceReaderDialog({
                 </DialogPrimitive.Title>
                 <DialogPrimitive.Description className="mt-0.5 truncate text-xs text-muted-foreground">
                   {source.meta}
-                  {source.pages ? ` · ${source.pages} стр.` : ""} · {source.id}
+                  {source.pages ? ` · ${t.reader.pages(source.pages)}` : ""} · {source.id}
                 </DialogPrimitive.Description>
               </div>
             </div>
@@ -158,43 +171,114 @@ export function SourceReaderDialog({
               <Button
                 size="icon"
                 variant="ghost"
-                aria-label="Размер шрифта"
+                aria-label={t.reader.fontSize}
                 onClick={() => setFontStep((s) => (s + 1) % FONT_STEPS.length)}
               >
                 <Type className="h-4 w-4" />
               </Button>
-              <Button size="icon" variant="ghost" aria-label="Копировать" onClick={copy}>
+              <Button size="icon" variant="ghost" aria-label={t.common.copy} onClick={copy}>
                 {copied ? <Check className="h-4 w-4 text-success" /> : <Copy className="h-4 w-4" />}
               </Button>
-              <Button size="icon" variant="ghost" aria-label="Скачать" onClick={download}>
+              <Button size="icon" variant="ghost" aria-label={t.common.download} onClick={download}>
                 <Download className="h-4 w-4" />
               </Button>
               <Button
                 size="icon"
                 variant="ghost"
-                aria-label="На весь экран"
+                aria-label={t.reader.fullscreen}
                 onClick={() => setFull((v) => !v)}
               >
                 {full ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
               </Button>
               <DialogPrimitive.Close asChild>
-                <Button size="icon" variant="ghost" aria-label="Закрыть">
+                <Button size="icon" variant="ghost" aria-label={t.common.close}>
                   <X className="h-4 w-4" />
                 </Button>
               </DialogPrimitive.Close>
             </div>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto px-5 py-6 sm:px-10">
+          <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-5 py-6 sm:px-10">
             <article className={`mx-auto w-full max-w-2xl ${FONT_STEPS[fontStep]} leading-8`}>
-              {source.sections.map((s) => (
-                <section key={s.heading} className="mb-7">
-                  <h3 className="mb-2 text-xs font-bold text-primary">
-                    {s.heading}
-                  </h3>
+              {source.autoTags && source.autoTags.length > 0 && (
+                <div className="mb-5 flex flex-wrap items-center gap-1.5">
+                  <span className="inline-flex items-center" title={t.reader.autoTagsHint}>
+                    <Sparkle aria-hidden className="h-3.5 w-3.5 shrink-0 text-accent" />
+                    <span className="sr-only">{t.reader.autoTagsSr}</span>
+                  </span>
+                  {source.autoTags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full border border-border bg-secondary/60 px-2.5 py-0.5 text-xs font-medium text-muted-foreground"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {source.facts && source.facts.length > 0 && (
+                <div className="mb-6 rounded-xl border border-border bg-secondary/40 p-4">
+                  <p className="mb-3 text-xs font-bold text-primary">{t.reader.facts}</p>
+                  <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    {source.facts.map((f) => (
+                      <div key={f.label}>
+                        <dt className="sr-only">{f.label}</dt>
+                        <dd className="text-sm font-bold leading-tight text-card-foreground">
+                          {f.value}
+                        </dd>
+                        <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
+                          {f.label}
+                        </p>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+              )}
+
+              {source.sections.length > 1 && (
+                <nav aria-label={t.reader.tocLabel} className="mb-6 border-l-2 border-border pl-4">
+                  <p className="mb-1.5 flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
+                    <ListTree className="h-3.5 w-3.5" /> {t.reader.toc}
+                  </p>
+                  <ol className="space-y-1">
+                    {source.sections.map((sec, i) => (
+                      <li key={sec.heading}>
+                        <button
+                          onClick={() => scrollToSection(i)}
+                          className="text-left text-xs leading-snug text-primary transition-colors hover:underline"
+                        >
+                          {i + 1}. {sec.heading}
+                        </button>
+                      </li>
+                    ))}
+                  </ol>
+                </nav>
+              )}
+
+              {source.sections.map((s, i) => (
+                <section
+                  key={s.heading}
+                  ref={(node) => {
+                    sectionRefs.current[i] = node;
+                  }}
+                  className="mb-7 scroll-mt-4"
+                >
+                  <h3 className="mb-2 text-xs font-bold text-primary">{s.heading}</h3>
                   <HighlightedBody body={s.body} highlight={highlight} markRef={markRef} />
                 </section>
               ))}
+
+              {source.wiki && (
+                <footer className="mt-8 border-t border-border pt-3 text-xs leading-relaxed text-muted-foreground">
+                  {t.reader.wikiFooter(source.wiki.builtAt, source.wiki.origin)}{" "}
+                  <span className="font-medium text-card-foreground">{source.wiki.origin}</span>
+                  {" · "}
+                  {source.wiki.chunks > 0
+                    ? t.reader.chunksIndexed(source.wiki.chunks)
+                    : t.reader.chunksNone}
+                </footer>
+              )}
             </article>
           </div>
 
@@ -207,10 +291,10 @@ export function SourceReaderDialog({
                 onClick={onToggleSelected}
               >
                 <Check className={`h-3.5 w-3.5 ${selected ? "text-success" : "opacity-50"}`} />
-                {selected ? "Используется в чате" : "Добавить в контекст"}
+                {selected ? t.reader.usedInChat : t.reader.addToContext}
               </Button>
               <Button size="sm" className="gap-1.5" onClick={() => onAskAbout(source)}>
-                <MessageSquarePlus className="h-3.5 w-3.5" /> Спросить по источнику
+                <MessageSquarePlus className="h-3.5 w-3.5" /> {t.reader.askAbout}
               </Button>
               {source.url && (
                 <a
@@ -219,12 +303,13 @@ export function SourceReaderDialog({
                   rel="noreferrer"
                   className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:text-primary"
                 >
-                  <ExternalLink className="h-3.5 w-3.5" /> Открыть оригинал
+                  <ExternalLink className="h-3.5 w-3.5" /> {t.reader.openOriginal}
                 </a>
               )}
             </div>
             <p className="text-xs text-muted-foreground">
-              {highlight ? "Цитата подсвечена в тексте · " : ""}Esc — закрыть · Aa — размер текста
+              {highlight ? t.reader.quoteHighlighted : ""}
+              {t.reader.escHint}
             </p>
           </div>
         </DialogPrimitive.Content>

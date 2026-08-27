@@ -1,8 +1,9 @@
 import { HelpHint } from "@/components/HelpHint";
-import { useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowRight,
   History,
+  Loader2,
   Mic,
   MicOff,
   Search,
@@ -24,6 +25,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { useVoiceInput } from "@/lib/speech";
+import { useT, type Dictionary } from "@/lib/i18n";
 
 interface SearchPanelProps {
   scope: ScopeFilter;
@@ -42,11 +45,26 @@ interface SearchPanelProps {
   onFocusChange?: (focused: boolean) => void;
 }
 
-const MODES: { key: ScopeFilter; label: string }[] = [
-  { key: "ALL", label: "Все" },
-  { key: "INTERNAL", label: "Внутренний опыт BI" },
-  { key: "EXTERNAL", label: "Мировой опыт" },
-];
+/** Приветствие по времени суток. Считается после монтирования: часовой пояс сервера
+ *  и браузера различаются, и на SSR это дало бы расхождение при гидратации. */
+function useGreeting(t: Dictionary) {
+  const [greeting, setGreeting] = useState(t.greeting.day);
+  useEffect(() => {
+    const hour = new Date().getHours();
+    setGreeting(
+      hour < 6
+        ? t.greeting.night
+        : hour < 12
+          ? t.greeting.morning
+          : hour < 18
+            ? t.greeting.day
+            : t.greeting.evening,
+    );
+  }, [t]);
+  return greeting;
+}
+
+const MODES: ScopeFilter[] = ["ALL", "INTERNAL", "EXTERNAL"];
 
 export function SearchPanel({
   scope,
@@ -68,57 +86,20 @@ export function SearchPanel({
     (v) => v !== "all",
   ).length;
 
-  const [listening, setListening] = useState(false);
-  const recognitionRef = useRef<any>(null);
-
-  const toggleVoice = () => {
-    const SR = (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition ?? null;
-    if (!SR) {
-      toast.error("Голосовой ввод не поддерживается в этом браузере");
-      return;
-    }
-    if (listening) {
-      recognitionRef.current?.stop();
-      return;
-    }
-    const rec = new SR();
-    rec.lang = "ru-RU";
-    rec.interimResults = true;
-    rec.continuous = false;
-    let finalText = "";
-    rec.onresult = (event: any) => {
-      let interim = "";
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const chunk = event.results[i][0].transcript;
-        if (event.results[i].isFinal) finalText += chunk;
-        else interim += chunk;
-      }
-      onQueryChange((finalText + interim).trim());
-    };
-    rec.onerror = (event: any) => {
-      setListening(false);
-      toast.error(
-        event.error === "not-allowed"
-          ? "Нет доступа к микрофону"
-          : "Не удалось распознать речь, попробуйте ещё раз",
-      );
-    };
-    rec.onend = () => {
-      setListening(false);
-      const value = finalText.trim();
-      if (value) onQueryChange(value);
-    };
-    recognitionRef.current = rec;
-    setListening(true);
-    rec.start();
-    toast.info("Говорите — я записываю вопрос");
-  };
+  const t = useT();
+  const greeting = useGreeting(t);
+  const voice = useVoiceInput({
+    messages: t.voice,
+    onText: onQueryChange,
+    onError: (message) => toast.error(message),
+    onStart: () => toast.info(t.chat.voiceStarted),
+  });
 
   return (
     <section className="mx-auto w-full max-w-[1600px] px-4 pb-2 pt-6 sm:px-6">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">
         <h1 className="truncate text-2xl font-extrabold tracking-tight text-foreground sm:text-[28px]">
-          Добрый день, Марат
+          {greeting}, {t.profile.firstName}
         </h1>
         {totalLabel && (
           <p
@@ -139,7 +120,7 @@ export function SearchPanel({
               type="button"
               role="switch"
               aria-checked={advisor}
-              aria-label="Режим AI-советника"
+              aria-label={t.dashboard.advisorSwitchLabel}
               onClick={() => onAdvisorChange(!advisor)}
               className="flex items-center gap-2"
             >
@@ -166,21 +147,17 @@ export function SearchPanel({
                   advisor ? "text-primary" : "text-muted-foreground",
                 )}
               >
-                {advisor ? "AI-советник" : "Поиск"}
+                {advisor ? t.dashboard.advisorMode : t.dashboard.searchMode}
               </span>
             </button>
             <HelpHint
               side="bottom"
-              text={
-                advisor
-                  ? "Включите, если нужно принять решение: советник задаст уточняющие вопросы и даст рекомендацию со сценариями. Выключено — обычный поиск материалов."
-                  : "Обычный поиск ищет только по кейсам: названиям, описаниям и тегам. Включите AI-советника, если нужно принять управленческое решение, а не просто найти материал."
-              }
+              text={advisor ? t.dashboard.advisorHintOn : t.dashboard.advisorHintOff}
             />
           </div>
 
           <label htmlFor="main-search-query" className="sr-only">
-            {advisor ? "Опишите бизнес-ситуацию для AI-советника" : "Поиск по материалам BI AQYL"}
+            {advisor ? t.dashboard.advisorLabel : t.dashboard.searchLabel}
           </label>
           <input
             id="main-search-query"
@@ -191,38 +168,50 @@ export function SearchPanel({
             }}
             onFocus={() => onFocusChange?.(true)}
             onBlur={() => onFocusChange?.(false)}
-            placeholder={
-              advisor
-                ? "Опишите бизнес-ситуацию или решение, которое нужно принять — советник разберётся и предложит рекомендацию"
-                : "Спросите BI AQYL: найдите материалы, кейсы и презентации"
-            }
+            placeholder={advisor ? t.dashboard.advisorPlaceholder : t.dashboard.searchPlaceholder}
             className="h-11 w-full min-w-0 bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground/70 sm:text-sm"
           />
           <span className="flex items-center gap-1">
             {query && (
               <button
                 onClick={() => onQueryChange("")}
-                aria-label="Очистить"
+                aria-label={t.dashboard.clear}
                 className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition-colors active:scale-[0.96] hover:text-foreground"
               >
                 <X className="h-4 w-4" />
               </button>
             )}
             <button
-              onClick={toggleVoice}
-              aria-label={listening ? "Остановить запись" : "Голосовой ввод"}
+              onClick={voice.toggle}
+              disabled={voice.state === "unsupported"}
+              aria-label={voice.active ? t.dashboard.voiceStop : t.dashboard.voiceInput}
+              title={
+                voice.state === "unsupported"
+                  ? t.dashboard.voiceUnsupported
+                  : voice.state === "requesting"
+                    ? t.dashboard.voiceRequesting
+                    : voice.active
+                      ? t.dashboard.voiceStop
+                      : t.dashboard.voiceInput
+              }
               className={cn(
-                "grid h-8 w-8 shrink-0 place-items-center rounded-full transition-colors active:scale-[0.96]",
-                listening
+                "grid h-8 w-8 shrink-0 place-items-center rounded-full transition-colors active:scale-[0.96] disabled:opacity-40",
+                voice.active
                   ? "animate-pulse text-destructive"
                   : "text-muted-foreground hover:text-primary",
               )}
             >
-              {listening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+              {voice.state === "requesting" ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : voice.active ? (
+                <MicOff className="h-4 w-4" />
+              ) : (
+                <Mic className="h-4 w-4" />
+              )}
             </button>
             <button
               onClick={onSubmit}
-              aria-label="Отправить запрос"
+              aria-label={t.dashboard.submit}
               className="grid h-9 w-9 place-items-center rounded-full border border-primary/40 text-primary transition-colors active:scale-[0.96] hover:bg-primary hover:text-primary-foreground group-focus-within:bg-primary group-focus-within:text-primary-foreground"
             >
               <ArrowRight className="h-4 w-4" />
@@ -234,14 +223,14 @@ export function SearchPanel({
       {advisor && !advisorQueryActive && history.length > 0 && (
         <div className="mt-3 rounded-2xl border border-border bg-card p-4 shadow-soft">
           <p className="flex items-center gap-1.5 pb-2 text-xs font-semibold text-muted-foreground">
-            <History className="h-3.5 w-3.5" /> Недавние вопросы
+            <History className="h-3.5 w-3.5" /> {t.dashboard.recentQuestions}
             <Button
               variant="ghost"
               size="sm"
               className="ml-auto h-6 px-2 text-xs font-normal"
               onClick={onClearHistory}
             >
-              очистить
+              {t.dashboard.clearHistory}
             </Button>
           </p>
           <ul className="space-y-0.5">
@@ -275,20 +264,24 @@ export function SearchPanel({
       )}
 
       {!advisor && (
-        <div className="mt-3 flex items-center justify-between gap-2">
-          <div className="flex w-fit items-center gap-1 rounded-2xl border border-border bg-card p-1 shadow-soft">
-            {MODES.map((m) => (
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex min-w-0 max-w-full items-center gap-1 overflow-x-auto rounded-2xl border border-border bg-card p-1 shadow-soft">
+            {MODES.map((mode) => (
               <button
-                key={m.key}
-                onClick={() => onScopeChange(m.key)}
+                key={mode}
+                onClick={() => onScopeChange(mode)}
                 className={cn(
-                  "h-9 rounded-xl px-3 text-sm font-semibold transition-colors active:scale-[0.96]",
-                  scope === m.key
+                  "h-9 shrink-0 whitespace-nowrap rounded-xl px-3 text-sm font-semibold transition-colors active:scale-[0.96]",
+                  scope === mode
                     ? "bg-primary text-primary-foreground shadow-brand"
                     : "text-muted-foreground hover:bg-secondary hover:text-foreground",
                 )}
               >
-                {m.label}
+                {mode === "ALL"
+                  ? t.dashboard.scopeAll
+                  : mode === "INTERNAL"
+                    ? t.dashboard.scopeInternal
+                    : t.dashboard.scopeExternal}
               </button>
             ))}
           </div>
@@ -305,7 +298,7 @@ export function SearchPanel({
                   )}
                 >
                   <SlidersHorizontal className="h-4 w-4" />
-                  Фильтры
+                  {t.dashboard.filters}
                   {activeFilterCount > 0 && (
                     <span className="grid h-4 w-4 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
                       {activeFilterCount}
@@ -319,10 +312,10 @@ export function SearchPanel({
                   onValueChange={(v) => onFiltersChange({ ...filters, businessUnit: v })}
                 >
                   <SelectTrigger className="h-9 w-full text-xs">
-                    <SelectValue placeholder="Направление" />
+                    <SelectValue placeholder={t.dashboard.unitPlaceholder} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Все направления</SelectItem>
+                    <SelectItem value="all">{t.dashboard.allUnits}</SelectItem>
                     {BUSINESS_UNITS.map((b) => (
                       <SelectItem key={b} value={b}>
                         {b}
@@ -338,10 +331,10 @@ export function SearchPanel({
                   }
                 >
                   <SelectTrigger className="h-9 w-full text-xs">
-                    <SelectValue placeholder="Язык" />
+                    <SelectValue placeholder={t.dashboard.languagePlaceholder} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Все языки</SelectItem>
+                    <SelectItem value="all">{t.dashboard.allLanguages}</SelectItem>
                     {LANGUAGES.map((l) => (
                       <SelectItem key={l} value={l}>
                         {l}
@@ -363,7 +356,7 @@ export function SearchPanel({
                       })
                     }
                   >
-                    Сбросить
+                    {t.common.reset}
                   </Button>
                 )}
               </PopoverContent>

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Check, RotateCcw, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { KnowledgeCardData } from "@/data/mockCards";
+import { useT, type Dictionary } from "@/lib/i18n";
 
 export interface QuizQuestion {
   q: string;
@@ -10,61 +11,47 @@ export interface QuizQuestion {
   why: string;
 }
 
-export function buildQuiz(card: KnowledgeCardData): QuizQuestion[] {
+export function buildQuiz(card: KnowledgeCardData, t: Dictionary): QuizQuestion[] {
   const steps = card.framework?.map((f) => f.step.replace(/^\d+\.\s*/, "")) ?? [];
   const cite = card.citations[0]?.source_anchor ?? card.source;
+  const q = t.quiz;
 
   return [
     {
-      q: `Какой главный вывод материала «${card.title}»?`,
-      options: [
-        card.core_insight,
-        "Эффект достигается только при полной автоматизации всех процессов",
-        "Метрики не меняются в первый год внедрения",
-      ],
+      q: q.q1(card.title),
+      options: [card.core_insight, q.q1o2, q.q1o3],
       correct: 0,
-      why: `Прямая цитата из источника: ${cite}.`,
+      why: q.q1why(cite),
     },
     {
-      q: `Кто в первую очередь выигрывает от применения подхода в BI Group?`,
-      options: [
-        "Внешние подрядчики",
-        `Бизнес-юнит «${card.business_unit}»`,
-        "Только топ-менеджмент",
-      ],
+      q: q.q2,
+      options: [q.q2o1, q.q2o2(card.business_unit), q.q2o3],
       correct: 1,
-      why: `Материал описывает контекст «${card.business_unit}» — там эффект воспроизводим быстрее всего.`,
+      why: q.q2why(card.business_unit),
     },
     {
-      q: "Что критично зафиксировать до старта пилота?",
-      options: [
-        "Финальный бюджет масштабирования",
-        "Состав проектного офиса",
-        "Baseline метрик — иначе эффект нечем измерить",
-      ],
+      q: q.q3,
+      options: [q.q3o1, q.q3o2, q.q3o3],
       correct: 2,
-      why: "Без baseline любые цифры «после» не проверяемы и не защищаются на комитете.",
+      why: q.q3why,
     },
     {
-      q: steps.length ? `Что происходит на шаге «${steps[0]}»?` : "С чего начинается внедрение?",
-      options: [
-        card.framework?.[0]?.description ?? "Фиксируем текущее состояние и договариваемся о цели",
-        "Сразу масштабируем решение на все объекты",
-        "Передаём задачу внешнему консультанту",
-      ],
+      q: steps.length ? q.q4Step(steps[0]) : q.q4Fallback,
+      options: [card.framework?.[0]?.description ?? q.q4o1Fallback, q.q4o2, q.q4o3],
       correct: 0,
-      why: "Первый шаг всегда про диагностику, а не про масштабирование.",
+      why: q.q4why,
     },
     {
-      q: "Какой горизонт эффекта заявлен по материалу?",
-      options: ["1–2 недели", "6–12 месяцев", "3–5 лет"],
+      q: q.q5,
+      options: [q.q5o1, q.q5o2, q.q5o3],
       correct: 1,
-      why: `Автор (${card.author}) описывает эффект в горизонте 6–12 месяцев после пилота.`,
+      why: q.q5why(card.author),
     },
   ];
 }
 
 export function QuizView({ questions }: { questions: QuizQuestion[] }) {
+  const t = useT();
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const answered = Object.keys(answers).length;
   const score = questions.filter((q, i) => answers[i] === q.correct).length;
@@ -75,15 +62,13 @@ export function QuizView({ questions }: { questions: QuizQuestion[] }) {
     <div className="space-y-3">
       <div className="rounded-2xl border border-border bg-secondary/40 p-3">
         <div className="flex items-center justify-between text-xs font-semibold text-card-foreground">
-          <span>
-            Отвечено {answered} из {questions.length}
-          </span>
+          <span>{t.quiz.answeredOf(answered, questions.length)}</span>
           <span
             className={
               done ? (pct >= 70 ? "text-success" : "text-destructive") : "text-muted-foreground"
             }
           >
-            {done ? `${pct}% · ${pct >= 70 ? "зачёт" : "нужно повторить"}` : "проходной балл 70%"}
+            {done ? t.quiz.result(pct) : t.quiz.passMark}
           </span>
         </div>
         <div className="mt-2 h-2 overflow-hidden rounded-full bg-border">
@@ -99,9 +84,7 @@ export function QuizView({ questions }: { questions: QuizQuestion[] }) {
         const isAnswered = picked !== undefined;
         return (
           <div key={q.q} className="rounded-2xl border border-border bg-card p-3">
-            <p className="text-xs font-bold text-accent">
-              Вопрос {qi + 1}
-            </p>
+            <p className="text-xs font-bold text-accent">{t.quiz.questionN(qi + 1)}</p>
             <p className="mt-1 text-sm font-semibold leading-snug text-card-foreground">{q.q}</p>
             <div className="mt-2.5 space-y-1.5">
               {q.options.map((opt, oi) => {
@@ -146,7 +129,7 @@ export function QuizView({ questions }: { questions: QuizQuestion[] }) {
           className="gap-1.5"
           onClick={() => setAnswers({})}
         >
-          <RotateCcw className="h-3.5 w-3.5" /> Пройти заново
+          <RotateCcw className="h-3.5 w-3.5" /> {t.quiz.retake}
         </Button>
       )}
     </div>

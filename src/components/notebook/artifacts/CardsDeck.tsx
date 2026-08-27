@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Quote } from "lucide-react";
 import type { KnowledgeCardData } from "@/data/mockCards";
+import { useT, type Dictionary } from "@/lib/i18n";
 
 export interface InsightCard {
   tag: string;
@@ -9,39 +10,40 @@ export interface InsightCard {
   metric?: string;
 }
 
-export function buildInsightCards(card: KnowledgeCardData): InsightCard[] {
+export function buildInsightCards(card: KnowledgeCardData, t: Dictionary): InsightCard[] {
   const steps = card.framework?.map((f) => f.step.replace(/^\d+\.\s*/, "")) ?? [];
   const descriptions = card.framework?.map((f) => f.description) ?? [];
+  const v = t.viewers;
 
   return [
     {
-      tag: "Инсайт",
-      title: "Главный вывод",
+      tag: v.cardsTagInsight,
+      title: v.cardsTitleInsight,
       text: card.core_insight,
       metric: `${card.relevance}%`,
     },
     {
-      tag: "Контекст",
-      title: "Что за материал",
+      tag: v.cardsTagContext,
+      title: v.cardsTitleContext,
       text: card.executive_summary,
       metric: card.language,
     },
-    ...steps.slice(0, 4).map((s, i) => ({
-      tag: `Шаг ${i + 1}`,
-      title: s,
-      text: descriptions[i] ?? "Фиксируем результат и передаём владельцу процесса.",
+    ...steps.slice(0, 4).map((step, i) => ({
+      tag: v.cardsTagStep(i + 1),
+      title: step,
+      text: descriptions[i] ?? v.cardsStepFallback,
       metric: `0${i + 1}`,
     })),
     {
-      tag: "Риск",
-      title: "Что может сломаться",
-      text: "Нет владельца процесса и baseline метрик — эффект не докажете на комитете.",
+      tag: v.cardsTagRisk,
+      title: v.cardsTitleRisk,
+      text: v.cardsTextRisk,
       metric: "⚠",
     },
     {
-      tag: "Действие",
-      title: "Первый шаг на этой неделе",
-      text: `Собрать команду «${card.business_unit}» на 60 минут и зафиксировать текущие метрики.`,
+      tag: v.cardsTagAction,
+      title: v.cardsTitleAction,
+      text: v.cardsTextAction(card.business_unit),
       metric: "60′",
     },
   ];
@@ -54,6 +56,7 @@ const TONES = [
 ];
 
 export function CardsDeck({ cards }: { cards: InsightCard[] }) {
+  const t = useT();
   const ref = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
 
@@ -115,23 +118,21 @@ export function CardsDeck({ cards }: { cards: InsightCard[] }) {
         <div className="flex gap-1">
           <button
             onClick={() => scrollBy(-1)}
-            aria-label="Предыдущая карточка"
+            aria-label={t.viewers.cardsPrev}
             className="rounded-full border border-border p-1.5 text-muted-foreground transition-colors active:scale-[0.96] hover:border-primary hover:text-primary"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
           <button
             onClick={() => scrollBy(1)}
-            aria-label="Следующая карточка"
+            aria-label={t.viewers.cardsNext}
             className="rounded-full border border-border p-1.5 text-muted-foreground transition-colors active:scale-[0.96] hover:border-primary hover:text-primary"
           >
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>
       </div>
-      <p className="text-xs text-muted-foreground">
-        Листайте горизонтально — {cards.length} карточек с выводами по материалу.
-      </p>
+      <p className="text-xs text-muted-foreground">{t.viewerExtra.cardsHint(cards.length)}</p>
     </div>
   );
 }

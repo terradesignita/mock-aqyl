@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Pause, Play, Radio, RotateCcw, RotateCw } from "lucide-react";
 import type { KnowledgeCardData } from "@/data/mockCards";
+import { useT, type Dictionary } from "@/lib/i18n";
 
 const AUDIO_SRC = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3";
 
@@ -10,33 +11,30 @@ export interface Line {
   text: string;
 }
 
-export function buildTranscript(card: KnowledgeCardData): Line[] {
+export function buildTranscript(card: KnowledgeCardData, t: Dictionary): Line[] {
   const steps = card.framework?.map((f) => f.step.replace(/^\d+\.\s*/, "")) ?? [];
   const sentences = card.executive_summary.split(/(?<=\.)\s+/).filter(Boolean);
+  const v = t.viewers;
+  const a = v.podcastHostA;
+  const b = v.podcastHostB;
 
   const base: Omit<Line, "t">[] = [
-    { speaker: "Алия", text: `Привет! Сегодня разбираем материал «${card.title}».` },
-    { speaker: "Данияр", text: `Источник — ${card.source}, автор ${card.author}, ${card.date}.` },
-    {
-      speaker: "Алия",
-      text: `Кому это важно в первую очередь? Бизнес-юниту «${card.business_unit}».`,
-    },
-    ...sentences.slice(0, 4).map((s, i) => ({ speaker: i % 2 ? "Данияр" : "Алия", text: s })),
-    { speaker: "Данияр", text: "Окей, а в чём главный вывод, если убрать всю обёртку?" },
-    { speaker: "Алия", text: card.core_insight },
-    ...steps.slice(0, 4).map((s, i) => ({
-      speaker: i % 2 ? "Алия" : "Данияр",
-      text: `Шаг ${i + 1}: ${s}.`,
+    { speaker: a, text: v.podcastLine1(card.title) },
+    { speaker: b, text: v.podcastLine2(card.source, card.author, card.date) },
+    { speaker: a, text: v.podcastLine3(card.business_unit) },
+    ...sentences.slice(0, 4).map((sentence, i) => ({
+      speaker: i % 2 ? b : a,
+      text: sentence,
     })),
-    { speaker: "Данияр", text: "Меня смущает одно: без baseline цифры невозможно проверить." },
-    {
-      speaker: "Алия",
-      text: "Согласна. Поэтому предлагаем пилот на шесть недель и замер до старта.",
-    },
-    {
-      speaker: "Данияр",
-      text: "Договорились. Спасибо, что были с нами — и до следующего разбора.",
-    },
+    { speaker: b, text: v.podcastLineTurn },
+    { speaker: a, text: card.core_insight },
+    ...steps.slice(0, 4).map((step, i) => ({
+      speaker: i % 2 ? a : b,
+      text: v.podcastLineStep(i + 1, step),
+    })),
+    { speaker: b, text: v.podcastLineDoubt },
+    { speaker: a, text: v.podcastLineAgree },
+    { speaker: b, text: v.podcastLineOutro },
   ];
 
   return base.map((l, i) => ({ ...l, t: i * 7.5 }));
@@ -45,6 +43,7 @@ export function buildTranscript(card: KnowledgeCardData): Line[] {
 const fmt = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 
 export function PodcastPlayer({ lines, fullscreen }: { lines: Line[]; fullscreen: boolean }) {
+  const t = useT();
   const audioRef = useRef<HTMLAudioElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const [playing, setPlaying] = useState(false);
@@ -108,9 +107,13 @@ export function PodcastPlayer({ lines, fullscreen }: { lines: Line[]; fullscreen
             <Radio className="h-6 w-6 text-accent" />
           </span>
           <div className="min-w-0">
-            <p className="truncate text-sm font-bold">AQYL Разбор · выпуск дня</p>
+            <p className="truncate text-sm font-bold">{t.viewers.podcastEpisode}</p>
             <p className="truncate text-xs text-primary-foreground/70">
-              Алия и Данияр · {lines.length} реплик
+              {t.viewerExtra.podcastHosts(
+                t.viewers.podcastHostA,
+                t.viewers.podcastHostB,
+                lines.length,
+              )}
             </p>
           </div>
         </div>
@@ -118,7 +121,7 @@ export function PodcastPlayer({ lines, fullscreen }: { lines: Line[]; fullscreen
         <div
           role="slider"
           tabIndex={0}
-          aria-label="Перемотка"
+          aria-label={t.viewers.podcastSeek}
           aria-valuenow={Math.round(time)}
           aria-valuemin={0}
           aria-valuemax={Math.round(duration)}
@@ -150,21 +153,21 @@ export function PodcastPlayer({ lines, fullscreen }: { lines: Line[]; fullscreen
         <div className="mt-3 flex items-center justify-center gap-2">
           <button
             onClick={() => seek(time - 10)}
-            aria-label="Назад 10 секунд"
+            aria-label={t.viewers.podcastBack10}
             className="rounded-full p-2 text-primary-foreground/80 transition-[background-color,transform] active:scale-[0.96] hover:bg-primary-foreground/10"
           >
             <RotateCcw className="h-4 w-4" />
           </button>
           <button
             onClick={toggle}
-            aria-label={playing ? "Пауза" : "Слушать"}
+            aria-label={playing ? t.viewers.podcastPause : t.viewers.podcastPlay}
             className="flex h-12 w-12 items-center justify-center rounded-full bg-accent text-accent-foreground transition-transform hover:scale-105 active:scale-[0.96]"
           >
             {playing ? <Pause className="h-5 w-5" /> : <Play className="ml-0.5 h-5 w-5" />}
           </button>
           <button
             onClick={() => seek(time + 10)}
-            aria-label="Вперёд 10 секунд"
+            aria-label={t.viewers.podcastForward10}
             className="rounded-full p-2 text-primary-foreground/80 transition-[background-color,transform] active:scale-[0.96] hover:bg-primary-foreground/10"
           >
             <RotateCw className="h-4 w-4" />
@@ -228,9 +231,7 @@ export function PodcastPlayer({ lines, fullscreen }: { lines: Line[]; fullscreen
           );
         })}
       </div>
-      <p className="text-xs text-muted-foreground">
-        Клик по реплике — перемотка. Текст подсвечивается синхронно с аудио.
-      </p>
+      <p className="text-xs text-muted-foreground">{t.viewerExtra.podcastHint}</p>
     </div>
   );
 }

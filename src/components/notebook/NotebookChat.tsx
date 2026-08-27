@@ -1,10 +1,12 @@
 import { HelpHint } from "@/components/HelpHint";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  AlertTriangle,
   ArrowRight,
   Check,
   Copy,
   Flag,
+  Loader2,
   Quote,
   Shuffle,
   Mic,
@@ -18,7 +20,8 @@ import { toast } from "sonner";
 import type { KnowledgeCardData } from "@/data/mockCards";
 import type { NotebookSource } from "@/lib/sources";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
-import { pluralRu } from "@/lib/utils";
+import { useVoiceInput } from "@/lib/speech";
+import { BCP47, useI18n, useT, type Dictionary } from "@/lib/i18n";
 import { MessageBubble } from "@/components/MessageBubble";
 
 interface ChatMessage {
@@ -28,6 +31,8 @@ interface ChatMessage {
   citations?: string[];
   time: string;
   feedback?: "up" | "down";
+  /** Отказ по отсутствию контекста — без действий и оценок. */
+  refusal?: boolean;
 }
 
 interface Props {
@@ -37,11 +42,14 @@ interface Props {
   onSaveNote: (text: string) => void;
   onOpenSource: (source: NotebookSource, highlight?: string) => void;
   onFeedback: (type: "up" | "down" | "report", question: string, reason?: string) => void;
+  /** Вопрос отправлен — попадает в журнал активности. */
+  onAsk?: (question: string) => void;
   /** Question pushed from outside (e.g. "ask about this source") */
   pendingQuestion?: { text: string; nonce: number } | null;
 }
 
-const now = () => new Date().toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+const timeIn = (bcp47: string) =>
+  new Date().toLocaleTimeString(bcp47, { hour: "2-digit", minute: "2-digit" });
 
 /** Adds inline footnote markers [1], [2]... to the end of meaningful lines. */
 function withFootnotes(body: string, count: number) {
@@ -57,56 +65,72 @@ function withFootnotes(body: string, count: number) {
     .join("\n");
 }
 
-function buildAnswer(card: KnowledgeCardData, question: string, cited: string[]): ChatMessage {
-  const q = question.toLowerCase();
-  let body: string;
+const messageId = (prefix: string) =>
+  `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 
-  if (/риск|ограничен|подводн|против/.test(q)) {
-    body = `Ограничения и риски:\n1. Контекст материала «${card.source}» отличается от площадок BI Group — нужна калибровка по объёму работ.\n2. Эффект проявляется на горизонте 2–3 кварталов, ранние замеры вводят в заблуждение.\n3. Без владельца процесса практика откатывается к прежнему состоянию.`;
-  } else if (card.framework && /шаг|внедр|примен|план|чек-лист|step|how/.test(q)) {
-    body = `На основе выбранных источников применение выглядит так:\n${card.framework
-      .map((f, i) => `${i + 1}. ${f.step.replace(/^\d+\.\s*/, "")} — ${f.description}`)
-      .join("\n")}`;
-  } else if (/цифр|метрик|kpi|эффект|показател/.test(q)) {
-    body = `Что измерять:\n• Базовый показатель до внедрения (замер 4 недели).\n• Ключевой эффект: ${card.core_insight}\n• Контрольная метрика качества, чтобы рост скорости не съедал качество.`;
-  } else if (/почему|зачем|why|вывод|итог/.test(q)) {
-    body = `Ключевой вывод: ${card.core_insight}`;
-  } else if (/сравн|отлич|альтернатив/.test(q)) {
-    body = `Отличие от текущей практики: материал предлагает управлять причиной, а не следствием. В направлении «${card.business_unit}» это означает перенос усилий на подготовительный этап.`;
-  } else if (/источник|цитат|source|доказ/.test(q)) {
-    body = `Ответ опирается на ${cited.length} выбранных фрагмента(ов) из материала «${card.source}» (${card.author}). Наведите на сноску, чтобы увидеть цитату, и нажмите — откроется читалка.`;
-  } else if (/кратк|тезис|саммари|о чём|о чем/.test(q)) {
-    body = `${card.executive_summary}\n\nКлючевой инсайт: ${card.core_insight}`;
-  } else {
-    body = `${card.executive_summary}\n\nКлючевой инсайт: ${card.core_insight}\n\nЕсли нужно — разложу на шаги внедрения или соберу список метрик.`;
-  }
-
+/** Ответ, когда контекст пуст: ассистент обязан отказаться, а не отвечать по снятым источникам. */
+function buildRefusal(t: Dictionary, time: string): ChatMessage {
   return {
-    id: `a_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+    id: messageId("a"),
     role: "assistant",
-    text: withFootnotes(body, cited.length),
-    citations: cited,
-    time: now(),
+    text: t.chat.refusal,
+    citations: [],
+    time,
+    refusal: true,
   };
 }
 
-const ALL_SUGGESTIONS = [
-  "Кратко о чём этот материал?",
-  "Дай 5 тезисов для планёрки",
-  "Как применить это у нас?",
-  "Составь пошаговый план внедрения",
-  "Какие риски и ограничения?",
-  "Что может пойти не так на площадке?",
-  "Какие метрики отслеживать?",
-  "Сколько времени займёт внедрение?",
-  "Чем это отличается от нашей практики?",
-  "Кто должен быть владельцем процесса?",
-  "Покажи источники и цитаты",
-  "Сформулируй письмо руководителю",
-  "Какие вопросы задать подрядчику?",
-  "Переведи вывод на простой язык",
-  "Сделай чек-лист на первую неделю",
-];
+/** Ключевые слова вопроса — по одному набору на язык интерфейса. */
+const INTENT = {
+  risks: /риск|ограничен|подводн|против|risk|limitation|downside|тәуекел|шектеу/,
+  steps: /шаг|внедр|примен|план|чек-лист|step|how|rollout|plan|checklist|қадам|енгіз|жоспар/,
+  metrics: /цифр|метрик|kpi|эффект|показател|metric|number|measure|метрика|өлше|көрсеткіш/,
+  why: /почему|зачем|why|вывод|итог|takeaway|conclusion|неге|тұжырым/,
+  compare: /сравн|отлич|альтернатив|compare|differ|alternative|салыстыр|ерекшел/,
+  sources: /источник|цитат|source|доказ|quote|evidence|дереккөз|дәйексөз/,
+  summary: /кратк|тезис|саммари|о чём|о чем|brief|summary|about|қысқа|тезис|туралы/,
+};
+
+function buildAnswer(
+  card: KnowledgeCardData,
+  question: string,
+  cited: string[],
+  t: Dictionary,
+  time: string,
+): ChatMessage {
+  const q = question.toLowerCase();
+  let body: string;
+
+  if (INTENT.risks.test(q)) {
+    body = t.chat.answerRisks(card.source, card.business_unit);
+  } else if (card.framework && INTENT.steps.test(q)) {
+    body = t.chat.answerSteps(
+      card.framework
+        .map((f, i) => `${i + 1}. ${f.step.replace(/^\d+\.\s*/, "")} — ${f.description}`)
+        .join("\n"),
+    );
+  } else if (INTENT.metrics.test(q)) {
+    body = t.chat.answerMetrics(card.core_insight);
+  } else if (INTENT.why.test(q)) {
+    body = t.chat.answerWhy(card.core_insight);
+  } else if (INTENT.compare.test(q)) {
+    body = t.chat.answerCompare(card.business_unit);
+  } else if (INTENT.sources.test(q)) {
+    body = t.chat.answerSources(cited.length, card.source, card.author);
+  } else if (INTENT.summary.test(q)) {
+    body = t.chat.answerSummary(card.executive_summary, card.core_insight);
+  } else {
+    body = t.chat.answerDefault(card.executive_summary, card.core_insight);
+  }
+
+  return {
+    id: messageId("a"),
+    role: "assistant",
+    text: withFootnotes(body, cited.length),
+    citations: cited,
+    time,
+  };
+}
 
 export function NotebookChat({
   card,
@@ -115,6 +139,7 @@ export function NotebookChat({
   onSaveNote,
   onOpenSource,
   onFeedback,
+  onAsk,
   pendingQuestion,
 }: Props) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -123,15 +148,33 @@ export function NotebookChat({
   const [pillOffset, setPillOffset] = useState(0);
   const [reportFor, setReportFor] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [listening, setListening] = useState(false);
-  const recognitionRef = useRef<any>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const answerTimerRef = useRef<number | undefined>(undefined);
+  const t = useT();
+  const { locale } = useI18n();
+  const bcp47 = BCP47[locale];
+  const now = () => timeIn(bcp47);
 
+  const voice = useVoiceInput({
+    messages: t.voice,
+    onText: setInput,
+    onError: (message) => toast.error(message),
+    onStart: () => toast.info(t.chat.voiceStarted),
+    onDone: () => inputRef.current?.focus(),
+  });
+
+  // Отложенный ответ привязан к кейсу: при переходе на другой кейс таймер снимается,
+  // иначе ответ по прошлому материалу дописывается в чат нового.
   useEffect(() => {
     setMessages([]);
     setInput("");
     setPillOffset(0);
+    setThinking(false);
+    return () => {
+      window.clearTimeout(answerTimerRef.current);
+      answerTimerRef.current = undefined;
+    };
   }, [card.id]);
 
   useEffect(() => {
@@ -145,12 +188,21 @@ export function NotebookChat({
   const ask = (text: string) => {
     const value = text.trim();
     if (!value || thinking) return;
-    setMessages((m) => [...m, { id: `u_${Date.now()}`, role: "user", text: value, time: now() }]);
+    setMessages((m) => [...m, { id: messageId("u"), role: "user", text: value, time: now() }]);
     setInput("");
+
+    // Пустой контекст — сразу честный отказ, без имитации анализа.
+    if (selectedCitations.length === 0) {
+      setMessages((m) => [...m, buildRefusal(t, now())]);
+      return;
+    }
+
+    onAsk?.(value);
     setThinking(true);
-    window.setTimeout(() => {
-      setMessages((m) => [...m, buildAnswer(card, value, selectedCitations)]);
+    answerTimerRef.current = window.setTimeout(() => {
+      setMessages((m) => [...m, buildAnswer(card, value, selectedCitations, t, now())]);
       setThinking(false);
+      answerTimerRef.current = undefined;
     }, 550);
   };
 
@@ -173,53 +225,7 @@ export function NotebookChat({
       m.map((x) => (x.id === id ? { ...x, feedback: already ? undefined : value } : x)),
     );
     if (!already) onFeedback(value, questionFor(index));
-    toast.success(value === "up" ? "Спасибо, отметили как полезный" : "Учтём — ответ отмечен");
-  };
-
-  const toggleVoice = () => {
-    const SR = (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition ?? null;
-    if (!SR) {
-      toast.error("Голосовой ввод не поддерживается в этом браузере");
-      return;
-    }
-    if (listening) {
-      recognitionRef.current?.stop();
-      return;
-    }
-    const rec = new SR();
-    rec.lang = "ru-RU";
-    rec.interimResults = true;
-    rec.continuous = false;
-    let finalText = "";
-    rec.onresult = (event: any) => {
-      let interim = "";
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const chunk = event.results[i][0].transcript;
-        if (event.results[i].isFinal) finalText += chunk;
-        else interim += chunk;
-      }
-      setInput((finalText + interim).trim());
-    };
-    rec.onerror = (event: any) => {
-      setListening(false);
-      toast.error(
-        event.error === "not-allowed"
-          ? "Нет доступа к микрофону"
-          : "Не удалось распознать речь, попробуйте ещё раз",
-      );
-    };
-    rec.onend = () => {
-      setListening(false);
-      const value = finalText.trim();
-      if (value) {
-        setInput(value);
-        inputRef.current?.focus();
-      }
-    };
-    recognitionRef.current = rec;
-    setListening(true);
-    rec.start();
-    toast.info("Говорите — я записываю вопрос");
+    toast.success(value === "up" ? t.chat.markedHelpful : t.chat.markedNotHelpful);
   };
 
   const copy = async (m: ChatMessage) => {
@@ -230,23 +236,30 @@ export function NotebookChat({
 
   const pills = useMemo(() => {
     const size = 6;
-    return Array.from(
-      { length: size },
-      (_, i) => ALL_SUGGESTIONS[(pillOffset + i) % ALL_SUGGESTIONS.length],
-    );
-  }, [pillOffset]);
+    const all = t.chat.suggestions;
+    return Array.from({ length: size }, (_, i) => all[(pillOffset + i) % all.length]);
+  }, [pillOffset, t]);
 
   const openCitation = (anchor: string) => {
     const src = sources.find((s) => s.anchor === anchor);
     if (src) onOpenSource(src, anchor);
   };
 
+  /** Подпись цитаты — по физическому источнику, чтобы два фрагмента не выглядели одинаково. */
+  const sourceLabel = (anchor: string) => {
+    const src = sources.find((s) => s.anchor === anchor);
+    if (!src) return anchor;
+    return `${src.format} · ${src.title}`;
+  };
+
   const quoteFor = (anchor: string) => {
     const src = sources.find((s) => s.anchor === anchor);
-    const fragment = src?.sections.find((s) => s.heading.startsWith("Фрагмент"))?.body;
+    // `quote` заполняется при сборке источника — не ищем раздел по названию,
+    // иначе поиск сломается при смене языка интерфейса.
+    const fragment = src?.quote ?? src?.sections[0]?.body;
     return {
       src,
-      quote: (fragment ?? src?.sections[0]?.body ?? card.core_insight).split(". ")[0] + ".",
+      quote: (fragment ?? card.core_insight).split(". ")[0] + ".",
     };
   };
 
@@ -266,20 +279,20 @@ export function NotebookChat({
             <button
               onClick={() => openCitation(anchor)}
               className="mx-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded border border-primary/35 bg-primary/10 px-1 align-super text-xs font-semibold leading-none text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
-              aria-label={`Источник ${n}`}
+              aria-label={t.chat.sourceN(n)}
             >
               {n}
             </button>
           </HoverCardTrigger>
           <HoverCardContent align="start" className="w-80 p-3">
             <p className="flex items-center gap-1.5 text-xs font-semibold text-card-foreground">
-              <Quote className="h-3 w-3 text-primary" /> Источник [{n}]
+              <Quote className="h-3 w-3 text-primary" /> {t.chat.sourceBracket(n)}
             </p>
             <p className="mt-1.5 text-[12px] leading-relaxed text-muted-foreground">«{quote}»</p>
             <p className="mt-2 truncate text-xs font-medium text-primary">{src?.title ?? anchor}</p>
             <p className="text-xs text-muted-foreground">{src?.meta}</p>
             <p className="mt-2 text-xs text-muted-foreground opacity-70">
-              Нажмите, чтобы открыть в читалке
+              {t.chat.clickToOpenReader}
             </p>
           </HoverCardContent>
         </HoverCard>
@@ -292,14 +305,18 @@ export function NotebookChat({
       <div className="relative z-20 flex flex-wrap items-center justify-between gap-2 bg-background px-4 pt-4 sm:px-8">
         <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-2">
           <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1.5 text-xs font-semibold text-card-foreground shadow-sm">
-            <Sparkle className="h-3.5 w-3.5 text-primary" /> AQYL ассистент
+            <Sparkle className="h-3.5 w-3.5 text-primary" /> {t.chat.assistant}
           </span>
-          <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            Контекст: {selectedCitations.length} из {sources.length} источников
-            <HelpHint
-              side="left"
-              text="Ассистент отвечает только по источникам, отмеченным в левой панели. Сноски [1], [2] в ответе ведут к конкретным цитатам."
-            />
+          <span
+            className={`flex items-center gap-1.5 text-xs ${
+              selectedCitations.length === 0
+                ? "font-semibold text-warning"
+                : "text-muted-foreground"
+            }`}
+          >
+            {selectedCitations.length === 0 && <AlertTriangle className="h-3.5 w-3.5" />}
+            {t.chat.contextOf(selectedCitations.length, sources.length)}
+            <HelpHint side="left" text={t.chat.contextHint} />
           </span>
         </div>
         <div
@@ -347,7 +364,7 @@ export function NotebookChat({
                             >
                               <Quote className="h-3 w-3 shrink-0 text-primary" />
                               <span className="truncate">
-                                [{idx + 1}] {c}
+                                [{idx + 1}] {sourceLabel(c)}
                               </span>
                             </button>
                           </li>
@@ -355,71 +372,77 @@ export function NotebookChat({
                       </ul>
                     )}
 
-                    <div className="mt-3 flex flex-wrap items-center gap-1 border-t border-border pt-2.5 text-muted-foreground">
-                      <button
-                        onClick={() => setFeedback(m.id, i, "up")}
-                        aria-label="Полезный ответ"
-                        className={`grid h-7 w-7 place-items-center rounded-md transition-colors hover:bg-secondary ${
-                          m.feedback === "up" ? "text-success" : ""
-                        }`}
-                      >
-                        <ThumbsUp className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        onClick={() => setFeedback(m.id, i, "down")}
-                        aria-label="Неудачный ответ"
-                        className={`grid h-7 w-7 place-items-center rounded-md transition-colors hover:bg-secondary ${
-                          m.feedback === "down" ? "text-destructive" : ""
-                        }`}
-                      >
-                        <ThumbsDown className="h-3.5 w-3.5" />
-                      </button>
-                      <span className="mx-1 h-4 w-px bg-border" />
-                      <button
-                        onClick={() => copy(m)}
-                        className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-secondary hover:text-foreground"
-                      >
-                        {copiedId === m.id ? (
-                          <Check className="h-3.5 w-3.5 text-success" />
-                        ) : (
-                          <Copy className="h-3.5 w-3.5" />
-                        )}
-                        Копировать
-                      </button>
-                      <button
-                        onClick={() => onSaveNote(m.text)}
-                        className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-secondary hover:text-foreground"
-                      >
-                        <StickyNote className="h-3.5 w-3.5" /> В заметки
-                      </button>
-                      <button
-                        onClick={() => setReportFor(reportFor === m.id ? null : m.id)}
-                        className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-secondary hover:text-destructive"
-                      >
-                        <Flag className="h-3.5 w-3.5" /> Сообщить об ошибке
-                      </button>
-                      <span className="ml-auto text-xs">{m.time}</span>
-                    </div>
+                    {m.refusal ? (
+                      <p className="mt-3 border-t border-border pt-2.5 text-right text-xs text-muted-foreground">
+                        {m.time}
+                      </p>
+                    ) : (
+                      <div className="mt-3 flex flex-wrap items-center gap-1 border-t border-border pt-2.5 text-muted-foreground">
+                        <button
+                          onClick={() => setFeedback(m.id, i, "up")}
+                          aria-label={t.chat.helpful}
+                          className={`grid h-7 w-7 place-items-center rounded-md transition-colors hover:bg-secondary ${
+                            m.feedback === "up" ? "text-success" : ""
+                          }`}
+                        >
+                          <ThumbsUp className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          onClick={() => setFeedback(m.id, i, "down")}
+                          aria-label={t.chat.notHelpful}
+                          className={`grid h-7 w-7 place-items-center rounded-md transition-colors hover:bg-secondary ${
+                            m.feedback === "down" ? "text-destructive" : ""
+                          }`}
+                        >
+                          <ThumbsDown className="h-3.5 w-3.5" />
+                        </button>
+                        <span className="mx-1 h-4 w-px bg-border" />
+                        <button
+                          onClick={() => copy(m)}
+                          className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-secondary hover:text-foreground"
+                        >
+                          {copiedId === m.id ? (
+                            <Check className="h-3.5 w-3.5 text-success" />
+                          ) : (
+                            <Copy className="h-3.5 w-3.5" />
+                          )}
+                          {t.common.copy}
+                        </button>
+                        <button
+                          onClick={() => onSaveNote(m.text)}
+                          className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-secondary hover:text-foreground"
+                        >
+                          <StickyNote className="h-3.5 w-3.5" /> {t.chat.toNotes}
+                        </button>
+                        <button
+                          onClick={() => setReportFor(reportFor === m.id ? null : m.id)}
+                          className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors hover:bg-secondary hover:text-destructive"
+                        >
+                          <Flag className="h-3.5 w-3.5" /> {t.chat.reportError}
+                        </button>
+                        <span className="ml-auto text-xs">{m.time}</span>
+                      </div>
+                    )}
 
                     {reportFor === m.id && (
                       <div className="mt-3 rounded-xl border border-border bg-secondary/50 p-3">
                         <p className="text-xs font-semibold text-card-foreground">
-                          Что не так с ответом?
+                          {t.chat.reportQuestion}
                         </p>
                         <div className="mt-2 flex flex-wrap gap-1.5">
                           {[
-                            "Неверный факт",
-                            "Цитата не соответствует",
-                            "Ответ не по вопросу",
-                            "Устаревшие данные",
-                            "Конфиденциальные данные",
+                            t.chat.reasonWrongFact,
+                            t.chat.reasonWrongQuote,
+                            t.chat.reasonOffTopic,
+                            t.chat.reasonOutdated,
+                            t.chat.reasonConfidential,
                           ].map((reason) => (
                             <button
                               key={reason}
                               onClick={() => {
                                 setReportFor(null);
                                 onFeedback("report", questionFor(i), reason);
-                                toast.success(`Отправлено редакторам: «${reason}»`);
+                                toast.success(t.chat.reportSent(reason));
                               }}
                               className="rounded-full border border-border bg-card px-2.5 py-1 text-xs transition-colors hover:border-destructive hover:text-destructive"
                             >
@@ -449,8 +472,7 @@ export function NotebookChat({
                 ))}
               </span>
               <span className="text-sm text-muted-foreground">
-                Анализирую {selectedCitations.length}{" "}
-                {pluralRu(selectedCitations.length, "источник", "источника", "источников")}...
+                {t.chat.thinking(selectedCitations.length)}
               </span>
             </div>
           )}
@@ -479,13 +501,13 @@ export function NotebookChat({
               className="inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/10"
             >
               <Shuffle className="h-3 w-3 transition-transform duration-300 group-hover:rotate-180" />{" "}
-              Ещё варианты
+              {t.chat.moreSuggestions}
             </button>
           </div>
 
           <div className="flex items-end gap-2 rounded-2xl border border-border bg-card p-2 shadow-sm focus-within:border-primary">
             <label htmlFor="notebook-chat-question" className="sr-only">
-              Вопрос по выбранным источникам
+              {t.chat.questionLabel}
             </label>
             <textarea
               id="notebook-chat-question"
@@ -500,27 +522,45 @@ export function NotebookChat({
                 }
               }}
               placeholder={
-                listening
-                  ? "Слушаю..."
-                  : `Задайте вопрос по ${selectedCitations.length} выбранным источникам...`
+                voice.state === "requesting"
+                  ? t.chat.placeholderRequesting
+                  : voice.state === "listening"
+                    ? t.chat.placeholderListening
+                    : selectedCitations.length === 0
+                      ? t.chat.placeholderEmpty
+                      : t.chat.placeholder(selectedCitations.length)
               }
               className="min-h-[40px] flex-1 resize-none bg-transparent px-3 py-2.5 text-base outline-none placeholder:text-muted-foreground sm:text-sm"
             />
             <button
-              onClick={toggleVoice}
-              aria-label={listening ? "Остановить запись" : "Голосовой ввод"}
-              className={`grid h-10 w-10 shrink-0 place-items-center rounded-full border transition-colors ${
-                listening
+              onClick={voice.toggle}
+              disabled={voice.state === "unsupported"}
+              aria-label={voice.active ? t.dashboard.voiceStop : t.dashboard.voiceInput}
+              title={
+                voice.state === "unsupported"
+                  ? t.dashboard.voiceUnsupported
+                  : voice.active
+                    ? t.dashboard.voiceStop
+                    : t.dashboard.voiceInput
+              }
+              className={`grid h-10 w-10 shrink-0 place-items-center rounded-full border transition-colors disabled:opacity-40 ${
+                voice.active
                   ? "animate-pulse border-destructive bg-destructive/10 text-destructive"
                   : "border-border text-muted-foreground hover:border-primary hover:text-primary"
               }`}
             >
-              {listening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+              {voice.state === "requesting" ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : voice.active ? (
+                <MicOff className="h-4 w-4" />
+              ) : (
+                <Mic className="h-4 w-4" />
+              )}
             </button>
             <button
               onClick={() => ask(input)}
               disabled={!input.trim() || thinking}
-              aria-label="Отправить"
+              aria-label={t.chat.send}
               className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-primary/40 text-primary transition-colors hover:bg-primary hover:text-primary-foreground disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-primary"
             >
               <ArrowRight className="h-4 w-4" />
@@ -528,7 +568,7 @@ export function NotebookChat({
           </div>
 
           <p className="mt-2 text-center text-xs leading-relaxed text-muted-foreground/60">
-            AQYL — ИИ и может ошибаться. Пожалуйста, перепроверяйте факты и цитируемые источники.
+            {t.common.aiDisclaimer}
           </p>
         </div>
       </div>

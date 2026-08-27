@@ -1,20 +1,30 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, createFileRoute, notFound } from "@tanstack/react-router";
-import { Bookmark, Pencil, PanelLeft, PanelRight, X } from "lucide-react";
+import { Bookmark, Link2, Pencil, PanelLeft, PanelRight, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { Header } from "@/components/Header";
-import { SourcesPanel } from "@/components/notebook/SourcesPanel";
+import { SourcesPanel, type AcceptedUpload } from "@/components/notebook/SourcesPanel";
 import { SourceReaderDialog } from "@/components/notebook/SourceReaderDialog";
-import { buildNotebookSources, type NotebookSource } from "@/lib/sources";
+import { buildNotebookSources, uploadedSource, type NotebookSource } from "@/lib/sources";
 import { NotebookChat } from "@/components/notebook/NotebookChat";
 import { StudioPanel } from "@/components/notebook/StudioPanel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { getCardById, type KnowledgeCardData } from "@/data/mockCards";
-import { useBookmarks, useCardTitle, useFeedback, useNotes, useTheme } from "@/hooks/useAppState";
+import {
+  useActivity,
+  useBookmarks,
+  useCardSources,
+  useCardTitle,
+  useDismissed,
+  useFeedback,
+  useNotes,
+  useTheme,
+} from "@/hooks/useAppState";
 import { clampWidth, useResizablePanel } from "@/hooks/useResizablePanel";
 import { cn } from "@/lib/utils";
+import { useCard, useT } from "@/lib/i18n";
 
 const PANEL_WIDTH_MIN = 220;
 const PANEL_WIDTH_MAX = 520;
@@ -47,6 +57,8 @@ function resizeKeyDown(
 
 export const Route = createFileRoute("/card/$id")({
   loader: ({ params }) => {
+    // Загрузчик работает до React-контекста, поэтому берёт исходную карточку:
+    // ему нужно только знать, что такая есть, и отдать метатеги.
     const card = getCardById(params.id);
     if (!card) throw notFound();
     return { card };
@@ -54,7 +66,7 @@ export const Route = createFileRoute("/card/$id")({
   head: ({ loaderData }) => {
     if (!loaderData) {
       return {
-        meta: [{ title: "Карточка не найдена — BI AQYL" }, { name: "robots", content: "noindex" }],
+        meta: [{ title: "Case not found — BI AQYL" }, { name: "robots", content: "noindex" }],
       };
     }
     const { card } = loaderData;
@@ -73,7 +85,10 @@ export const Route = createFileRoute("/card/$id")({
 });
 
 function CardWorkspace() {
-  const { card } = Route.useLoaderData() as { card: KnowledgeCardData };
+  const t = useT();
+  const { card: base } = Route.useLoaderData() as { card: KnowledgeCardData };
+  // Текст карточки — в языке интерфейса; структура и id те же.
+  const card = useCard(base.id) ?? base;
   const { title, rename } = useCardTitle(card.id, card.title);
   const displayCard = useMemo(() => ({ ...card, title }), [card, title]);
 
@@ -81,8 +96,26 @@ function CardWorkspace() {
   const { bookmarks, toggle: toggleBookmark } = useBookmarks();
   const { notes, add: addNote, remove: removeNote } = useNotes(card.id);
   const { record: recordFeedback } = useFeedback(card.id);
+  const { log: logActivity } = useActivity();
 
-  const sources = useMemo(() => buildNotebookSources(card), [card]);
+  const baseSources = useMemo(() => buildNotebookSources(card, t), [card, t]);
+  const { dismissed } = useDismissed();
+
+  // Выбор источников, переименования, удаления и загрузки живут в хранилище —
+  // иначе всё это теряется при перезагрузке страницы.
+  const allBaseIds = useMemo(() => baseSources.map((s) => s.id), [baseSources]);
+  const sourceState = useCardSources(card.id, allBaseIds);
+  const sources = useMemo(
+    () => [
+      ...baseSources.filter((s) => !sourceState.removed.includes(s.id)),
+      ...sourceState.uploads.map((u) => uploadedSource(u, t)),
+    ],
+    [baseSources, sourceState.removed, sourceState.uploads, t],
+  );
+  const selected = useMemo(
+    () => sourceState.selected.filter((id) => sources.some((s) => s.id === id)),
+    [sourceState.selected, sources],
+  );
 
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState(title);
@@ -102,7 +135,6 @@ function CardWorkspace() {
     setEditingTitle(false);
   };
 
-  const [selected, setSelected] = useState<string[]>(() => sources.map((s) => s.id));
   const [showSources, setShowSources] = useState(true);
   const [showStudio, setShowStudio] = useState(true);
   const [mobileSources, setMobileSources] = useState(false);
@@ -128,6 +160,47 @@ function CardWorkspace() {
   const isInternal = card.scope === "INTERNAL";
   const selectedCitations = sources.filter((s) => selected.includes(s.id)).map((s) => s.anchor);
 
+  const handleUpload = (files: AcceptedUpload[]) => {
+    sourceState.addUploads(files);
+    for (const f of files) logActivity("upload", f.title);
+  };
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      toast.success(t.workspace.linkCopied);
+    } catch {
+      toast.error(t.workspace.linkCopyFailed);
+    }
+  };
+
+  // Кейс удалён: материалы недоступны и по прямой ссылке тоже. Без этого экрана
+  // «удалённый» кейс продолжал открываться и отвечать в чате.
+  if (dismissed.includes(card.id)) {
+    return (
+      <div className="flex min-h-screen flex-col bg-background">
+        <Header dark={dark} onToggleDark={toggle} />
+        <div className="flex flex-1 items-center justify-center px-4 py-16">
+          <div className="max-w-md text-center">
+            <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-destructive/12">
+              <Trash2 className="h-5 w-5 text-destructive" />
+            </span>
+            <h1 className="mt-4 text-xl font-bold text-foreground">{t.workspace.deletedTitle}</h1>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              {t.workspace.deletedBody(card.title)}
+            </p>
+            <Link
+              to="/"
+              className="mt-6 inline-flex items-center justify-center rounded-control bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              {t.workspace.backToList}
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-background">
       <Header dark={dark} onToggleDark={toggle} />
@@ -146,7 +219,7 @@ function CardWorkspace() {
                     if (e.key === "Escape") setEditingTitle(false);
                   }}
                   onBlur={commitTitle}
-                  aria-label="Название кейса"
+                  aria-label={t.workspace.caseTitleLabel}
                   className="min-w-0 flex-1 rounded-md border border-primary bg-transparent px-1.5 py-0.5 text-lg font-bold text-card-foreground outline-none"
                 />
               ) : (
@@ -176,7 +249,7 @@ function CardWorkspace() {
                     isInternal ? "bg-scope-internal" : "bg-scope-external",
                   )}
                 />
-                {isInternal ? "Внутренний опыт" : "Мировой опыт"}
+                {isInternal ? t.card.internal : t.card.external}
               </Badge>
             </span>
             <span className="hidden truncate text-xs text-muted-foreground sm:block">
@@ -190,19 +263,27 @@ function CardWorkspace() {
              артефакты были бы вообще недостижимы на телефоне/планшете. */}
           <button
             onClick={() => setMobileSources(true)}
-            aria-label="Источники"
-            title="Источники"
+            aria-label={t.workspace.sourcesPanel}
+            title={t.workspace.sourcesPanel}
             className="grid h-8 w-8 shrink-0 place-items-center rounded-md border border-border text-muted-foreground transition-colors hover:border-primary hover:text-primary lg:hidden"
           >
             <PanelLeft className="h-4 w-4" />
           </button>
           <button
             onClick={() => setMobileStudio(true)}
-            aria-label="Артефакты"
-            title="Артефакты"
+            aria-label={t.workspace.artifactsPanel}
+            title={t.workspace.artifactsPanel}
             className="grid h-8 w-8 shrink-0 place-items-center rounded-md border border-border text-muted-foreground transition-colors hover:border-primary hover:text-primary xl:hidden"
           >
             <PanelRight className="h-4 w-4" />
+          </button>
+          <button
+            onClick={copyLink}
+            aria-label={t.workspace.copyLink}
+            title={t.workspace.copyLink}
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-md border border-border text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+          >
+            <Link2 className="h-4 w-4" />
           </button>
           <Button
             size="sm"
@@ -210,19 +291,21 @@ function CardWorkspace() {
             className="gap-1.5"
             onClick={() => {
               toggleBookmark(card.id);
-              toast.success(bookmarked ? "Убрано из закладок" : "Добавлено в закладки");
+              toast.success(bookmarked ? t.card.bookmarkRemoved : t.card.bookmarkAdded);
             }}
           >
             <Bookmark
               className={`h-4 w-4 transition-colors ${bookmarked ? "text-accent" : ""}`}
               fill={bookmarked ? "currentColor" : "none"}
             />
-            <span className="hidden sm:inline">{bookmarked ? "В закладках" : "В закладки"}</span>
+            <span className="hidden sm:inline">
+              {bookmarked ? t.card.removeBookmark : t.card.addBookmark}
+            </span>
           </Button>
           <Link
             to="/"
-            aria-label="Закрыть кейс"
-            title="Закрыть кейс"
+            aria-label={t.workspace.closeCase}
+            title={t.workspace.closeCase}
             className="grid h-8 w-8 shrink-0 place-items-center rounded-md border border-border text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
           >
             <X className="h-4 w-4" />
@@ -240,16 +323,12 @@ function CardWorkspace() {
               card={card}
               sources={sources}
               selected={selected}
-              onToggle={(id) =>
-                setSelected((prev) =>
-                  prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-                )
-              }
-              onToggleAll={() =>
-                setSelected((prev) =>
-                  prev.length === sources.length ? [] : sources.map((s) => s.id),
-                )
-              }
+              renames={sourceState.renames}
+              onToggle={sourceState.toggle}
+              onToggleAll={sourceState.toggleAll}
+              onRename={sourceState.rename}
+              onRemove={sourceState.removeSource}
+              onUpload={handleUpload}
               onOpenSource={(s) => {
                 setHighlight(null);
                 setReader(s);
@@ -264,7 +343,7 @@ function CardWorkspace() {
               role="separator"
               tabIndex={0}
               aria-orientation="vertical"
-              aria-label="Изменить ширину панели источников"
+              aria-label={t.workspace.resizeSources}
               aria-valuenow={sourcesWidth}
               aria-valuemin={PANEL_WIDTH_MIN}
               aria-valuemax={PANEL_WIDTH_MAX}
@@ -275,21 +354,17 @@ function CardWorkspace() {
 
         <Sheet open={mobileSources} onOpenChange={setMobileSources}>
           <SheetContent side="left" className="w-[85vw] max-w-sm p-0 lg:hidden">
-            <SheetTitle className="sr-only">Источники</SheetTitle>
+            <SheetTitle className="sr-only">{t.workspace.sourcesPanel}</SheetTitle>
             <SourcesPanel
               card={card}
               sources={sources}
               selected={selected}
-              onToggle={(id) =>
-                setSelected((prev) =>
-                  prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-                )
-              }
-              onToggleAll={() =>
-                setSelected((prev) =>
-                  prev.length === sources.length ? [] : sources.map((s) => s.id),
-                )
-              }
+              renames={sourceState.renames}
+              onToggle={sourceState.toggle}
+              onToggleAll={sourceState.toggleAll}
+              onRename={sourceState.rename}
+              onRemove={sourceState.removeSource}
+              onUpload={handleUpload}
               onOpenSource={(s) => {
                 setHighlight(null);
                 setReader(s);
@@ -304,8 +379,8 @@ function CardWorkspace() {
         {!showSources && (
           <button
             onClick={() => setShowSources(true)}
-            aria-label="Показать источники"
-            title="Показать источники"
+            aria-label={t.workspace.showSources}
+            title={t.workspace.showSources}
             className="absolute left-0 top-1/2 z-20 hidden h-16 w-6 -translate-y-1/2 place-items-center rounded-r-lg border border-l-0 border-border bg-card text-muted-foreground shadow-sm transition-colors hover:text-primary lg:grid"
           >
             <PanelLeft className="h-4 w-4" />
@@ -322,10 +397,11 @@ function CardWorkspace() {
               setReader(s);
             }}
             onFeedback={recordFeedback}
+            onAsk={(question) => logActivity("question", question)}
             pendingQuestion={pendingQuestion}
             onSaveNote={(text) => {
               addNote(text);
-              toast.success("Сохранено в заметки");
+              toast.success(t.workspace.savedToNotes);
             }}
           />
         </main>
@@ -333,8 +409,8 @@ function CardWorkspace() {
         {!showStudio && (
           <button
             onClick={() => setShowStudio(true)}
-            aria-label="Показать артефакты"
-            title="Показать артефакты"
+            aria-label={t.workspace.showArtifacts}
+            title={t.workspace.showArtifacts}
             className="absolute right-0 top-1/2 z-20 hidden h-16 w-6 -translate-y-1/2 place-items-center rounded-l-lg border border-r-0 border-border bg-card text-muted-foreground shadow-sm transition-colors hover:text-primary xl:grid"
           >
             <PanelRight className="h-4 w-4" />
@@ -352,7 +428,7 @@ function CardWorkspace() {
               role="separator"
               tabIndex={0}
               aria-orientation="vertical"
-              aria-label="Изменить ширину панели артефактов"
+              aria-label={t.workspace.resizeArtifacts}
               aria-valuenow={studioWidth}
               aria-valuemin={PANEL_WIDTH_MIN}
               aria-valuemax={PANEL_WIDTH_MAX}
@@ -360,9 +436,11 @@ function CardWorkspace() {
             />
             <StudioPanel
               card={displayCard}
+              selectedCount={selected.length}
+              onGenerated={(title) => logActivity("artifact", title)}
               onSaveNote={(text) => {
                 addNote(text);
-                toast.success("Артефакт сохранён в заметки");
+                toast.success(t.workspace.artifactToNotes);
               }}
               onCollapse={() => setShowStudio(false)}
             />
@@ -371,12 +449,14 @@ function CardWorkspace() {
 
         <Sheet open={mobileStudio} onOpenChange={setMobileStudio}>
           <SheetContent side="right" className="w-[85vw] max-w-sm p-0 xl:hidden">
-            <SheetTitle className="sr-only">Артефакты</SheetTitle>
+            <SheetTitle className="sr-only">{t.workspace.artifactsPanel}</SheetTitle>
             <StudioPanel
               card={displayCard}
+              selectedCount={selected.length}
+              onGenerated={(title) => logActivity("artifact", title)}
               onSaveNote={(text) => {
                 addNote(text);
-                toast.success("Артефакт сохранён в заметки");
+                toast.success(t.workspace.artifactToNotes);
                 setMobileStudio(false);
               }}
             />
@@ -396,16 +476,13 @@ function CardWorkspace() {
         }}
         selected={reader ? selected.includes(reader.id) : false}
         onToggleSelected={() => {
-          if (!reader) return;
-          setSelected((prev) =>
-            prev.includes(reader.id) ? prev.filter((x) => x !== reader.id) : [...prev, reader.id],
-          );
+          if (reader) sourceState.toggle(reader.id);
         }}
         onAskAbout={(source) => {
           setReader(null);
-          setSelected((prev) => (prev.includes(source.id) ? prev : [...prev, source.id]));
+          if (!selected.includes(source.id)) sourceState.toggle(source.id);
           setPendingQuestion({
-            text: `Что важного в источнике «${source.title}»?`,
+            text: t.reader.askAboutQuestion(source.title),
             nonce: Date.now(),
           });
         }}

@@ -1,4 +1,4 @@
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import {
   Check,
   ClipboardList,
@@ -25,12 +25,12 @@ import {
   contextIsSufficient,
   extractKnown,
   isManagerialQuery,
-  THINKING_STEPS,
   visibleQuestions,
   type AdvisorSelection,
   type FollowUpFlags,
 } from "@/data/advisor";
-import type { AdvisorSession } from "@/hooks/useAppState";
+import { useAdvisorDraft, type AdvisorSession } from "@/hooks/useAppState";
+import { useT, type Dictionary } from "@/lib/i18n";
 import { ClarifyBlock } from "@/components/advisor/ClarifyBlock";
 import { UnderstandingCard } from "@/components/advisor/UnderstandingCard";
 import { AdvisorAnswer } from "@/components/advisor/AdvisorAnswer";
@@ -41,12 +41,20 @@ const SHOW_FOLLOWUP_ACTIONS = false;
 
 type Stage = "clarify" | "understanding" | "thinking" | "answer";
 
-const STAGES: { id: Stage; label: string }[] = [
-  { id: "clarify", label: "Уточнение" },
-  { id: "understanding", label: "Понимание" },
-  { id: "thinking", label: "Анализ" },
-  { id: "answer", label: "Рекомендация" },
-];
+const STAGE_IDS: Stage[] = ["clarify", "understanding", "thinking", "answer"];
+
+function stageLabel(id: Stage, t: Dictionary): string {
+  switch (id) {
+    case "clarify":
+      return t.advisor.stageClarify;
+    case "understanding":
+      return t.advisor.stageUnderstanding;
+    case "thinking":
+      return t.advisor.stageThinking;
+    case "answer":
+      return t.advisor.stageAnswer;
+  }
+}
 
 interface Props {
   query: string;
@@ -62,20 +70,22 @@ interface FollowUpMessage {
 }
 
 function Stepper({ stage, onGoTo }: { stage: Stage; onGoTo: (s: Stage) => void }) {
-  const current = STAGES.findIndex((s) => s.id === stage);
+  const t = useT();
+  const current = STAGE_IDS.indexOf(stage);
   return (
     <ol className="flex w-full items-center">
-      {STAGES.map((s, i) => {
+      {STAGE_IDS.map((id, i) => {
+        const label = stageLabel(id, t);
         const done = i < current;
         const active = i === current;
         return (
-          <Fragment key={s.id}>
+          <Fragment key={id}>
             <li className="flex shrink-0 items-center">
               <button
                 type="button"
                 disabled={!done}
-                onClick={() => done && onGoTo(s.id)}
-                aria-label={s.label}
+                onClick={() => done && onGoTo(id)}
+                aria-label={label}
                 className={`flex items-center gap-1.5 rounded-full border px-1.5 py-1 text-xs font-bold transition-colors sm:px-2.5 ${
                   active
                     ? "border-primary bg-primary text-primary-foreground shadow-soft"
@@ -93,11 +103,11 @@ function Stepper({ stage, onGoTo }: { stage: Stage; onGoTo: (s: Stage) => void }
                   {done ? <Check className="h-2.5 w-2.5" /> : i + 1}
                 </span>
                 <span aria-hidden className={active ? "" : "hidden sm:inline"}>
-                  {s.label}
+                  {label}
                 </span>
               </button>
             </li>
-            {i < STAGES.length - 1 && (
+            {i < STAGE_IDS.length - 1 && (
               <span
                 aria-hidden
                 className={`mx-1 h-px min-w-2 flex-1 sm:mx-1.5 ${i < current ? "bg-primary/50" : "bg-border"}`}
@@ -111,33 +121,60 @@ function Stepper({ stage, onGoTo }: { stage: Stage; onGoTo: (s: Stage) => void }
 }
 
 export function AdvisorFlow({ query, onReset, initialSession, onSave }: Props) {
-  const dilemma = useMemo(() => classify(query), [query]);
-  const known = useMemo(() => extractKnown(query), [query]);
+  const t = useT();
+  const a = t.advisorText;
+  const dilemma = useMemo(() => classify(query, a), [query, a]);
+  const known = useMemo(() => extractKnown(query, a), [query, a]);
+  const thinkingSteps = a.thinkingSteps;
+  const { draft, setDraft, clear: clearDraft } = useAdvisorDraft();
+
+  // Черновик того же запроса — продолжаем с того места, где закрыли вкладку (BUG-03).
+  const resume = initialSession ? undefined : draft?.query === query ? draft : undefined;
+
   const [selection, setSelection] = useState<AdvisorSelection>(
-    () => initialSession?.selection ?? { choices: {}, own: {} },
+    () => initialSession?.selection ?? resume?.selection ?? { choices: {}, own: {} },
   );
-  const [stage, setStage] = useState<Stage>(() => (initialSession ? "answer" : "clarify"));
-  const [qIndex, setQIndex] = useState(0);
+  const [stage, setStage] = useState<Stage>(
+    () => (initialSession ? "answer" : resume?.stage) ?? "clarify",
+  );
+  const [qIndex, setQIndex] = useState(resume?.qIndex ?? 0);
   const [step, setStep] = useState(0);
   const [followUp, setFollowUp] = useState("");
-  const [thread, setThread] = useState<FollowUpMessage[]>(() => initialSession?.thread ?? []);
+  const [thread, setThread] = useState<FollowUpMessage[]>(
+    () => initialSession?.thread ?? resume?.thread ?? [],
+  );
   const [thinkingFollowUp, setThinkingFollowUp] = useState(false);
   const [followUpFlags, setFollowUpFlags] = useState<FollowUpFlags>(
-    () => initialSession?.followUpFlags ?? {},
+    () => initialSession?.followUpFlags ?? resume?.followUpFlags ?? {},
   );
   const [showNegotiation, setShowNegotiation] = useState(false);
   const [showShareholder, setShowShareholder] = useState(false);
   const [saved, setSaved] = useState(false);
 
+  // Автосохранение прогресса: закрытая вкладка и F5 больше не стирают разбор.
+  useEffect(() => {
+    if (stage === "thinking") return;
+    setDraft({
+      query,
+      stage,
+      qIndex,
+      selection,
+      thread,
+      followUpFlags,
+      savedAt: new Date().toLocaleString("ru-RU"),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query, stage, qIndex, selection, thread, followUpFlags]);
+
   const questions = visibleQuestions(dilemma, selection);
   const enough = contextIsSufficient(dilemma, selection);
-  const understanding = buildUnderstanding(dilemma, selection, query);
+  const understanding = buildUnderstanding(dilemma, selection, query, a);
   const answer = useMemo(
-    () => buildAnswer(dilemma, selection, followUpFlags),
-    [dilemma, selection, followUpFlags],
+    () => buildAnswer(dilemma, selection, a, followUpFlags),
+    [dilemma, selection, a, followUpFlags],
   );
-  const negotiationQuestions = useMemo(() => buildNegotiationQuestions(dilemma), [dilemma]);
-  const shareholderSummary = useMemo(() => buildShareholderSummary(answer), [answer]);
+  const negotiationQuestions = useMemo(() => buildNegotiationQuestions(dilemma, a), [dilemma, a]);
+  const shareholderSummary = useMemo(() => buildShareholderSummary(answer, a), [answer, a]);
 
   const handleSave = () => {
     onSave({
@@ -158,7 +195,7 @@ export function AdvisorFlow({ query, onReset, initialSession, onSave }: Props) {
     setFollowUp("");
     setThinkingFollowUp(true);
     window.setTimeout(() => {
-      const reply = buildFollowUpReply(value, answer);
+      const reply = buildFollowUpReply(value, answer, a);
       setThinkingFollowUp(false);
       setThread((t) => [...t, { author: "advisor", text: reply.text }]);
       if (reply.flags) setFollowUpFlags((f) => ({ ...f, ...reply.flags }));
@@ -168,48 +205,54 @@ export function AdvisorFlow({ query, onReset, initialSession, onSave }: Props) {
   const runThinking = () => {
     setStage("thinking");
     setStep(0);
-    THINKING_STEPS.forEach((_, i) => {
+    thinkingSteps.forEach((_, i) => {
       window.setTimeout(() => setStep(i), i * 420);
     });
-    window.setTimeout(() => setStage("answer"), THINKING_STEPS.length * 420);
+    window.setTimeout(() => setStage("answer"), thinkingSteps.length * 420);
   };
 
-  if (!isManagerialQuery(query)) {
+  if (!isManagerialQuery(query, a)) {
     return (
       <div className="rounded-card border border-border bg-card p-5 shadow-soft">
-        <p className="text-sm font-bold text-card-foreground">
-          Это похоже на поиск материалов, а не на управленческий вопрос
-        </p>
+        <p className="text-sm font-bold text-card-foreground">{t.advisor.notManagerialTitle}</p>
         <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-          AI-советник работает со стратегическими решениями: партнёрство, продажа доли, выход на
-          рынок, масштабирование, инвестиции. Выключите тумблер, чтобы найти документы и кейсы, или
-          сформулируйте ситуацию и вопрос — что нужно решить.
+          {t.advisor.notManagerialBody}
         </p>
-        <Button size="sm" variant="outline" className="mt-3" onClick={onReset}>
-          Переформулировать
+        <Button
+          size="sm"
+          variant="outline"
+          className="mt-3"
+          onClick={() => {
+            clearDraft();
+            onReset();
+          }}
+        >
+          {t.advisor.rephrase}
         </Button>
       </div>
     );
   }
 
-  const currentStageLabel = STAGES.find((s) => s.id === stage)?.label ?? "";
+  const currentStageLabel = stageLabel(stage, t);
 
   return (
     <div className="space-y-4">
       <span role="status" aria-live="polite" className="sr-only">
-        {`Этап: ${currentStageLabel}`}
+        {t.advisor.stageStatus(currentStageLabel)}
       </span>
       {/* Шапка режима: тип решения, прогресс, сброс */}
       <div className="flex flex-wrap items-center gap-x-2.5 gap-y-2 rounded-card border border-border bg-card px-4 py-2.5 shadow-soft xl:flex-nowrap">
         <span className="grid h-6 w-6 place-items-center rounded-full bg-primary/12">
           <Sparkles className="h-3.5 w-3.5 text-primary" />
         </span>
-        <HelpHint
-          side="bottom"
-          text={`Тип решения определён по вашему запросу. Из запроса понятно: ${known.join("; ")}.`}
-        />
+        <HelpHint side="bottom" text={t.advisor.typeHint(known.join("; "))} />
         <span className="mx-1 min-w-0 flex-1">
           <Stepper stage={stage} onGoTo={setStage} />
+        </span>
+        <span className="flex shrink-0 items-center gap-1 text-xs font-medium text-success">
+          <Check className="h-3.5 w-3.5" />
+          <span className="hidden sm:inline">{t.advisor.savedIndicator}</span>
+          <span className="sm:hidden">{t.advisor.savedIndicatorShort}</span>
         </span>
       </div>
 
@@ -233,11 +276,11 @@ export function AdvisorFlow({ query, onReset, initialSession, onSave }: Props) {
               disabled={qIndex === 0}
               onClick={() => setQIndex((i) => Math.max(0, i - 1))}
             >
-              Назад
+              {t.common.back}
             </Button>
             {qIndex < questions.length - 1 ? (
               <Button size="sm" onClick={() => setQIndex((i) => i + 1)}>
-                Далее
+                {t.common.next}
               </Button>
             ) : (
               <Button
@@ -246,7 +289,7 @@ export function AdvisorFlow({ query, onReset, initialSession, onSave }: Props) {
                 aria-describedby={!enough ? "clarify-gate-hint" : undefined}
                 onClick={() => setStage("understanding")}
               >
-                Далее
+                {t.common.next}
               </Button>
             )}
             {!enough && qIndex === questions.length - 1 && (
@@ -254,8 +297,7 @@ export function AdvisorFlow({ query, onReset, initialSession, onSave }: Props) {
                 id="clarify-gate-hint"
                 className="flex items-center gap-1.5 text-xs text-muted-foreground"
               >
-                <PenLine className="h-3.5 w-3.5" /> Ответьте на ключевые вопросы — без этого
-                рекомендация не формируется.
+                <PenLine className="h-3.5 w-3.5" /> {t.advisor.clarifyGate}
               </span>
             )}
           </div>
@@ -279,11 +321,11 @@ export function AdvisorFlow({ query, onReset, initialSession, onSave }: Props) {
           <div className="mb-3 h-1 w-full overflow-hidden rounded-full bg-secondary">
             <div
               className="h-full rounded-full bg-primary transition-[width] duration-500"
-              style={{ width: `${((step + 1) / THINKING_STEPS.length) * 100}%` }}
+              style={{ width: `${((step + 1) / thinkingSteps.length) * 100}%` }}
             />
           </div>
           <ul className="space-y-2">
-            {THINKING_STEPS.map((s, i) => (
+            {thinkingSteps.map((s, i) => (
               <li
                 key={s}
                 className={`flex items-center gap-2 text-sm transition-colors duration-300 ${
@@ -315,13 +357,16 @@ export function AdvisorFlow({ query, onReset, initialSession, onSave }: Props) {
               onClick={() => setStage("understanding")}
               className="flex flex-1 items-start gap-2 rounded-card border border-dashed border-border bg-secondary/30 px-3.5 py-2.5 text-left text-xs leading-relaxed text-muted-foreground transition-colors hover:border-primary/50 hover:text-card-foreground"
             >
-              <span className="mt-px shrink-0 font-bold text-primary">Ситуация</span>
+              <span className="mt-px shrink-0 font-bold text-primary">{t.advisor.situation}</span>
               <span className="flex-1 line-clamp-2">{understanding}</span>
-              <span className="shrink-0 font-bold text-primary">изменить</span>
+              <span className="shrink-0 font-bold text-primary">{t.advisor.changeSituation}</span>
             </button>
             <button
-              onClick={onReset}
-              aria-label="Закрыть рекомендацию и задать новый вопрос"
+              onClick={() => {
+                clearDraft();
+                onReset();
+              }}
+              aria-label={t.advisor.closeAnswer}
               className="grid h-9 w-9 shrink-0 place-items-center rounded-card border border-border bg-card text-muted-foreground transition-colors hover:border-primary/50 hover:text-card-foreground"
             >
               <X className="h-4 w-4" />
@@ -338,7 +383,7 @@ export function AdvisorFlow({ query, onReset, initialSession, onSave }: Props) {
                 className="gap-1.5"
                 onClick={() => setShowNegotiation((v) => !v)}
               >
-                <ClipboardList className="h-3.5 w-3.5" /> Подготовить вопросы партнёру
+                <ClipboardList className="h-3.5 w-3.5" /> {t.advisor.negotiationButton}
               </Button>
               <Button
                 size="sm"
@@ -346,18 +391,20 @@ export function AdvisorFlow({ query, onReset, initialSession, onSave }: Props) {
                 className="gap-1.5"
                 onClick={() => setShowShareholder((v) => !v)}
               >
-                <Presentation className="h-3.5 w-3.5" /> Сделать версию для акционера
+                <Presentation className="h-3.5 w-3.5" /> {t.advisor.shareholderButton}
               </Button>
               <Button size="sm" variant="outline" className="gap-1.5" onClick={handleSave}>
                 {saved ? <Check className="h-3.5 w-3.5" /> : <Save className="h-3.5 w-3.5" />}
-                {saved ? "Сохранено" : "Сохранить анализ"}
+                {saved ? t.common.saved : t.advisor.saveAnalysis}
               </Button>
             </div>
           )}
 
           {showNegotiation && (
             <div className="rounded-card border border-border bg-card p-4 shadow-soft">
-              <p className="text-xs font-bold text-muted-foreground">Вопросы для переговоров</p>
+              <p className="text-xs font-bold text-muted-foreground">
+                {t.advisor.negotiationTitle}
+              </p>
               <div className="mt-3 space-y-3">
                 {negotiationQuestions.groups.map((g) => (
                   <div key={g.title}>
@@ -385,13 +432,15 @@ export function AdvisorFlow({ query, onReset, initialSession, onSave }: Props) {
           {showShareholder && (
             <div className="rounded-card border border-border bg-card p-4 shadow-soft">
               <div className="flex items-center justify-between gap-2">
-                <p className="text-xs font-bold text-muted-foreground">Версия для акционера</p>
+                <p className="text-xs font-bold text-muted-foreground">
+                  {t.advisor.shareholderTitle}
+                </p>
                 <Button
                   size="sm"
                   variant="ghost"
                   onClick={() => navigator.clipboard?.writeText(shareholderSummary)}
                 >
-                  Скопировать
+                  {t.common.copy}
                 </Button>
               </div>
               <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-card-foreground">
@@ -402,8 +451,7 @@ export function AdvisorFlow({ query, onReset, initialSession, onSave }: Props) {
 
           <div className="rounded-card border border-border bg-card p-4 shadow-soft">
             <p className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
-              <MessageSquarePlus className="h-3.5 w-3.5 text-primary" /> Уточнить или изменить
-              условия
+              <MessageSquarePlus className="h-3.5 w-3.5 text-primary" /> {t.advisor.followUpTitle}
             </p>
 
             {thread.length > 0 && (
@@ -435,8 +483,8 @@ export function AdvisorFlow({ query, onReset, initialSession, onSave }: Props) {
                 )}
                 {thinkingFollowUp && (
                   <div className="flex items-center gap-2 pl-1 text-sm text-muted-foreground">
-                    <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" /> Смотрю, что
-                    меняется в рекомендации...
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />{" "}
+                    {t.advisor.followUpThinking}
                   </div>
                 )}
               </div>
@@ -444,9 +492,9 @@ export function AdvisorFlow({ query, onReset, initialSession, onSave }: Props) {
 
             <div className="mt-3 flex flex-wrap gap-2">
               {[
-                "А если партнёр даст гарантированный объём?",
-                "Что изменится при эксклюзивности только на один сегмент?",
-                "Какой сценарий выбрать, если рыночное окно 6 месяцев?",
+                t.clarify.followUpVolume,
+                t.clarify.followUpExclusivity,
+                t.clarify.followUpWindow,
               ].map((q) => (
                 <button
                   key={q}
@@ -460,7 +508,7 @@ export function AdvisorFlow({ query, onReset, initialSession, onSave }: Props) {
             </div>
             <div className="mt-3 flex gap-2">
               <label htmlFor="advisor-follow-up" className="sr-only">
-                Уточняющий вопрос по рекомендации
+                {t.advisor.followUpLabel}
               </label>
               <input
                 id="advisor-follow-up"
@@ -470,21 +518,19 @@ export function AdvisorFlow({ query, onReset, initialSession, onSave }: Props) {
                 onKeyDown={(e) => {
                   if (e.key === "Enter") askFollowUp(followUp);
                 }}
-                placeholder="Задайте уточняющий вопрос по этой рекомендации"
+                placeholder={t.advisor.followUpPlaceholder}
                 className="h-10 w-full min-w-0 rounded-control border border-border bg-secondary/40 px-3 text-base outline-none transition-colors placeholder:text-muted-foreground focus:border-primary disabled:opacity-60 sm:text-sm"
               />
               <Button
                 size="icon"
                 disabled={!followUp.trim() || thinkingFollowUp}
                 onClick={() => askFollowUp(followUp)}
-                aria-label="Отправить уточнение"
+                aria-label={t.advisor.followUpSend}
               >
                 <Send className="h-4 w-4" />
               </Button>
             </div>
-            <p className="mt-2 text-xs text-muted-foreground/60">
-              AQYL — ИИ и может ошибаться. Пожалуйста, перепроверяйте факты и цитируемые источники.
-            </p>
+            <p className="mt-2 text-xs text-muted-foreground/60">{t.common.aiDisclaimer}</p>
           </div>
         </div>
       )}

@@ -1,4 +1,5 @@
 import type { KnowledgeCardData } from "@/data/mockCards";
+import { useT } from "@/lib/i18n";
 
 export function InfographicView({
   card,
@@ -7,14 +8,18 @@ export function InfographicView({
   card: KnowledgeCardData;
   fullscreen: boolean;
 }) {
+  const t = useT();
   const steps = card.framework?.map((f) => f.step.replace(/^\d+\.\s*/, "")) ?? [];
-  const path = steps.length ? steps.join(" → ") : "Инсайт → Пилот → Масштабирование";
+  const path = steps.length ? steps.join(" → ") : t.viewers.infoPathFallback;
 
   const stats = [
-    { label: "Релевантность", value: `${card.relevance}%` },
-    { label: "Источников", value: String(card.citations.length) },
-    { label: "Шагов внедрения", value: steps.length ? String(steps.length) : "—" },
-    { label: "Язык оригинала", value: card.language },
+    { label: t.viewers.infoRelevance, value: `${card.relevance}%` },
+    { label: t.artifactContent.infoSources, value: String(card.citations.length) },
+    {
+      label: t.artifactContent.infoSteps,
+      value: steps.length ? String(steps.length) : "—",
+    },
+    { label: t.artifactContent.infoLanguage, value: card.language },
   ];
 
   return (
@@ -27,9 +32,7 @@ export function InfographicView({
         >
           <div className="flex min-w-0 flex-col justify-between border-r border-border pr-6">
             <div>
-              <p className="text-xs font-bold text-art-infographic">
-                {card.business_unit}
-              </p>
+              <p className="text-xs font-bold text-art-infographic">{card.business_unit}</p>
               <h3
                 className={`mt-2 font-extrabold leading-tight text-card-foreground ${
                   fullscreen ? "text-3xl" : "text-lg sm:text-xl"
@@ -40,9 +43,7 @@ export function InfographicView({
             </div>
 
             <div>
-              <p className="text-xs font-bold text-muted-foreground">
-                Главный инсайт
-              </p>
+              <p className="text-xs font-bold text-muted-foreground">{t.infographic.mainInsight}</p>
               <p
                 className={`mt-1 font-bold leading-snug text-art-infographic ${
                   fullscreen ? "text-2xl" : "text-base sm:text-lg"
@@ -53,9 +54,7 @@ export function InfographicView({
             </div>
 
             <div>
-              <p className="text-xs font-bold text-muted-foreground">
-                Путь внедрения
-              </p>
+              <p className="text-xs font-bold text-muted-foreground">{t.infographic.rolloutPath}</p>
               <p
                 className={`mt-1 truncate font-semibold text-card-foreground ${
                   fullscreen ? "text-base" : "text-xs sm:text-sm"
@@ -85,7 +84,7 @@ export function InfographicView({
         </div>
       </div>
 
-      <p className="text-xs text-muted-foreground">Одноэкранная сводка · F — полный экран.</p>
+      <p className="text-xs text-muted-foreground">{t.infographic.footer}</p>
     </div>
   );
 }

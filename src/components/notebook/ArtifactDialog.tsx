@@ -11,6 +11,8 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { downloadFile, safeFileName } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 
 export interface ArtifactItem {
   label?: string;
@@ -53,6 +55,7 @@ export function ArtifactDialog({
   initialFullscreen = false,
   size = "default",
 }: ArtifactDialogProps) {
+  const t = useT();
   const [fullscreen, setFullscreen] = useState(initialFullscreen);
   const [copied, setCopied] = useState(false);
 
@@ -87,17 +90,14 @@ export function ArtifactDialog({
     [fullscreen],
   );
 
-  const onKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      const target = e.target as HTMLElement;
-      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") return;
-      if (/^[fFаА]$/.test(e.key) && !e.metaKey && !e.ctrlKey) {
-        e.preventDefault();
-        setFullscreen((v) => !v);
-      }
-    },
-    [],
-  );
+  const onKeyDown = useCallback((e: React.KeyboardEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") return;
+    if (/^[fFаА]$/.test(e.key) && !e.metaKey && !e.ctrlKey) {
+      e.preventDefault();
+      setFullscreen((v) => !v);
+    }
+  }, []);
 
   const copy = async () => {
     await navigator.clipboard.writeText(plain);
@@ -106,13 +106,7 @@ export function ArtifactDialog({
   };
 
   const download = () => {
-    const blob = new Blob([plain], { type: "text/markdown;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${title.toLowerCase().replace(/\s+/g, "-")}.md`;
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadFile(plain, `${safeFileName(title, "artifact")}.md`);
   };
 
   return (
@@ -136,7 +130,7 @@ export function ArtifactDialog({
                   {title}
                 </DialogPrimitive.Title>
                 <DialogPrimitive.Description className="truncate text-xs text-muted-foreground">
-                  {subtitle ?? "Сгенерировано из выбранных источников"}
+                  {subtitle ?? t.artifactDialog.fromSources}
                 </DialogPrimitive.Description>
               </div>
             </div>
@@ -144,14 +138,21 @@ export function ArtifactDialog({
               <Button
                 size="icon"
                 variant="ghost"
-                aria-label={fullscreen ? "Выйти из полноэкранного режима" : "Полноэкранный режим"}
-                title={fullscreen ? "Свернуть (Esc)" : "Развернуть (F)"}
+                aria-label={
+                  fullscreen ? t.artifactDialog.exitFullscreen : t.artifactDialog.enterFullscreen
+                }
+                title={fullscreen ? t.artifactDialog.collapseHint : t.artifactDialog.expandHint}
                 onClick={() => setFullscreen((v) => !v)}
               >
                 {fullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
               </Button>
               <DialogPrimitive.Close asChild>
-                <Button size="icon" variant="ghost" aria-label="Закрыть" title="Закрыть (Esc)">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  aria-label={t.common.close}
+                  title={t.artifactDialog.closeHint}
+                >
                   <X className="h-4 w-4" />
                 </Button>
               </DialogPrimitive.Close>
@@ -180,18 +181,23 @@ export function ArtifactDialog({
               ) : (
                 <>
                   {content.metrics && content.metrics.length > 0 && (
-                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                      {content.metrics.map((m) => (
-                        <div
-                          key={m.label}
-                          className="rounded-xl border border-border bg-secondary/40 p-3"
-                        >
-                          <p className="text-base font-bold text-primary">{m.value}</p>
-                          <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
-                            {m.label}
-                          </p>
-                        </div>
-                      ))}
+                    <div>
+                      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                        {content.metrics.map((m) => (
+                          <div
+                            key={m.label}
+                            className="rounded-xl border border-border bg-secondary/40 p-3"
+                          >
+                            <p className="text-base font-bold text-primary">{m.value}</p>
+                            <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
+                              {m.label}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="mt-1.5 text-xs text-muted-foreground/70">
+                        {t.artifactDialog.metricsCaption}
+                      </p>
                     </div>
                   )}
 
@@ -219,13 +225,20 @@ export function ArtifactDialog({
 
           <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border p-3">
             <p className="text-xs text-muted-foreground">
-              Esc — {fullscreen ? "выйти из полного экрана" : "закрыть"} · F — полный экран
+              {fullscreen ? t.artifactDialog.footerHintFull : t.artifactDialog.footerHint}
             </p>
             <div className="flex flex-wrap items-center gap-1.5">
               {onRegenerate && (
-                <Button size="sm" variant="ghost" className="gap-1.5" onClick={onRegenerate}>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="gap-1.5"
+                  disabled={regenerating}
+                  aria-disabled={regenerating}
+                  onClick={onRegenerate}
+                >
                   <RefreshCw className={`h-3.5 w-3.5 ${regenerating ? "animate-spin" : ""}`} />
-                  Пересоздать
+                  {regenerating ? t.artifactDialog.regenerating : t.artifactDialog.regenerate}
                 </Button>
               )}
               <Button size="sm" variant="ghost" className="gap-1.5" onClick={copy}>
@@ -234,14 +247,14 @@ export function ArtifactDialog({
                 ) : (
                   <Copy className="h-3.5 w-3.5" />
                 )}
-                {copied ? "Скопировано" : "Копировать"}
+                {copied ? t.common.copied : t.common.copy}
               </Button>
               <Button size="sm" variant="ghost" className="gap-1.5" onClick={download}>
-                <Download className="h-3.5 w-3.5" /> Скачать
+                <Download className="h-3.5 w-3.5" /> {t.common.download}
               </Button>
               {onSaveNote && (
                 <Button size="sm" className="gap-1.5" onClick={() => onSaveNote(plain)}>
-                  <StickyNote className="h-3.5 w-3.5" /> В заметки
+                  <StickyNote className="h-3.5 w-3.5" /> {t.chat.toNotes}
                 </Button>
               )}
             </div>

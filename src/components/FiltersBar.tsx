@@ -1,17 +1,15 @@
 import { useState } from "react";
-import { Bookmark } from "lucide-react";
+import { Bookmark, Hash, X } from "lucide-react";
 import { HelpHint } from "@/components/HelpHint";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { TOPIC_TAGS } from "@/data/mockCards";
 import type { Filters } from "@/lib/search";
 import { cn } from "@/lib/utils";
+import { topicDescription, topicLabel, useT } from "@/lib/i18n";
 
 export type VisibilityFilter = "all" | "private" | "shared";
 
-const VISIBILITY_MODES: { key: VisibilityFilter; label: string }[] = [
-  { key: "all", label: "Все" },
-  { key: "private", label: "Приватные" },
-  { key: "shared", label: "Общие" },
-];
+const VISIBILITY_MODES: VisibilityFilter[] = ["all", "private", "shared"];
 
 interface FiltersBarProps {
   filters: Filters;
@@ -86,7 +84,8 @@ export function FiltersBar({
   onlyBookmarks,
   onToggleOnlyBookmarks,
 }: FiltersBarProps) {
-  const [tagsExpanded, setTagsExpanded] = useState(false);
+  const t = useT();
+  const [topicsOpen, setTopicsOpen] = useState(false);
 
   function toggleTopic(label: string) {
     const has = filters.topics.some((t) => t.toLowerCase() === label.toLowerCase());
@@ -101,93 +100,108 @@ export function FiltersBar({
   return (
     <div className="mx-auto max-w-[1600px] space-y-3 px-4 py-4 sm:px-6">
       <div className="flex items-end justify-between">
-        <h2 className="text-xl font-extrabold tracking-tight text-foreground">Кейсы</h2>
+        <h2 className="text-xl font-extrabold tracking-tight text-foreground">
+          {t.dashboard.casesHeading}
+        </h2>
         <span aria-live="polite" className="text-xs text-muted-foreground opacity-70">
-          Найдено: {total}
+          {t.dashboard.found(total)}
         </span>
       </div>
 
-      <div>
-        <div
-          className={cn(
-            "flex flex-wrap items-center gap-2 overflow-hidden transition-[max-height] duration-300",
-            tagsExpanded ? "max-h-[999px]" : "max-h-[30px]",
-          )}
-        >
-          <button
-            onClick={() => onChange({ ...filters, topics: [] })}
-            title="Показать все материалы"
-            className={cn(
-              "rounded-full border px-3 py-1 text-xs font-semibold transition-colors active:scale-[0.96]",
-              filters.topics.length === 0
-                ? "border-primary bg-primary/10 text-primary"
-                : "border-border bg-card text-muted-foreground hover:border-primary hover:text-primary",
-            )}
-          >
-            Все
-          </button>
-          {TOPIC_TAGS.map((t, i) => {
-            const active = filters.topics.some((x) => x.toLowerCase() === t.label.toLowerCase());
-            const c = TAG_COLORS[i % TAG_COLORS.length];
-            return (
-              <button
-                key={t.label}
-                onClick={() => toggleTopic(t.label)}
-                title={t.description}
-                aria-pressed={active}
-                className={cn(
-                  "rounded-full border px-3 py-1 text-xs transition-colors active:scale-[0.96]",
-                  active
-                    ? cn("font-semibold", c.activeBorder, c.activeBg, c.text)
-                    : cn("bg-card", c.border, c.text, "hover:opacity-70"),
-                )}
-              >
-                #{t.label}
-              </button>
-            );
-          })}
-        </div>
-        <div className="mt-1.5 flex items-center gap-3">
-          <button
-            onClick={() => setTagsExpanded((v) => !v)}
-            className="-m-1 p-1 text-xs font-medium text-primary hover:underline"
-          >
-            {tagsExpanded ? "Свернуть" : "Ещё"}
-          </button>
-          {filters.topics.length > 0 && (
+      <div className="flex flex-wrap items-center gap-2">
+        {/* Стена из 20+ тегов раньше жила прямо на экране — теперь одна кнопка,
+            а выбранные темы остаются видны чипами рядом. */}
+        <Popover open={topicsOpen} onOpenChange={setTopicsOpen}>
+          <PopoverTrigger asChild>
             <button
-              onClick={() => onChange({ ...filters, topics: [] })}
-              className="-m-1 p-1 text-xs font-medium text-muted-foreground hover:text-destructive hover:underline"
+              className={cn(
+                "flex h-9 items-center gap-1.5 rounded-2xl border px-3 text-sm font-semibold shadow-soft transition-colors active:scale-[0.96]",
+                filters.topics.length > 0
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border bg-card text-muted-foreground hover:bg-secondary hover:text-foreground",
+              )}
             >
-              Сбросить темы ({filters.topics.length})
+              <Hash className="h-4 w-4" />
+              {t.dashboard.topics}
+              {filters.topics.length > 0 && (
+                <span className="grid h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-xs font-bold text-primary-foreground">
+                  {filters.topics.length}
+                </span>
+              )}
             </button>
-          )}
-        </div>
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-[min(92vw,26rem)] p-3">
+            <div className="flex max-h-72 flex-wrap gap-2 overflow-y-auto">
+              {TOPIC_TAGS.map((topic, i) => {
+                const active = filters.topics.some(
+                  (x) => x.toLowerCase() === topic.label.toLowerCase(),
+                );
+                const c = TAG_COLORS[i % TAG_COLORS.length];
+                return (
+                  <button
+                    key={topic.label}
+                    onClick={() => toggleTopic(topic.label)}
+                    title={topicDescription(topic.label, t)}
+                    aria-pressed={active}
+                    className={cn(
+                      "rounded-full border px-3 py-1 text-xs transition-colors active:scale-[0.96]",
+                      active
+                        ? cn("font-semibold", c.activeBorder, c.activeBg, c.text)
+                        : cn("bg-card", c.border, c.text, "hover:opacity-70"),
+                    )}
+                  >
+                    #{topicLabel(topic.label, t)}
+                  </button>
+                );
+              })}
+            </div>
+            {filters.topics.length > 0 && (
+              <button
+                onClick={() => onChange({ ...filters, topics: [] })}
+                className="mt-3 w-full rounded-control border border-border py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-destructive hover:text-destructive"
+              >
+                {t.dashboard.resetTopics(filters.topics.length)}
+              </button>
+            )}
+          </PopoverContent>
+        </Popover>
+
+        {filters.topics.map((label) => (
+          <button
+            key={label}
+            onClick={() => toggleTopic(label)}
+            className="inline-flex items-center gap-1 rounded-full border border-primary bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary transition-colors hover:bg-primary/16"
+          >
+            #{topicLabel(label, t)}
+            <X className="h-3 w-3" />
+          </button>
+        ))}
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-1.5">
           <div className="flex w-fit items-center gap-1 rounded-2xl border border-border bg-card p-1 shadow-soft">
-            {VISIBILITY_MODES.map((m) => (
+            {VISIBILITY_MODES.map((mode) => (
               <button
-                key={m.key}
-                onClick={() => onVisibilityChange(m.key)}
-                aria-pressed={visibility === m.key}
+                key={mode}
+                onClick={() => onVisibilityChange(mode)}
+                aria-pressed={visibility === mode}
                 className={cn(
                   "h-8 rounded-xl px-3 text-xs font-semibold transition-colors active:scale-[0.96]",
-                  visibility === m.key
+                  visibility === mode
                     ? "bg-primary text-primary-foreground shadow-brand"
                     : "text-muted-foreground hover:bg-secondary hover:text-foreground",
                 )}
               >
-                {m.label}
+                {mode === "all"
+                  ? t.dashboard.visibilityAll
+                  : mode === "private"
+                    ? t.dashboard.visibilityPrivate
+                    : t.dashboard.visibilityShared}
               </button>
             ))}
           </div>
-          <HelpHint
-            label="Что значит Приватные и Общие"
-            text="Приватные — кейсы, видимые только вам. Общие — доступны всем сотрудникам и участвуют в общем поиске."
-          />
+          <HelpHint label={t.dashboard.visibilityHintLabel} text={t.dashboard.visibilityHint} />
         </div>
 
         <button
@@ -201,7 +215,7 @@ export function FiltersBar({
           )}
         >
           <Bookmark className="h-4 w-4" fill={onlyBookmarks ? "currentColor" : "none"} />
-          Закладки
+          {t.dashboard.bookmarks}
           {bookmarkCount > 0 && (
             <span
               className={cn(

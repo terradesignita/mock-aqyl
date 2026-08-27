@@ -1,6 +1,7 @@
 import { HelpHint } from "@/components/HelpHint";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
+  AlertTriangle,
   BarChart3,
   Copy,
   Download,
@@ -21,6 +22,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import type { KnowledgeCardData } from "@/data/mockCards";
+import { downloadFile, safeFileName } from "@/lib/utils";
+import { BCP47, useI18n, useT, type Dictionary } from "@/lib/i18n";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,22 +47,26 @@ export interface Note {
 
 interface Props {
   card: KnowledgeCardData;
+  /** Сколько источников отмечено. 0 — генерировать не из чего. */
+  selectedCount: number;
   onSaveNote?: (text: string) => void;
+  /** Артефакт собран — попадает в журнал активности. */
+  onGenerated?: (title: string) => void;
   onCollapse?: () => void;
 }
 
-const QUOTES = [
-  { text: "Рост начинается в конце вашей зоны комфорта.", author: "Нил Дональд Уолш" },
-  { text: "Знание, которым не поделились, не создаёт ценности.", author: "Питер Друкер" },
-  { text: "Стратегия без исполнения — просто презентация.", author: "Мортен Хансен" },
-];
+/** Шаги генерации — показываются, пока артефакт собирается. */
+function generationSteps(t: Dictionary) {
+  return [t.studio.stepReading, t.studio.stepExtracting, t.studio.stepAssembling];
+}
+
+/** Число шагов прогресса — от языка не зависит. */
+const GENERATION_STEP_COUNT = 3;
 
 type ArtifactId = "quiz" | "deck" | "report" | "cards" | "podcast" | "infographic";
 
 const ARTIFACTS: {
   id: ArtifactId;
-  title: string;
-  subtitle: string;
   icon: typeof FileText;
   chip: string;
   edge: string;
@@ -67,8 +74,6 @@ const ARTIFACTS: {
 }[] = [
   {
     id: "quiz",
-    title: "Тест",
-    subtitle: "Тест на понимание",
     icon: HelpCircle,
     chip: "bg-art-quiz/12 text-art-quiz",
     edge: "border-art-quiz/45",
@@ -76,8 +81,6 @@ const ARTIFACTS: {
   },
   {
     id: "deck",
-    title: "Презентация",
-    subtitle: "Слайды для встречи",
     icon: Presentation,
     chip: "bg-art-deck/12 text-art-deck",
     edge: "border-art-deck/45",
@@ -85,8 +88,6 @@ const ARTIFACTS: {
   },
   {
     id: "report",
-    title: "Отчёт",
-    subtitle: "Аналитический отчёт",
     icon: FileText,
     chip: "bg-art-report/12 text-art-report",
     edge: "border-art-report/45",
@@ -94,8 +95,6 @@ const ARTIFACTS: {
   },
   {
     id: "cards",
-    title: "Карточки",
-    subtitle: "Карточки с выводами",
     icon: LayoutGrid,
     chip: "bg-art-cards/12 text-art-cards",
     edge: "border-art-cards/45",
@@ -103,8 +102,6 @@ const ARTIFACTS: {
   },
   {
     id: "podcast",
-    title: "Подкаст",
-    subtitle: "Аудио по материалу",
     icon: Radio,
     chip: "bg-art-podcast/12 text-art-podcast",
     edge: "border-art-podcast/45",
@@ -112,8 +109,6 @@ const ARTIFACTS: {
   },
   {
     id: "infographic",
-    title: "Инфографика",
-    subtitle: "Визуальная сводка",
     icon: BarChart3,
     chip: "bg-art-infographic/12 text-art-infographic",
     edge: "border-art-infographic/45",
@@ -121,94 +116,105 @@ const ARTIFACTS: {
   },
 ];
 
-function buildArtifact(id: ArtifactId, card: KnowledgeCardData): ArtifactContent {
+/** Название и подпись артефакта — из словаря локали. */
+function artifactMeta(id: ArtifactId, t: Dictionary): { title: string; subtitle: string } {
+  switch (id) {
+    case "quiz":
+      return { title: t.studio.quiz, subtitle: t.studio.quizSubtitle };
+    case "deck":
+      return { title: t.studio.deck, subtitle: t.studio.deckSubtitle };
+    case "report":
+      return { title: t.studio.report, subtitle: t.studio.reportSubtitle };
+    case "cards":
+      return { title: t.studio.cards, subtitle: t.studio.cardsSubtitle };
+    case "podcast":
+      return { title: t.studio.podcast, subtitle: t.studio.podcastSubtitle };
+    case "infographic":
+      return { title: t.studio.infographic, subtitle: t.studio.infographicSubtitle };
+  }
+}
+
+function buildArtifact(id: ArtifactId, card: KnowledgeCardData, t: Dictionary): ArtifactContent {
   const steps = card.framework?.map((f) => f.step.replace(/^\d+\.\s*/, "")) ?? [];
   const descriptions = card.framework?.map((f) => f.description) ?? [];
   const cites = card.citations.map((c) => c.source_anchor);
   const readMin = Math.max(3, Math.round(card.executive_summary.length / 40));
+  const a = t.artifactContent;
 
   switch (id) {
-    case "quiz":
+    case "quiz": {
+      const questions = 4;
       return {
-        intro: `5 вопросов · ~4 минуты · проходной балл 70%. Источники: ${cites.length} фрагмента.`,
+        intro: a.quizIntro(questions, cites.length),
         metrics: [
-          { label: "Вопросов", value: "10" },
-          { label: "Проходной балл", value: "70%" },
-          { label: "Средний результат", value: "78%" },
+          { label: a.quizQuestions, value: String(questions) },
+          { label: a.quizPassScore, value: "70%" },
+          { label: a.quizFragments, value: String(cites.length) },
         ],
         items: [
           {
-            label: "Вопрос 1 · выбор ответа",
-            text: `Какой главный вывод материала «${card.title}»?\nA) ${card.core_insight}\nB) Эффект достигается только при полной автоматизации\nC) Метрики не изменяются в первый год\n\nПравильно: A · Обоснование: ${cites[0] ?? card.source}`,
+            label: a.quizQ1Label,
+            text: a.quizQ1(card.title, card.core_insight, cites[0] ?? card.source),
           },
           {
-            label: "Вопрос 2 · верно/неверно",
-            text: `«Внедрение окупается быстрее в бизнес-юните «${card.business_unit}», если есть выделенный владелец процесса.» — Верно.\nИсточник: ${card.source}, ${card.author}, ${card.date}.`,
+            label: a.quizQ2Label,
+            text: a.quizQ2(card.business_unit, card.source, card.author, card.date),
           },
           {
-            label: "Вопрос 3 · последовательность",
+            label: a.quizQ3Label,
             text: steps.length
-              ? `Расставьте шаги внедрения по порядку:\n${steps.map((s, i) => `${i + 1}. ${s}`).join("\n")}`
-              : "Назовите три ограничения применения подхода в контексте BI Group и предложите способ их снятия.",
+              ? a.quizQ3Steps(steps.map((step, i) => `${i + 1}. ${step}`).join("\n"))
+              : a.quizQ3Fallback,
           },
-          {
-            label: "Вопрос 4 · открытый",
-            text: `Какие 2 метрики вы будете отслеживать в первые 90 дней и какой целевой уровень поставите?`,
-          },
+          { label: a.quizQ4Label, text: a.quizQ4 },
         ],
       };
+    }
     case "deck":
       return {
-        intro: `${steps.length + 4} слайдов · формат 16:9 · спикер-ноты включены.`,
+        intro: a.deckIntro(steps.length + 4),
         metrics: [
-          { label: "Слайдов", value: String(steps.length + 4) },
-          { label: "Длительность", value: "12 мин" },
-          { label: "Аудитория", value: card.business_unit },
+          { label: a.deckSlides, value: String(steps.length + 4) },
+          { label: a.deckDuration, value: a.deckMinutes },
+          { label: a.deckAudience, value: card.business_unit },
         ],
         items: [
-          {
-            label: "Слайд 1 · Контекст",
-            text: `${card.executive_summary}\nСпикер-нота: начать с боли текущего процесса, 40 секунд.`,
-          },
-          {
-            label: "Слайд 2 · Ключевой инсайт",
-            text: `${card.core_insight}\nВизуал: крупная цифра + сравнение «до/после».`,
-          },
-          ...steps.map((s, i) => ({
-            label: `Слайд ${i + 3} · Шаг ${i + 1}`,
-            text: `${s}\n${descriptions[i] ?? ""}`.trim(),
+          { label: a.deckS1Label, text: a.deckS1(card.executive_summary) },
+          { label: a.deckS2Label, text: a.deckS2(card.core_insight) },
+          ...steps.map((step, i) => ({
+            label: a.deckStepLabel(i + 3, i + 1),
+            text: `${step}\n${descriptions[i] ?? ""}`.trim(),
           })),
           {
-            label: `Слайд ${steps.length + 3 || 5} · Next steps`,
-            text: `Пилот в «${card.business_unit}» — 6 недель · владелец: ${card.author} · чек-поинт через 30 дней · бюджет: в рамках текущего OPEX.`,
+            label: a.deckNextLabel(steps.length + 3 || 5),
+            text: a.deckNext(card.business_unit, card.author),
           },
         ],
       };
     case "report":
       return {
-        intro: `Аналитический отчёт · релевантность ${card.relevance}% · язык оригинала ${card.language} · ~${readMin} мин чтения.`,
+        intro: a.reportIntro(card.language, readMin),
         metrics: [
-          { label: "Релевантность", value: `${card.relevance}%` },
-          { label: "Покрытие цитатами", value: "95%" },
-          { label: "Горизонт эффекта", value: "6–12 мес" },
+          { label: a.reportSections, value: "5" },
+          { label: a.reportSources, value: String(cites.length) },
+          { label: a.reportSteps, value: String(steps.length || 3) },
         ],
         items: [
-          { label: "Резюме", text: card.executive_summary },
-          { label: "Ключевой вывод", text: card.core_insight },
+          { label: a.reportSummary, text: card.executive_summary },
+          { label: a.reportKey, text: card.core_insight },
+          { label: a.reportRisks, text: a.reportRisksBody },
           {
-            label: "Риски",
-            text: "1. Нехватка владельца процесса на стороне бизнес-юнита.\n2. Данные для метрик собираются вручную — риск искажения baseline.\n3. Сопротивление линейных руководителей на этапе пилота.",
-          },
-          {
-            label: "Рекомендации",
+            label: a.reportRecommendations,
             text: steps.length
               ? steps
-                  .map((s, i) => `${i + 1}. ${s} — ${descriptions[i] ?? "ответственный: PMO"}`)
+                  .map(
+                    (step, i) => `${i + 1}. ${step} — ${descriptions[i] ?? a.reportOwnerFallback}`,
+                  )
                   .join("\n")
-              : "1. Определить baseline метрик.\n2. Запустить пилот на одном объекте.\n3. Зафиксировать эффект и масштабировать.",
+              : a.reportRecommendationsFallback,
           },
           {
-            label: "Источники",
+            label: a.reportSourcesLabel,
             text: cites.length
               ? cites.map((c, i) => `[${i + 1}] ${c}`).join("\n")
               : `${card.source} · ${card.author} · ${card.date}`,
@@ -217,65 +223,52 @@ function buildArtifact(id: ArtifactId, card: KnowledgeCardData): ArtifactContent
       };
     case "cards":
       return {
-        intro: "Карточки с выводами · листайте горизонтально.",
+        intro: a.cardsIntro,
         items: [
-          {
-            label: "Карточка 1",
-            text: `A: Главный эффект подхода?\nB: ${card.core_insight}`,
-          },
-          ...steps.slice(0, 4).map((s, i) => ({
-            label: `Карточка ${i + 2}`,
-            text: `A: Что происходит на шаге «${s}»?\nB: ${descriptions[i] ?? "Фиксируем результат и передаём владельцу процесса."}`,
+          { label: a.cardsLabel(1), text: a.cardsQ1(card.core_insight) },
+          ...steps.slice(0, 4).map((step, i) => ({
+            label: a.cardsLabel(i + 2),
+            text: a.cardsQStep(step, descriptions[i] ?? a.cardsStepFallback),
           })),
         ],
       };
     case "podcast":
       return {
-        intro: "Аудио-разбор · два ведущих · транскрипт синхронизирован с аудио.",
+        intro: a.podcastIntro,
         metrics: [
-          { label: "Длительность", value: "8:40" },
-          { label: "Ведущих", value: "2" },
-          { label: "Глав", value: "4" },
+          { label: a.podcastChapters, value: "4" },
+          { label: a.podcastHosts, value: "2" },
+          { label: a.podcastSources, value: String(cites.length) },
         ],
         items: [
+          { label: a.podcastIntroLabel, text: a.podcastIntroBody(card.business_unit) },
+          { label: a.podcastCaseLabel, text: card.executive_summary },
+          { label: a.podcastDebateLabel, text: a.podcastDebate },
           {
-            label: "00:00 · Вступление",
-            text: `Зачем этот материал бизнес-юниту «${card.business_unit}» и кому его слушать в первую очередь.`,
-          },
-          {
-            label: "01:20 · Разбор кейса",
-            text: card.executive_summary,
-          },
-          {
-            label: "04:05 · Спор ведущих",
-            text: `Ведущий A: эффект воспроизводим на объектах BI Group. Ведущий B: нужен baseline, иначе цифры не проверить. Компромисс — пилот на 6 недель.`,
-          },
-          {
-            label: "07:10 · Вывод",
-            text: `${card.core_insight}\nИсточник: ${card.source}, ${card.author}, ${card.date}.`,
+            label: a.podcastOutroLabel,
+            text: a.podcastOutro(card.core_insight, card.source, card.author, card.date),
           },
         ],
       };
     case "infographic":
       return {
-        intro: "Визуальная сводка одним экраном · подходит для рассылки и дашборда.",
+        intro: a.infographicIntro,
         metrics: [
-          { label: "Релевантность", value: `${card.relevance}%` },
-          { label: "Источников", value: String(card.citations.length) },
-          { label: "Шагов внедрения", value: steps.length ? String(steps.length) : "—" },
-          { label: "Язык оригинала", value: card.language },
-          { label: "Тип контента", value: card.media_type },
-          { label: "Год", value: card.date.slice(0, 4) },
+          { label: a.infoSources, value: String(card.citations.length) },
+          { label: a.infoSteps, value: steps.length ? String(steps.length) : "—" },
+          { label: a.infoLanguage, value: card.language },
+          { label: a.infoType, value: t.media[card.media_type] },
+          { label: a.infoYear, value: card.date.slice(0, 4) },
         ],
         items: [
-          { label: "Блок 1 · Заголовок", text: card.title },
-          { label: "Блок 2 · Цифра-герой", text: card.core_insight },
+          { label: a.infoBlock1, text: card.title },
+          { label: a.infoBlock2, text: card.core_insight },
           {
-            label: "Блок 3 · Путь внедрения",
-            text: steps.length ? steps.join(" → ") : "Инсайт → пилот → масштабирование",
+            label: a.infoBlock3,
+            text: steps.length ? steps.join(" → ") : a.infoBlock3Fallback,
           },
           {
-            label: "Блок 4 · Подпись",
+            label: a.infoBlock4,
             text: `${card.source} · ${card.author} · ${card.business_unit}`,
           },
         ],
@@ -296,79 +289,92 @@ function toPlainText(title: string, c: ArtifactContent) {
     .join("\n");
 }
 
-export function StudioPanel({ card, onSaveNote, onCollapse }: Props) {
+export function StudioPanel({ card, selectedCount, onSaveNote, onGenerated, onCollapse }: Props) {
   const [open, setOpen] = useState<ArtifactId | null>(null);
   const [loading, setLoading] = useState<ArtifactId | null>(null);
+  const [step, setStep] = useState(0);
   const [regenerating, setRegenerating] = useState(false);
   const [openFullscreen, setOpenFullscreen] = useState(false);
   const [generated, setGenerated] = useState<ArtifactId[]>([]);
-  const quote = QUOTES[card.title.length % QUOTES.length];
+  const timersRef = useRef<number[]>([]);
+  const t = useT();
+  const { locale } = useI18n();
+  const bcp47 = BCP47[locale];
+  const stageLabels = generationSteps(t);
   const active = ARTIFACTS.find((a) => a.id === open);
+  const noContext = selectedCount === 0;
+  const busy = loading !== null || regenerating;
+
+  useEffect(() => {
+    const timers = timersRef.current;
+    return () => timers.forEach((t) => window.clearTimeout(t));
+  }, []);
+
+  // Пересоздание сбрасывает готовые артефакты: состав контекста изменился.
+  useEffect(() => {
+    setGenerated([]);
+  }, [card.id]);
+
+  const track = (timer: number) => {
+    timersRef.current.push(timer);
+    return timer;
+  };
 
   const generate = (id: ArtifactId, opts?: { fullscreen?: boolean; regenerate?: boolean }) => {
+    // Одна генерация за раз: повторный клик по любой плитке не запускает второй прогон.
+    if (busy) return;
+    if (noContext) {
+      toast.error(t.studio.noContextToast);
+      return;
+    }
     setOpen(null);
     setLoading(id);
+    setStep(0);
     setOpenFullscreen(Boolean(opts?.fullscreen));
-    window.setTimeout(() => {
-      setLoading(null);
-      setGenerated((prev) => (prev.includes(id) ? prev : [...prev, id]));
-      setOpen(id);
-      if (opts?.regenerate) toast.success("Артефакт пересоздан");
-    }, 600);
+    stageLabels.forEach((_, i) => track(window.setTimeout(() => setStep(i), i * 320)));
+    track(
+      window.setTimeout(() => {
+        setLoading(null);
+        setGenerated((prev) => (prev.includes(id) ? prev : [...prev, id]));
+        setOpen(id);
+        onGenerated?.(`${artifactMeta(id, t).title} · ${card.title}`);
+        if (opts?.regenerate) toast.success(t.studio.regenerated);
+      }, GENERATION_STEP_COUNT * 320),
+    );
   };
 
+  /** Пересоздание из просмотрщика: пока идёт — новый запрос не уходит (BUG-22). */
   const regenerate = () => {
+    if (regenerating || loading !== null) return;
     setRegenerating(true);
-    window.setTimeout(() => setRegenerating(false), 600);
+    track(
+      window.setTimeout(() => {
+        setRegenerating(false);
+        toast.success(t.studio.regeneratedByContext);
+      }, 900),
+    );
   };
 
-  const plainOf = (id: ArtifactId) => {
-    const meta = ARTIFACTS.find((a) => a.id === id)!;
-    return toPlainText(`${meta.title} — ${card.title}`, buildArtifact(id, card));
-  };
+  const plainOf = (id: ArtifactId) =>
+    toPlainText(`${artifactMeta(id, t).title} — ${card.title}`, buildArtifact(id, card, t));
 
   const copyArtifact = async (id: ArtifactId) => {
     await navigator.clipboard.writeText(plainOf(id));
-    toast.success("Текст артефакта скопирован");
+    toast.success(t.studio.copiedToast);
   };
 
+  /** Единственная выгрузка: markdown с реальным содержимым артефакта.
+   *  Раньше подкаст и презентация отдавали текст под MIME audio/mpeg и pptx —
+   *  файлы получались битыми (BUG-23). Аудио и OpenXML собирает бэкенд, его здесь нет. */
   const downloadArtifact = (id: ArtifactId) => {
-    const blob = new Blob([plainOf(id)], { type: "text/markdown;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${id}-${card.id}.md`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast.success("Файл .md скачан");
-  };
-
-  const downloadBlob = (data: BlobPart, mime: string, name: string) => {
-    const url = URL.createObjectURL(new Blob([data], { type: mime }));
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = name;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const downloadAudio = (id: ArtifactId) => {
-    downloadBlob(plainOf(id), "audio/mpeg", `podcast-${card.id}.mp3`);
-    toast.success("Аудио подкаста скачивается");
-  };
-
-  const downloadDeck = (id: ArtifactId) => {
-    downloadBlob(
-      plainOf(id),
-      "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-      `deck-${card.id}.pptx`,
-    );
-    toast.success("Презентация .pptx скачивается");
+    const title = artifactMeta(id, t).title;
+    downloadFile(plainOf(id), `${safeFileName(`${title}-${card.title}`, id)}.md`);
+    toast.success(t.studio.downloadedMd);
   };
 
   const printArtifact = (id: ArtifactId) => {
-    const meta = ARTIFACTS.find((a) => a.id === id)!;
-    const content = buildArtifact(id, card);
+    const meta = artifactMeta(id, t);
+    const content = buildArtifact(id, card, t);
     const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8">
 <title>${esc(meta.title)} — ${esc(card.title)}</title>
@@ -402,7 +408,7 @@ ${content.items
     (i) => `<section>${i.label ? `<h2>${esc(i.label)}</h2>` : ""}<p>${esc(i.text)}</p></section>`,
   )
   .join("")}
-<footer>BI AQYL · сгенерировано ИИ · ${new Date().toLocaleDateString("ru-RU")}</footer>
+<footer>BI AQYL · ${esc(t.studio.generatedByAi)} · ${esc(new Date().toLocaleDateString(bcp47))}</footer>
 </body></html>`;
 
     const frame = document.createElement("iframe");
@@ -423,7 +429,7 @@ ${content.items
       frame.contentWindow?.print();
       window.setTimeout(() => frame.remove(), 1000);
     }, 250);
-    toast.success("Открыт диалог печати — сохраните как PDF");
+    toast.success(t.studio.printDialog);
   };
 
   return (
@@ -432,8 +438,8 @@ ${content.items
         {onCollapse && (
           <button
             onClick={onCollapse}
-            aria-label="Свернуть панель артефактов"
-            title="Свернуть панель"
+            aria-label={t.studio.collapse}
+            title={t.sources.collapseTitle}
             className="grid h-7 w-7 shrink-0 place-items-center rounded-md border border-border text-muted-foreground transition-colors hover:border-primary hover:text-primary"
           >
             <PanelRightClose className="h-4 w-4" />
@@ -441,24 +447,51 @@ ${content.items
         )}
         <span className="min-w-0">
           <p className="flex min-w-0 items-center gap-1.5 truncate text-base font-bold tracking-tight text-card-foreground">
-            Артефакты
-            <HelpHint
-              side="bottom"
-              text="Готовые форматы на основе выбранных источников: тест, презентация, отчёт, карточки, подкаст, инфографика. «⋮» — перегенерировать, открыть на весь экран или скачать."
-            />
+            {t.studio.title}
+            <HelpHint side="bottom" text={t.studio.hint} />
           </p>
           <p className="text-xs text-muted-foreground">
-            {generated.length} из {ARTIFACTS.length} готово
+            {t.studio.readyOf(generated.length, ARTIFACTS.length)} ·{" "}
+            {t.studio.contextCount(selectedCount)}
           </p>
         </span>
       </div>
 
+      <div className="flex-1 space-y-2 overflow-y-auto px-3 pb-3">
+        {noContext && (
+          <p
+            role="status"
+            className="flex items-start gap-1.5 rounded-xl border border-warning/40 bg-warning/10 px-2.5 py-2 text-xs leading-relaxed text-card-foreground"
+          >
+            <AlertTriangle className="mt-px h-3.5 w-3.5 shrink-0 text-warning" />
+            {t.studio.noContext}
+          </p>
+        )}
 
-      <div className="flex-1 space-y-1.5 overflow-y-auto px-3 pb-3">
+        {loading !== null && (
+          <div
+            aria-live="polite"
+            className="rounded-xl border border-primary/40 bg-primary/6 px-3 py-2.5"
+          >
+            <p className="flex items-center gap-1.5 text-xs font-semibold text-primary">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              {t.studio.generating(artifactMeta(loading, t).title)}
+            </p>
+            <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-secondary">
+              <div
+                className="h-full rounded-full bg-primary transition-[width] duration-300"
+                style={{ width: `${((step + 1) / GENERATION_STEP_COUNT) * 100}%` }}
+              />
+            </div>
+            <p className="mt-1.5 text-xs text-muted-foreground">{stageLabels[step]}</p>
+          </div>
+        )}
+
         <div className="grid grid-cols-2 gap-2">
           {ARTIFACTS.map((a) => {
             const Icon = a.icon;
             const isReady = generated.includes(a.id);
+            const meta = artifactMeta(a.id, t);
             return (
               <div
                 key={a.id}
@@ -466,9 +499,15 @@ ${content.items
               >
                 <button
                   onClick={() => generate(a.id)}
-                  disabled={loading !== null}
-                  title={a.title}
-                  className="flex flex-1 flex-col items-start gap-2 p-3 pr-8 text-left disabled:opacity-60"
+                  disabled={busy || (noContext && !isReady)}
+                  title={
+                    noContext && !isReady
+                      ? t.studio.noContextTitle
+                      : busy
+                        ? t.studio.busyTitle
+                        : meta.title
+                  }
+                  className="flex flex-1 flex-col items-start gap-2 p-3 pr-8 text-left disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${a.chip}`}>
                     {loading === a.id ? (
@@ -480,7 +519,7 @@ ${content.items
                   <span className="min-w-0">
                     <span className="flex min-w-0 items-center gap-1.5">
                       <span className="truncate text-sm font-semibold text-card-foreground">
-                        {a.title}
+                        {meta.title}
                       </span>
                       {isReady && (
                         <span
@@ -491,10 +530,18 @@ ${content.items
                     </span>
                     <span
                       className={`block text-xs leading-snug ${
-                        isReady ? "font-medium text-success" : "text-muted-foreground"
+                        loading === a.id
+                          ? "font-medium text-primary"
+                          : isReady
+                            ? "font-medium text-success"
+                            : "text-muted-foreground"
                       }`}
                     >
-                      {isReady ? "Готово · открыть" : a.subtitle}
+                      {loading === a.id
+                        ? t.studio.generatingShort
+                        : isReady
+                          ? t.studio.ready
+                          : meta.subtitle}
                     </span>
                   </span>
                 </button>
@@ -502,7 +549,7 @@ ${content.items
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button
-                      aria-label={`Действия — ${a.title}`}
+                      aria-label={t.studio.actionsFor(meta.title)}
                       className="absolute right-1.5 top-1.5 rounded-md p-1.5 text-muted-foreground/70 transition-colors hover:bg-secondary hover:text-foreground"
                     >
                       <MoreVertical className="h-3.5 w-3.5" />
@@ -510,57 +557,50 @@ ${content.items
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
                     <DropdownMenuLabel className="text-xs text-muted-foreground">
-                      {a.title}
+                      {meta.title}
                     </DropdownMenuLabel>
-                    <DropdownMenuItem onSelect={() => generate(a.id)}>
+                    <DropdownMenuItem
+                      disabled={busy || (noContext && !isReady)}
+                      onSelect={() => generate(a.id)}
+                    >
                       <Wand2 className="h-4 w-4" />
-                      {isReady ? "Открыть" : "Сгенерировать"}
+                      {isReady ? t.common.open : t.studio.generate}
                     </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => generate(a.id, { regenerate: true })}>
+                    <DropdownMenuItem
+                      disabled={busy || noContext}
+                      onSelect={() => generate(a.id, { regenerate: true })}
+                    >
                       <RefreshCw className="h-4 w-4" />
-                      Сгенерировать заново
+                      {t.studio.regenerateMenu}
                     </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => generate(a.id, { fullscreen: true })}>
+                    <DropdownMenuItem
+                      disabled={busy || (noContext && !isReady)}
+                      onSelect={() => generate(a.id, { fullscreen: true })}
+                    >
                       <Maximize2 className="h-4 w-4" />
-                      Открыть на весь экран
+                      {t.studio.openFullscreen}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onSelect={() => void copyArtifact(a.id)}>
                       <Copy className="h-4 w-4" />
-                      Копировать текст
+                      {t.studio.copyText}
                     </DropdownMenuItem>
-                    {a.id === "podcast" && (
-                      <DropdownMenuItem onSelect={() => downloadAudio(a.id)}>
-                        <Download className="h-4 w-4" />
-                        Скачать аудио
-                      </DropdownMenuItem>
-                    )}
-                    {a.id === "deck" && (
-                      <DropdownMenuItem onSelect={() => downloadDeck(a.id)}>
-                        <Download className="h-4 w-4" />
-                        Скачать PPTX
-                      </DropdownMenuItem>
-                    )}
-                    {(a.id === "report" || a.id === "infographic") && (
-                      <>
-                        <DropdownMenuItem onSelect={() => downloadArtifact(a.id)}>
-                          <Download className="h-4 w-4" />
-                          Скачать .md
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => printArtifact(a.id)}>
-                          <FileDown className="h-4 w-4" />
-                          Скачать PDF
-                        </DropdownMenuItem>
-                      </>
-                    )}
+                    <DropdownMenuItem onSelect={() => downloadArtifact(a.id)}>
+                      <Download className="h-4 w-4" />
+                      {t.sources.downloadMd}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => printArtifact(a.id)}>
+                      <FileDown className="h-4 w-4" />
+                      {t.studio.downloadPdf}
+                    </DropdownMenuItem>
                     <DropdownMenuItem
                       onSelect={() => {
                         onSaveNote?.(plainOf(a.id));
-                        toast.success("Артефакт сохранён в заметки");
+                        toast.success(t.workspace.artifactToNotes);
                       }}
                     >
                       <StickyNote className="h-4 w-4" />
-                      Сохранить в заметки
+                      {t.studio.saveToNotes}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -573,23 +613,23 @@ ${content.items
           <ArtifactDialog
             open
             onOpenChange={(v) => !v && setOpen(null)}
-            title={active.title}
-            subtitle={`${active.subtitle} · ${card.title}`}
+            title={artifactMeta(active.id, t).title}
+            subtitle={`${artifactMeta(active.id, t).subtitle} · ${card.title}`}
             icon={active.icon}
-            content={buildArtifact(active.id, card)}
+            content={buildArtifact(active.id, card, t)}
             custom={
               active.id === "report"
                 ? undefined
                 : (fs) => {
                     switch (active.id) {
                       case "deck":
-                        return <DeckViewer slides={buildSlides(card)} fullscreen={fs} />;
+                        return <DeckViewer slides={buildSlides(card, t)} fullscreen={fs} />;
                       case "podcast":
-                        return <PodcastPlayer lines={buildTranscript(card)} fullscreen={fs} />;
+                        return <PodcastPlayer lines={buildTranscript(card, t)} fullscreen={fs} />;
                       case "quiz":
-                        return <QuizView questions={buildQuiz(card)} />;
+                        return <QuizView questions={buildQuiz(card, t)} />;
                       case "cards":
-                        return <CardsDeck cards={buildInsightCards(card)} />;
+                        return <CardsDeck cards={buildInsightCards(card, t)} />;
                       case "infographic":
                         return <InfographicView card={card} fullscreen={fs} />;
                       default:
@@ -607,15 +647,10 @@ ${content.items
       </div>
 
       <div className="border-t border-border p-3">
-        <p className="flex items-center gap-1.5 pb-2 text-xs text-muted-foreground">
-          <Sparkle className="h-3 w-3 text-accent" /> Создано с помощью ИИ
+        <p className="flex items-start gap-1.5 text-xs leading-relaxed text-muted-foreground">
+          <Sparkle className="mt-0.5 h-3 w-3 shrink-0 text-accent" />
+          {t.studio.aiFooter}
         </p>
-        <blockquote className="rounded-xl border border-border bg-secondary/50 p-3">
-          <p className="text-xs font-medium leading-relaxed text-secondary-foreground">
-            {quote.text}
-          </p>
-          <footer className="mt-1 text-xs text-muted-foreground">— {quote.author}</footer>
-        </blockquote>
       </div>
     </div>
   );

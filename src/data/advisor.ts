@@ -4,6 +4,8 @@
  * заменить buildAnswer/classify на серверную функцию, интерфейс не меняется.
  */
 
+import { evidenceLabel, type AdvisorText } from "@/data/advisor/text";
+
 export type DilemmaType =
   | "partnership"
   | "build_or_partner"
@@ -78,258 +80,125 @@ export interface Answer {
 }
 
 /* ------------------------------------------------------------------ */
-/* Уточняющие вопросы                                                  */
+/* Уточняющие вопросы: структура здесь, формулировки — в словаре локали  */
 /* ------------------------------------------------------------------ */
 
-const PARTNERSHIP_QUESTIONS: ClarifyQuestion[] = [
-  {
-    id: "proof",
-    title: "Что продукт уже доказал?",
-    multi: true,
-    options: [
-      { id: "internal", label: "Эффект внутри компании" },
-      { id: "external", label: "Внешний спрос от клиентов" },
-    ],
-    unknown: true,
-    ownPlaceholder: "Опишите, что уже подтверждено данными",
-  },
-  {
-    id: "partner_gives",
-    title: "Что даёт потенциальный партнёр?",
-    multi: true,
-    options: [
-      { id: "clients", label: "Доступ к клиентам и канал продаж" },
-      { id: "money", label: "Инвестиции и разделение затрат" },
-      { id: "tech", label: "Технологию или экспертизу" },
-    ],
-    ownPlaceholder: "Что именно партнёр приносит в сделку",
-  },
-  {
-    id: "partner_wants",
-    title: "Что партнёр хочет получить?",
-    multi: true,
-    options: [
-      { id: "share", label: "Долю в будущем бизнесе" },
-      { id: "exclusive", label: "Эксклюзивность на рынке" },
-    ],
-    unknown: true,
-    ownPlaceholder: "Условия, которые обсуждаются сейчас",
-  },
-  {
-    id: "priority",
-    title: "Что для вас сейчас важнее?",
-    multi: true,
-    options: [
-      { id: "speed", label: "Быстро проверить рынок" },
-      { id: "control", label: "Сохранить контроль над продуктом" },
-      { id: "money_now", label: "Получить деньги сейчас" },
-    ],
-    ownPlaceholder: "Ваш приоритет своими словами",
-  },
-  {
-    id: "exclusive_scope",
-    title: "На что распространяется эксклюзивность?",
-    multi: false,
-    options: [
-      { id: "kz", label: "Один рынок (например, Казахстан)" },
-      { id: "segment", label: "Отдельный сегмент клиентов" },
-    ],
-    unknown: true,
-    ownPlaceholder: "Границы эксклюзивности в предложении партнёра",
-    triggeredBy: { questionId: "partner_wants", optionId: "exclusive" },
-  },
-];
-
-const SALE_QUESTIONS: ClarifyQuestion[] = [
-  {
-    id: "why",
-    title: "Почему вы рассматриваете продажу?",
-    multi: true,
-    options: [
-      { id: "focus", label: "Актив не в фокусе стратегии" },
-      { id: "cash", label: "Нужны деньги на другие направления" },
-      { id: "limit", label: "Нет ресурса развивать дальше" },
-    ],
-    ownPlaceholder: "Причина своими словами",
-  },
-  {
-    id: "matters",
-    title: "Что для вас важнее в сделке?",
-    multi: false,
-    options: [
-      { id: "price", label: "Максимальная цена" },
-      { id: "speed", label: "Скорость и определённость" },
-      { id: "team", label: "Судьба команды и продукта" },
-    ],
-    ownPlaceholder: "Ваш приоритет",
-  },
-  {
-    id: "no_deal",
-    title: "Что произойдёт, если не продавать?",
-    multi: false,
-    options: [
-      { id: "stall", label: "Развитие остановится" },
-      { id: "loss", label: "Начнём терять долю рынка" },
-    ],
-    unknown: true,
-    ownPlaceholder: "Альтернативный сценарий",
-  },
-];
-
-const MARKET_QUESTIONS: ClarifyQuestion[] = [
-  {
-    id: "why",
-    title: "Зачем вы хотите выйти на новый рынок?",
-    multi: true,
-    options: [
-      { id: "growth", label: "Исчерпан рост на текущем рынке" },
-      { id: "client", label: "Идём за конкретным клиентом" },
-      { id: "diversify", label: "Диверсификация рисков" },
-    ],
-    ownPlaceholder: "Цель выхода",
-  },
-  {
-    id: "known",
-    title: "Что уже известно о рынке?",
-    multi: true,
-    options: [
-      { id: "research", label: "Есть исследование и оценка спроса" },
-      { id: "contacts", label: "Есть контакты и первые переговоры" },
-    ],
-    unknown: true,
-    ownPlaceholder: "Что подтверждено данными",
-  },
-  {
-    id: "how",
-    title: "Как планируется выход?",
-    multi: false,
-    options: [
-      { id: "own", label: "Своими силами" },
-      { id: "partner", label: "Через локального партнёра" },
-      { id: "ma", label: "Через покупку игрока" },
-    ],
-    ownPlaceholder: "Модель выхода",
-  },
-];
-
-const GENERIC_QUESTIONS: ClarifyQuestion[] = [
-  {
-    id: "goal",
-    title: "Какого результата вы хотите достичь?",
-    multi: true,
-    options: [
-      { id: "growth", label: "Рост выручки" },
-      { id: "efficiency", label: "Эффективность и снижение затрат" },
-      { id: "risk", label: "Снижение рисков" },
-    ],
-    ownPlaceholder: "Ожидаемый результат",
-  },
-  {
-    id: "horizon",
-    title: "На каком горизонте нужно решение?",
-    multi: false,
-    options: [
-      { id: "now", label: "Ближайший квартал" },
-      { id: "year", label: "В течение года" },
-      { id: "long", label: "Стратегический горизонт 3+ года" },
-    ],
-    ownPlaceholder: "Ваш горизонт",
-  },
-  {
-    id: "limits",
-    title: "Какие ограничения важны?",
-    multi: true,
-    options: [
-      { id: "budget", label: "Бюджет" },
-      { id: "people", label: "Люди и компетенции" },
-    ],
-    unknown: true,
-    ownPlaceholder: "Ограничения своими словами",
-  },
-];
-
-export const DILEMMAS: Record<DilemmaType, Dilemma> = {
-  partnership: {
-    type: "partnership",
-    label: "Партнёрство с внешней компанией",
-    drivers: [
-      "подтверждён ли внешний спрос",
-      "что именно партнёр закрывает своим дефицитом",
-      "какие права передаются и на какой срок",
-    ],
-    questions: PARTNERSHIP_QUESTIONS,
-  },
-  build_or_partner: {
-    type: "build_or_partner",
-    label: "Самостоятельное развитие или внешний партнёр",
-    drivers: ["скорость выхода", "наличие альтернатив", "стоимость контроля"],
-    questions: PARTNERSHIP_QUESTIONS,
-  },
-  sale: {
-    type: "sale",
-    label: "Продажа бизнеса или доли",
-    drivers: ["стратегическая стоимость актива", "альтернатива без сделки", "необратимость"],
-    questions: SALE_QUESTIONS,
-  },
-  new_market: {
-    type: "new_market",
-    label: "Выход на новый рынок",
-    drivers: ["подтверждённость спроса", "модель входа", "стоимость ошибки"],
-    questions: MARKET_QUESTIONS,
-  },
-  scaling: {
-    type: "scaling",
-    label: "Масштабирование",
-    drivers: ["устойчивость юнит-экономики", "узкое место процесса", "готовность команды"],
-    questions: GENERIC_QUESTIONS,
-  },
-  investment: {
-    type: "investment",
-    label: "Инвестиции и распределение ресурсов",
-    drivers: ["альтернативная доходность", "обратимость", "горизонт эффекта"],
-    questions: GENERIC_QUESTIONS,
-  },
-  org_model: {
-    type: "org_model",
-    label: "Организационная модель",
-    drivers: ["владелец процесса", "скорость решений", "стоимость координации"],
-    questions: GENERIC_QUESTIONS,
-  },
-};
-
-const RULES: { type: DilemmaType; words: string[] }[] = [
-  { type: "partnership", words: ["партн", "совмест", "альянс", "эксклюзив", "вместе"] },
-  { type: "sale", words: ["прода", "долю", "выйти из бизнеса", "сделк"] },
-  { type: "new_market", words: ["новый рынок", "рынок", "регион", "страну", "экспорт"] },
-  { type: "scaling", words: ["масштаб", "тиражир", "рост", "расширить"] },
-  { type: "investment", words: ["инвест", "бюджет", "вложить", "капитал"] },
-  { type: "org_model", words: ["структур", "организац", "команд", "департамент"] },
-];
-
-/** Является ли запрос управленческим (а не поиском материалов). */
-export function isManagerialQuery(q: string) {
-  const t = q.trim().toLowerCase();
-  if (t.length < 12) return false;
-  const lookup = ["найди", "покажи", "материал", "документ", "презентац", "статья"];
-  if (lookup.some((w) => t.startsWith(w))) return false;
-  return true;
+interface QuestionShape {
+  id: string;
+  multi: boolean;
+  optionIds: string[];
+  unknown?: boolean;
+  triggeredBy?: { questionId: string; optionId: string };
 }
 
-export function classify(query: string): Dilemma {
-  const t = query.toLowerCase();
-  for (const r of RULES) if (r.words.some((w) => t.includes(w))) return DILEMMAS[r.type];
-  return DILEMMAS.build_or_partner;
+const QUESTION_SETS: Record<string, QuestionShape[]> = {
+  partnership: [
+    { id: "proof", multi: true, optionIds: ["internal", "external"], unknown: true },
+    { id: "partner_gives", multi: true, optionIds: ["clients", "money", "tech"] },
+    { id: "partner_wants", multi: true, optionIds: ["share", "exclusive"], unknown: true },
+    { id: "priority", multi: true, optionIds: ["speed", "control", "money_now"] },
+    {
+      id: "exclusive_scope",
+      multi: false,
+      optionIds: ["kz", "segment"],
+      unknown: true,
+      triggeredBy: { questionId: "partner_wants", optionId: "exclusive" },
+    },
+  ],
+  sale: [
+    { id: "why", multi: true, optionIds: ["focus", "cash", "limit"] },
+    { id: "matters", multi: false, optionIds: ["price", "speed", "team"] },
+    { id: "no_deal", multi: false, optionIds: ["stall", "loss"], unknown: true },
+  ],
+  market: [
+    { id: "why", multi: true, optionIds: ["growth", "client", "diversify"] },
+    { id: "known", multi: true, optionIds: ["research", "contacts"], unknown: true },
+    { id: "how", multi: false, optionIds: ["own", "partner", "ma"] },
+  ],
+  generic: [
+    { id: "goal", multi: true, optionIds: ["growth", "efficiency", "risk"] },
+    { id: "horizon", multi: false, optionIds: ["now", "year", "long"] },
+    { id: "limits", multi: true, optionIds: ["budget", "people"], unknown: true },
+  ],
+};
+
+/** Какой набор вопросов у какого типа решения. */
+const SET_BY_TYPE: Record<DilemmaType, string> = {
+  partnership: "partnership",
+  build_or_partner: "partnership",
+  sale: "sale",
+  new_market: "market",
+  scaling: "generic",
+  investment: "generic",
+  org_model: "generic",
+};
+
+function buildQuestions(setKey: string, t: AdvisorText): ClarifyQuestion[] {
+  return QUESTION_SETS[setKey].map((shape) => {
+    const text = t.questions[`${setKey}.${shape.id}`];
+    return {
+      id: shape.id,
+      title: text.title,
+      multi: shape.multi,
+      options: shape.optionIds.map((id) => ({ id, label: text.options[id] })),
+      unknown: shape.unknown,
+      ownPlaceholder: text.ownPlaceholder,
+      triggeredBy: shape.triggeredBy,
+    };
+  });
+}
+
+const DILEMMA_TYPES: DilemmaType[] = [
+  "partnership",
+  "build_or_partner",
+  "sale",
+  "new_market",
+  "scaling",
+  "investment",
+  "org_model",
+];
+
+/** Все типы решений с формулировками текущей локали. */
+export function dilemmasFor(t: AdvisorText): Record<DilemmaType, Dilemma> {
+  const out = {} as Record<DilemmaType, Dilemma>;
+  for (const type of DILEMMA_TYPES) {
+    out[type] = {
+      type,
+      label: t.dilemmaLabels[type],
+      drivers: t.dilemmaDrivers[type],
+      questions: buildQuestions(SET_BY_TYPE[type], t),
+    };
+  }
+  return out;
+}
+
+/** Является ли запрос управленческим (а не поиском материалов). */
+export function isManagerialQuery(q: string, t: AdvisorText) {
+  const value = q.trim().toLowerCase();
+  if (value.length < 12) return false;
+  return !t.lookupPrefixes.some((w) => value.startsWith(w));
+}
+
+export function classify(query: string, t: AdvisorText): Dilemma {
+  const dilemmas = dilemmasFor(t);
+  const value = query.toLowerCase();
+  for (const type of DILEMMA_TYPES) {
+    const words = t.classifyWords[type];
+    if (words.length && words.some((w) => value.includes(w))) return dilemmas[type];
+  }
+  return dilemmas.build_or_partner;
 }
 
 /** Известные параметры, извлечённые из формулировки запроса. */
-export function extractKnown(query: string): string[] {
-  const t = query.toLowerCase();
+export function extractKnown(query: string, t: AdvisorText): string[] {
+  const value = query.toLowerCase();
   const out: string[] = [];
-  if (/(продукт|решени|платформ|сервис)/.test(t)) out.push("речь о собственном продукте компании");
-  if (/(партн|вместе|совмест)/.test(t)) out.push("рассматривается внешний партнёр");
-  if (/(рынок|клиент|прода)/.test(t)) out.push("вопрос касается выхода к внешним клиентам");
-  if (/(доля|эксклюзив|услови)/.test(t)) out.push("обсуждаются условия сделки");
-  if (out.length === 0) out.push("управленческая ситуация без явных параметров в формулировке");
+  const p = t.known.patterns;
+  if (p.product.test(value)) out.push(t.known.ownProduct);
+  if (p.partner.test(value)) out.push(t.known.externalPartner);
+  if (p.market.test(value)) out.push(t.known.externalClients);
+  if (p.terms.test(value)) out.push(t.known.dealTerms);
+  if (out.length === 0) out.push(t.known.none);
   return out;
 }
 
@@ -366,42 +235,44 @@ const LABEL = (d: Dilemma, qId: string, oId: string) =>
   d.questions.find((q) => q.id === qId)?.options.find((o) => o.id === oId)?.label ?? oId;
 
 /** Экран «Вот как я понял вашу ситуацию». */
-export function buildUnderstanding(d: Dilemma, sel: AdvisorSelection, query: string): string {
+export function buildUnderstanding(
+  d: Dilemma,
+  sel: AdvisorSelection,
+  query: string,
+  t: AdvisorText,
+): string {
   const parts: string[] = [];
   const has = (q: string, o: string) => (sel.choices[q] ?? []).includes(o);
+  const u = t.understanding;
 
   if (d.type === "partnership" || d.type === "build_or_partner") {
     parts.push(
       has("proof", "internal") && !has("proof", "external")
-        ? "Внутренний продукт уже доказал эффект внутри компании, но подтверждённого внешнего спроса пока нет."
+        ? u.provenInternalOnly
         : has("proof", "external")
-          ? "Продукт имеет подтверждённый внешний спрос."
-          : "Уровень доказанности продукта пока не зафиксирован данными.",
+          ? u.provenExternal
+          : u.provenUnknown,
     );
     const gives = (sel.choices["partner_gives"] ?? []).map((o) => LABEL(d, "partner_gives", o));
-    if (gives.length) parts.push(`Партнёр предлагает: ${gives.join(", ").toLowerCase()}.`);
+    if (gives.length) parts.push(u.partnerGives(gives.join(", ").toLowerCase()));
     const wants = (sel.choices["partner_wants"] ?? []).map((o) => LABEL(d, "partner_wants", o));
-    if (wants.length) parts.push(`Взамен он хочет: ${wants.join(", ").toLowerCase()}.`);
+    if (wants.length) parts.push(u.partnerWants(wants.join(", ").toLowerCase()));
     const pr = sel.choices["priority"]?.[0];
-    if (pr)
-      parts.push(`Для BI Group сейчас приоритет — ${LABEL(d, "priority", pr).toLowerCase()}.`);
+    if (pr) parts.push(u.priority(LABEL(d, "priority", pr).toLowerCase()));
     const sc = sel.choices["exclusive_scope"]?.[0];
-    if (sc)
-      parts.push(
-        `Эксклюзивность обсуждается в границах: ${LABEL(d, "exclusive_scope", sc).toLowerCase()}.`,
-      );
+    if (sc) parts.push(u.exclusiveScope(LABEL(d, "exclusive_scope", sc).toLowerCase()));
   } else {
-    parts.push(`Тип решения: ${d.label.toLowerCase()}.`);
+    parts.push(u.decisionType(d.label.toLowerCase()));
     for (const q of visibleQuestions(d, sel)) {
       const picked = (sel.choices[q.id] ?? []).map((o) => LABEL(d, q.id, o));
-      if (picked.length) parts.push(`${q.title} — ${picked.join(", ").toLowerCase()}.`);
+      if (picked.length) parts.push(u.questionAnswer(q.title, picked.join(", ").toLowerCase()));
     }
   }
 
   const owns = Object.values(sel.own).filter((v) => v.trim());
-  if (owns.length) parts.push(`Ваши уточнения: ${owns.join("; ")}.`);
+  if (owns.length) parts.push(u.yourNotes(owns.join("; ")));
   if (sel.extraContext?.trim()) parts.push(sel.extraContext.trim());
-  if (parts.length < 2) parts.push(`Исходная формулировка: «${query.trim()}».`);
+  if (parts.length < 2) parts.push(u.originalQuery(query.trim()));
   return parts.join(" ");
 }
 
@@ -409,413 +280,181 @@ export function buildUnderstanding(d: Dilemma, sel: AdvisorSelection, query: str
 /* Ответ                                                               */
 /* ------------------------------------------------------------------ */
 
-const DR_JOHNS: Answer["caseRef"] = {
-  id: "case_dr_johns",
-  title: "Dr. John's Products",
-  summary:
-    "Небольшая компания с быстро растущим продуктом выбирала между самостоятельным развитием, союзом с крупным игроком и продажей. На момент решения продукт уже имел доказанный спрос и присутствие в крупных каналах продаж.",
-  applicability: "Частичная применимость",
-  matches: [
-    "продукт с доказанным эффектом и ограниченным ресурсом на масштабирование",
-    "крупный контрагент предлагает канал в обмен на права",
-    "решение принимается до подтверждения полной рыночной стоимости",
-  ],
-  differences: [
-    "в кейсе спрос был подтверждён внешним рынком, у BI Group — пока внутренним",
-    "потребительский товар против цифрового B2B-продукта",
-    "у Dr. John's были альтернативные покупатели — переговорная сила выше",
-  ],
-};
+function drJohns(t: AdvisorText): Omit<Answer["caseRef"], "applicability"> {
+  return {
+    id: "case_dr_johns",
+    title: t.drJohns.title,
+    summary: t.drJohns.summary,
+    matches: t.drJohns.matches,
+    differences: t.drJohns.differences,
+  };
+}
 
-function buildPartnershipAnswer(d: Dilemma, sel: AdvisorSelection, flags: FollowUpFlags): Answer {
+function scenario(
+  text: { name: string; speed: string; control: string; risk: string; when: string },
+  recommended?: boolean,
+): Answer["scenarios"][number] {
+  return { ...text, recommended };
+}
+
+function toSources(
+  raw: { id: string; title: string; kind: string; influence: string; quote: string }[],
+): Answer["sources"] {
+  return raw as Answer["sources"];
+}
+
+function buildPartnershipAnswer(
+  d: Dilemma,
+  sel: AdvisorSelection,
+  flags: FollowUpFlags,
+  t: AdvisorText,
+): Answer {
   const has = (q: string, o: string) => (sel.choices[q] ?? []).includes(o);
   const externalProven = has("proof", "external");
   const wantsShare = has("partner_wants", "share");
   const wantsExclusive = has("partner_wants", "exclusive");
   const priority = sel.choices["priority"] ?? [];
   const unknownTerms = has("partner_wants", "__unknown") || has("proof", "__unknown");
+  const p = t.partnership;
 
   const evidenceLevel: Answer["evidenceLevel"] = unknownTerms ? "недостаточно данных" : "средний";
+  const volumeNote = flags.volumeGuaranteed ? p.volumeNote : "";
 
-  const volumeNote = flags.volumeGuaranteed
-    ? " Партнёр теперь принимает на себя измеримый рыночный риск, гарантируя объём, — это делает канал более доказательным. Но само по себе оно не обосновывает передачу доли и долгосрочной эксклюзивности."
-    : "";
-
-  const verdict = unknownTerms
-    ? "Я не могу дать доказательную рекомендацию."
-    : externalProven
-      ? "Идти в партнёрство можно, но с ограниченными правами и измеримыми обязательствами партнёра."
-      : "Не соглашаться на предложенные условия в текущем виде.";
-
-  const verdictDetail = unknownTerms
-    ? "В базе найдены материалы о партнёрствах, но условия сделки — доля, срок эксклюзивности, гарантированный объём — пока не зафиксированы, поэтому нельзя обоснованно сопоставить ситуацию с кейсом Dr. John's."
-    : externalProven
-      ? "Внешний спрос подтверждён, поэтому канал партнёра реально ускоряет рост — вопрос уже не «выходить или нет», а «на каких условиях». Но передавать долю и долгосрочную эксклюзивность до того, как рынок сам зафиксировал цену продукта, преждевременно: BI Group отдаст бессрочные права за то, что через полгода может стоить втрое дороже. Правильный ход — конвертировать интерес партнёра в проверяемый пилот с понятными метриками, а не в разовую продажу потенциала."
-      : "Партнёрство действительно может ускорить проверку внешнего спроса — у партнёра есть канал, которого пока нет у BI Group. Но передавать значительную долю и долгосрочную эксклюзивность до того, как рыночная ценность продукта хоть чем-то подтверждена, создаёт несоразмерный риск: компания продаёт актив по цене, которую сама ещё не умеет обосновать. Пока нет ни одного внешнего клиента и ни одной независимой метрики, любая цифра в переговорах — это ставка партнёра, а не оценка рынка.";
-
-  const insight = unknownTerms
-    ? "Я могу структурировать варианты, риски и вопросы для переговоров, но не буду выдавать их за вывод из накопленного опыта BI Group."
-    : `Сейчас BI Group продаёт не бизнес, а гипотезу о бизнесе — а гипотезы стоят на порядок дешевле долей. Правильный товар для партнёра сегодня — ограниченное право проверить канал на понятных условиях, а не участие в будущей стоимости, которую никто пока не может посчитать.${volumeNote}`;
-
-  let risks = [
-    "партнёр не обеспечит заявленный канал",
-    "продукт окажется слишком зависим от внутренних процессов BI Group",
-    "внешний спрос будет слабее внутреннего",
-    "партнёр получит доступ к технологии без достаточной компенсации",
-    "эксклюзивность ограничит другие каналы",
-    "стороны будут по-разному оценивать вклад в развитие",
-  ];
-  if (flags.volumeGuaranteed) {
-    risks = risks.filter((r) => r !== "партнёр не обеспечит заявленный канал");
-  }
+  const risks = flags.volumeGuaranteed
+    ? p.risks.filter((r) => r !== p.riskChannelNotDelivered)
+    : p.risks;
 
   return {
-    verdict,
-    verdictDetail,
-    insight,
+    verdict: unknownTerms
+      ? p.verdictUnknown
+      : externalProven
+        ? p.verdictProven
+        : p.verdictNotProven,
+    verdictDetail: unknownTerms
+      ? p.detailUnknown
+      : externalProven
+        ? p.detailProven
+        : p.detailNotProven,
+    insight: unknownTerms ? t.refusalInsight : p.insight(volumeNote),
     evidenceLevel,
-    evidenceNote: unknownTerms
-      ? "Ключевые условия сделки — размер доли, срок эксклюзивности, гарантированный объём — пока не зафиксированы ни на бумаге, ни в переписке. Поэтому вывод носит рамочный, а не окончательный характер: как только появится проект соглашения с конкретными цифрами, рекомендацию нужно пересчитать заново, а не подгонять факты под уже сделанный вывод."
-      : "Кейс Dr. John's хорошо подтверждает саму логику переговорной силы — у кого есть альтернативы, тот диктует условия. Но модель там потребительская и материальная, а не цифровая B2B, поэтому дословно копировать структуру сделки нельзя — переносить стоит принцип, а не цифры.",
+    evidenceNote: unknownTerms ? p.evidenceNoteUnknown : p.evidenceNote,
     arguments: [
-      externalProven
-        ? "Внешний спрос подтверждён — переговорная позиция уже сильнее, чем на старте."
-        : "Внешний спрос ещё не подтверждён.",
-      "Рыночная стоимость продукта пока неизвестна.",
-      wantsShare || wantsExclusive
-        ? "Партнёр получает долгосрочные права, опираясь на будущий потенциал."
-        : "Обязательства партнёра пока не выражены в измеримых показателях.",
-      priority.includes("speed")
-        ? "Скорость критична, но её можно купить пилотом, а не долей."
-        : "Самостоятельный выход возможен, хотя и займёт больше времени.",
+      externalProven ? p.argProven : p.argNotProven,
+      p.argValueUnknown,
+      wantsShare || wantsExclusive ? p.argLongTermRights : p.argNoMeasurables,
+      priority.includes("speed") ? p.argSpeed : p.argOwnPath,
     ],
     caseRef: {
-      ...DR_JOHNS,
-      applicability: externalProven ? "Высокая применимость" : "Частичная применимость",
-    },
-    transferable: [
-      "ценность продукта растёт после подтверждения спроса",
-      "переговорная сила зависит от наличия альтернатив",
-      "крупный партнёр может покупать не продукт, а скорость",
-      "стратегическая стоимость выше текущей финансовой стоимости",
-    ],
-    nonTransferable: [
-      "прямое сравнение мультипликаторов и оценки сделки",
-      "структура сделки потребительского рынка",
-      "предположение о наличии нескольких конкурирующих покупателей",
-    ],
+      ...drJohns(t),
+      applicability: externalProven ? t.applicability.high : t.applicability.partial,
+    } as Answer["caseRef"],
+    transferable: p.transferable,
+    nonTransferable: p.nonTransferable,
     scenarios: [
+      scenario(p.scenarios.own),
+      scenario(p.scenarios.pilot, true),
       {
-        name: "Самостоятельный выход",
-        speed: "Низкая",
-        control: "Высокий",
-        risk: "Средний",
-        when: "Если время не критично",
-      },
-      {
-        name: "Ограниченный пилот с партнёром",
-        speed: "Высокая",
-        control: "Высокий",
-        risk: "Низкий",
-        when: "Для проверки рынка",
-        recommended: true,
-      },
-      {
-        name: "Эксклюзивное партнёрство",
-        speed: "Высокая",
-        control: "Низкий",
-        risk: flags.exclusivityLimited ? "Средний" : "Высокий",
+        ...p.scenarios.exclusive,
+        risk: flags.exclusivityLimited
+          ? p.scenarios.exclusiveLimitedRisk
+          : p.scenarios.exclusive.risk,
         when: flags.exclusivityLimited
-          ? "При гарантированном объёме и ограниченном сроке эксклюзивности"
-          : "При гарантированном объёме",
+          ? p.scenarios.exclusiveLimitedWhen
+          : p.scenarios.exclusive.when,
       },
-      {
-        name: "Совместное предприятие",
-        speed: "Средняя",
-        control: "Средний",
-        risk: "Высокий",
-        when: "После подтверждения экономики",
-      },
-      {
-        name: "Продажа продукта",
-        speed: "Высокая",
-        control: "Отсутствует",
-        risk: "Необратимый",
-        when: "Если холдинг не хочет строить бизнес",
-      },
+      scenario(p.scenarios.jv),
+      scenario(p.scenarios.sell),
     ],
-    recommendation: unknownTerms
-      ? "Зафиксируйте условия партнёрства — долю, срок эксклюзивности, гарантированный объём, — затем вернитесь за рекомендацией."
-      : "Предпочтительный сценарий — ограниченный коммерческий пилот на 6–9 месяцев без передачи доли и без широкой эксклюзивности.",
-    terms: [
-      "ограниченный сегмент клиентов",
-      "ограниченный срок",
-      "измеримые KPI",
-      "минимальный гарантированный объём",
-      "права на данные сохраняются",
-      "интеллектуальная собственность остаётся у BI Group",
-      "отсутствует автоматическое продление",
-      "есть право прекращения",
-      "обсуждение доли переносится на этап подтверждённой выручки",
-    ],
+    recommendation: unknownTerms ? p.recommendationUnknown : p.recommendation,
+    terms: p.terms,
     risks,
-    changeFactors: [
-      "гарантированный объём продаж",
-      "значительные инвестиции партнёра",
-      "короткое рыночное окно",
-      "наличие сильного конкурента",
-      "отсутствие возможности самостоятельного выхода",
-      "международный канал",
-      "уникальная технология партнёра",
-      "высокая стоимость поддержки",
-    ],
-    missing: [
-      "проект соглашения",
-      "оценка продукта",
-      "прогноз внешней выручки",
-      "обязательства партнёра",
-      "срок и границы эксклюзивности",
-      "правила владения данными",
-      "условия выхода из партнёрства",
-    ],
-    sources: [
-      {
-        id: "src_case_facts",
-        title: "Dr. John's Products — материалы кейса",
-        kind: "Факт",
-        influence: "Определяющий",
-        quote:
-          "К моменту решения продукт был представлен в крупных розничных сетях, а рост продаж подтверждался данными каналов, а не прогнозом менеджмента.",
-      },
-      {
-        id: "src_case_analysis",
-        title: "Разбор кейса: вопросы преподавателя HBS",
-        kind: "Авторский анализ",
-        influence: "Подтверждающий",
-        quote:
-          "Стратегический покупатель оценивает не только прибыль актива, но и стоимость закрытия пробела в собственном портфеле и риск бездействия.",
-      },
-      {
-        id: "src_ll_bi",
-        title: "Lessons Learned: пилоты с внешними партнёрами",
-        kind: "Факт",
-        influence: "Подтверждающий",
-        quote:
-          "Пилоты без измеримых KPI и минимального гарантированного объёма в 3 из 4 случаев не привели к росту внешней выручки.",
-      },
-      {
-        id: "src_note",
-        title: "Заметка со стратегической сессии по цифровым продуктам",
-        kind: "Личная заметка",
-        influence: "Контекстный",
-        quote:
-          "Договорились: права на данные и IP по внутренним продуктам не передаются до подтверждения внешней экономики.",
-      },
-    ],
+    changeFactors: p.changeFactors,
+    missing: p.missing,
+    sources: toSources(p.sources),
   };
 }
 
-function buildSaleAnswer(sel: AdvisorSelection): Answer {
+function buildSaleAnswer(sel: AdvisorSelection, t: AdvisorText): Answer {
   const has = (q: string, o: string) => (sel.choices[q] ?? []).includes(o);
   const outOfFocus = has("why", "focus");
   const noResource = has("why", "limit");
   const willLoseShare = has("no_deal", "loss");
   const priorityPrice = sel.choices["matters"]?.[0] === "price";
   const unknownTerms = has("why", "__unknown") || has("no_deal", "__unknown");
-
   const strongCaseToSell = willLoseShare && (outOfFocus || noResource);
-  const evidenceLevel: Answer["evidenceLevel"] = unknownTerms ? "недостаточно данных" : "средний";
-
-  const verdict = unknownTerms
-    ? "Я не могу дать доказательную рекомендацию."
-    : strongCaseToSell
-      ? "Продавать имеет смысл, но не по первой предложенной цене."
-      : "Не продавать сейчас — актив ещё не реализовал свою стратегическую стоимость.";
-
-  const verdictDetail = unknownTerms
-    ? "В базе найдены материалы о продаже бизнеса, но причина продажи и альтернатива без сделки пока не зафиксированы — нельзя обоснованно сопоставить ситуацию с кейсом Dr. John's."
-    : strongCaseToSell
-      ? "Если развитие без сделки действительно остановится или приведёт к потере доли, промедление стоит дороже, чем недополученная в переговорах цена. Но само по себе давление обстоятельств не значит, что нужно соглашаться на первую цифру покупателя — стратегический покупатель почти всегда оценивает актив выше его самостоятельной стоимости."
-      : "Актив ещё может расти самостоятельно, а значит компания не обязана продавать по первой цене. Пока нет давления обстоятельств, вынуждающего к сделке, продажа сейчас фиксирует стоимость на текущем, ещё не полностью раскрытом уровне.";
+  const s = t.sale;
 
   return {
-    verdict,
-    verdictDetail,
-    insight: unknownTerms
-      ? "Я могу структурировать варианты, риски и вопросы для переговоров, но не буду выдавать их за вывод из накопленного опыта BI Group."
-      : "Стратегический покупатель почти всегда оценивает актив не по вашей текущей выручке, а по стоимости закрытия своего пробела и риску собственного бездействия — самостоятельная и стратегическая стоимость почти никогда не совпадают.",
-    evidenceLevel,
-    evidenceNote: unknownTerms
-      ? "Причина продажи и последствия отказа от сделки пока не зафиксированы — вывод носит рамочный, а не окончательный характер."
-      : "Кейс Dr. John's напрямую рассматривал продажу как один из вариантов и хорошо подтверждает логику разницы между самостоятельной и стратегической стоимостью — но там решение принималось при уже подтверждённом внешнем спросе, чего в вашей ситуации может не быть.",
+    verdict: unknownTerms ? s.verdictUnknown : strongCaseToSell ? s.verdictSell : s.verdictHold,
+    verdictDetail: unknownTerms ? s.detailUnknown : strongCaseToSell ? s.detailSell : s.detailHold,
+    insight: unknownTerms ? t.refusalInsight : s.insight,
+    evidenceLevel: unknownTerms ? "недостаточно данных" : "средний",
+    evidenceNote: unknownTerms ? s.evidenceNoteUnknown : s.evidenceNote,
     arguments: [
-      willLoseShare
-        ? "Без сделки есть риск потерять долю рынка — это ограничивает время на переговоры."
-        : "Без сделки актив может продолжать расти самостоятельно.",
-      "Самостоятельная и стратегическая стоимость актива для покупателя — разные величины.",
-      priorityPrice
-        ? "Максимальная цена — приоритет, значит стоит держать паузу до появления второго заинтересованного покупателя."
-        : "Приоритет не только в цене, значит условия сделки важны не меньше суммы.",
-      noResource
-        ? "Ресурса развивать актив дальше самостоятельно не хватает — это давит в сторону сделки."
-        : "Ресурс для самостоятельного развития есть — это снижает необходимость продавать сейчас.",
+      willLoseShare ? s.argLoseShare : s.argCanGrow,
+      s.argValueGap,
+      priorityPrice ? s.argPriceFirst : s.argTermsMatter,
+      noResource ? s.argNoResource : s.argHasResource,
     ],
-    caseRef: {
-      ...DR_JOHNS,
-      applicability: "Частичная применимость",
-    },
-    transferable: [
-      "самостоятельная и стратегическая стоимость бизнеса различаются",
-      "переговорная сила растёт, если есть альтернативы сделке",
-      "покупатель оценивает не только прибыль, но и закрытие своего пробела",
-    ],
-    nonTransferable: [
-      "структура сделки потребительского рынка",
-      "конкретные мультипликаторы оценки",
-      "предположение о наличии нескольких конкурирующих покупателей",
-    ],
+    caseRef: { ...drJohns(t), applicability: t.applicability.partial } as Answer["caseRef"],
+    transferable: s.transferable,
+    nonTransferable: s.nonTransferable,
     scenarios: [
-      {
-        name: "Продолжать развивать самостоятельно",
-        speed: "Низкая",
-        control: "Высокий",
-        risk: "Средний",
-        when: "Если давление обстоятельств не критично",
-        recommended: !strongCaseToSell,
-      },
-      {
-        name: "Продать сейчас по предложенной цене",
-        speed: "Высокая",
-        control: "Отсутствует",
-        risk: "Необратимый",
-        when: "Только если альтернативы сделке нет",
-      },
-      {
-        name: "Держать паузу и искать второго покупателя",
-        speed: "Средняя",
-        control: "Средний",
-        risk: "Средний",
-        when: "Чтобы усилить переговорную позицию",
-        recommended: strongCaseToSell,
-      },
+      scenario(s.scenarios.keepGrowing, !strongCaseToSell),
+      scenario(s.scenarios.sellNow),
+      scenario(s.scenarios.waitForSecond, strongCaseToSell),
     ],
     recommendation: unknownTerms
-      ? "Зафиксируйте причину продажи и цену бездействия, затем вернитесь за рекомендацией."
+      ? s.recommendationUnknown
       : strongCaseToSell
-        ? "Вести переговоры с текущим покупателем, параллельно нащупывая альтернативу — второго заинтересованного игрока или вариант без сделки."
-        : "Не спешить с продажей, пока актив не приблизится к пределу самостоятельного роста или не появится значимо более сильный покупатель.",
-    terms: [
-      "независимая оценка стоимости перед переговорами",
-      "срок эксклюзивности переговоров с одним покупателем — ограничен",
-      "условия для команды и продукта зафиксированы отдельно от цены",
-    ],
-    risks: [
-      "продажа зафиксирует стоимость на не полностью раскрытом уровне",
-      "покупатель может занижать цену, ссылаясь на отсутствие альтернатив",
-      "промедление может ухудшить переговорную позицию, если давление обстоятельств реально",
-    ],
-    changeFactors: [
-      "появление второго заинтересованного покупателя",
-      "ускоренная потеря доли рынка без сделки",
-      "независимая оценка стоимости выше ожиданий",
-      "готовность покупателя учитывать судьбу команды",
-    ],
-    missing: [
-      "независимая оценка стоимости",
-      "предложения от альтернативных покупателей",
-      "финансовый прогноз при отказе от сделки",
-      "условия по команде и дальнейшему развитию продукта",
-    ],
-    sources: [
-      {
-        id: "src_case_facts",
-        title: "Dr. John's Products — материалы кейса",
-        kind: "Факт",
-        influence: "Определяющий",
-        quote:
-          "Компания рассматривала продажу как один из вариантов наравне с партнёрством и самостоятельным ростом, уже имея подтверждённый спрос и переговорную позицию.",
-      },
-      {
-        id: "src_case_analysis",
-        title: "Разбор кейса: вопросы преподавателя HBS",
-        kind: "Авторский анализ",
-        influence: "Подтверждающий",
-        quote:
-          "Стратегический покупатель оценивает не только прибыль актива, но и стоимость закрытия пробела в собственном портфеле и риск бездействия.",
-      },
-    ],
+        ? s.recommendationSell
+        : s.recommendationHold,
+    terms: s.terms,
+    risks: s.risks,
+    changeFactors: s.changeFactors,
+    missing: s.missing,
+    sources: toSources(s.sources),
   };
 }
 
-function buildGenericWeakAnswer(d: Dilemma, sel: AdvisorSelection): Answer {
+function buildGenericWeakAnswer(d: Dilemma, sel: AdvisorSelection, t: AdvisorText): Answer {
   const ownNotes = Object.values(sel.own).filter((v) => v.trim());
+  const g = t.generic;
 
   return {
-    verdict: `Я не могу дать доказательную рекомендацию по решению «${d.label}».`,
-    verdictDetail: `В базе есть материалы о партнёрствах и продаже бизнеса, но ни один кейс не описывает достаточно близкую ситуацию для «${d.label.toLowerCase()}» с подтверждённым результатом.`,
-    insight:
-      "Я могу структурировать варианты, риски и вопросы для проверки, но не буду выдавать их за вывод из накопленного опыта BI Group.",
+    verdict: g.verdict(d.label),
+    verdictDetail: g.verdictDetail(d.label.toLowerCase()),
+    insight: t.refusalInsight,
     evidenceLevel: "недостаточно данных",
-    evidenceNote: `На вывод в этом типе решений влияют: ${d.drivers.join(", ")}. Для доказательной рекомендации нужен хотя бы один кейс с похожей дилеммой в базе.`,
-    arguments: d.drivers.map(
-      (driver) => `Ключевой фактор, который пока не с чем сопоставить: ${driver}.`,
-    ),
-    caseRef: {
-      ...DR_JOHNS,
-      applicability: "Слабая аналогия",
-    },
-    transferable: [
-      "логика переговорной силы и наличия альтернатив применима к любой стратегической дилемме",
-    ],
-    nonTransferable: [
-      "конкретная структура сделки и цифры кейса Dr. John's не относятся к этому типу решения",
-    ],
+    evidenceNote: g.evidenceNote(d.drivers.join(", ")),
+    arguments: d.drivers.map((driver) => g.argument(driver)),
+    caseRef: { ...drJohns(t), applicability: t.applicability.weak } as Answer["caseRef"],
+    transferable: g.transferable,
+    nonTransferable: g.nonTransferable,
     scenarios: [
-      {
-        name: "Действовать самостоятельно",
-        speed: "Низкая",
-        control: "Высокий",
-        risk: "Средний",
-        when: "Если время не критично",
-      },
-      {
-        name: "Ограниченная проверка гипотезы",
-        speed: "Высокая",
-        control: "Высокий",
-        risk: "Низкий",
-        when: "Прежде чем брать на себя полное обязательство",
-        recommended: true,
-      },
-      {
-        name: "Полное обязательство сейчас",
-        speed: "Высокая",
-        control: "Низкий",
-        risk: "Высокий",
-        when: "Только при подтверждённых данных",
-      },
+      scenario(g.scenarios.own),
+      scenario(g.scenarios.probe, true),
+      scenario(g.scenarios.commit),
     ],
-    recommendation:
-      "Собрать недостающие данные ниже и по возможности добавить в базу кейс с похожей дилеммой, прежде чем полагаться на рекомендацию как на вывод, а не рамку.",
+    recommendation: g.recommendation,
     terms: [],
-    risks: [
-      "решение будет приниматься при слабой доказательной базе — без релевантного кейса в подтверждение",
-    ],
-    changeFactors: [
-      "появление в базе кейса с похожей дилеммой",
-      "получение недостающих данных ниже",
-    ],
-    missing: ownNotes.length
-      ? ownNotes
-      : [`данные о ситуации по факторам: ${d.drivers.join(", ")}`],
+    risks: g.risks,
+    changeFactors: g.changeFactors,
+    missing: ownNotes.length ? ownNotes : [g.missingFallback(d.drivers.join(", "))],
     sources: [],
   };
 }
 
-export function buildAnswer(d: Dilemma, sel: AdvisorSelection, flags: FollowUpFlags = {}): Answer {
+export function buildAnswer(
+  d: Dilemma,
+  sel: AdvisorSelection,
+  t: AdvisorText,
+  flags: FollowUpFlags = {},
+): Answer {
   if (d.type === "partnership" || d.type === "build_or_partner")
-    return buildPartnershipAnswer(d, sel, flags);
-  if (d.type === "sale") return buildSaleAnswer(sel);
-  return buildGenericWeakAnswer(d, sel);
+    return buildPartnershipAnswer(d, sel, flags, t);
+  if (d.type === "sale") return buildSaleAnswer(sel, t);
+  return buildGenericWeakAnswer(d, sel, t);
 }
 
 export interface FollowUpReply {
@@ -824,35 +463,33 @@ export interface FollowUpReply {
 }
 
 /** Ответ на уточняющий вопрос по уже сформированной рекомендации. */
-export function buildFollowUpReply(question: string, answer: Answer): FollowUpReply {
+export function buildFollowUpReply(
+  question: string,
+  answer: Answer,
+  t: AdvisorText,
+): FollowUpReply {
   const q = question.toLowerCase();
+  const f = t.followUp;
 
-  if (/объём|гаранти/.test(q)) {
+  if (f.patterns.volume.test(q)) {
     return {
-      text: `Гарантированный объём меняет расчёт риска: часть неопределённости, из-за которой вывод звучит осторожно, снимается. Это стоит закрепить как отдельное условие сделки — рядом с «${answer.terms[0] ?? "остальными предложенными условиями"}», а не как устный договор. Вывод и таблица сценариев выше уже обновлены.`,
+      text: f.volume(answer.terms[0] ?? f.fallbackTerm),
       flags: { volumeGuaranteed: true },
     };
   }
-  if (/эксклюзив|сегмент/.test(q)) {
+  if (f.patterns.exclusivity.test(q)) {
+    return { text: f.exclusivity, flags: { exclusivityLimited: true } };
+  }
+  if (f.patterns.horizon.test(q)) {
+    const recommended = answer.scenarios.find((sc) => sc.recommended);
     return {
-      text: `Сужение эксклюзивности до одного сегмента или сокращённого срока снижает объём прав, которые получает партнёр, и делает соответствующий сценарий менее рискованным. Таблица сценариев выше уже обновлена — логика рекомендации при этом не меняется, меняется только цена вопроса.`,
-      flags: { exclusivityLimited: true },
+      text: f.horizon(recommended?.name ?? answer.scenarios[0]?.name ?? f.fallbackScenario),
     };
   }
-  if (/сценар|окно|срок|месяц/.test(q)) {
-    const recommended = answer.scenarios.find((s) => s.recommended);
-    return {
-      text: `При таком горизонте по-прежнему сильнее всего смотрится сценарий «${recommended?.name ?? answer.scenarios[0]?.name ?? "рекомендованный вариант"}» — он и был рассчитан на короткое рыночное окно, а не на длинную дистанцию.`,
-    };
+  if (f.patterns.risk.test(q)) {
+    return { text: f.risk(answer.risks[0] ?? f.fallbackRisk) };
   }
-  if (/риск/.test(q)) {
-    return {
-      text: `Ключевой риск здесь: ${answer.risks[0] ?? "риск уже описан выше"}. Остальные факторы из списка рисков не отменяют вывод, но их стоит держать в поле зрения до подписания.`,
-    };
-  }
-  return {
-    text: `Это уточняет условия, но не меняет основной вывод: ${answer.verdict} Как только появятся точные цифры по этому пункту, рекомендацию стоит пересчитать заново, а не подгонять под уже сделанный вывод.`,
-  };
+  return { text: f.generic(answer.verdict) };
 }
 
 export interface NegotiationQuestions {
@@ -860,100 +497,27 @@ export interface NegotiationQuestions {
 }
 
 /** §30 ТЗ — вопросы для подготовки к переговорам, сгруппированные по теме. */
-export function buildNegotiationQuestions(d: Dilemma): NegotiationQuestions {
+export function buildNegotiationQuestions(d: Dilemma, t: AdvisorText): NegotiationQuestions {
   if (d.type === "partnership" || d.type === "build_or_partner") {
-    return {
-      groups: [
-        {
-          title: "О коммерческом вкладе",
-          questions: [
-            "Какие конкретно клиенты уже подтвердили интерес?",
-            "Кто принимает решение у каждого клиента?",
-            "Какой средний цикл сделки?",
-            "Какой объём продаж партнёр готов гарантировать?",
-            "Что произойдёт при невыполнении плана?",
-          ],
-        },
-        {
-          title: "О доле",
-          questions: [
-            "Почему вклад партнёра оценивается именно в предложенную долю?",
-            "Доля передаётся сразу или поэтапно?",
-            "За какие KPI она начисляется?",
-            "Можно ли выкупить долю обратно?",
-          ],
-        },
-        {
-          title: "Об эксклюзивности",
-          questions: [
-            "На какие страны и сегменты клиентов она распространяется?",
-            "Что является условием сохранения эксклюзивности?",
-            "Прекращается ли она автоматически при невыполнении KPI?",
-          ],
-        },
-        {
-          title: "О данных и технологии",
-          questions: [
-            "Какие данные хочет получать партнёр и для каких целей?",
-            "Может ли партнёр обучать на них собственные модели?",
-            "Кто владеет новыми доработками?",
-          ],
-        },
-      ],
-    };
+    return { groups: t.negotiation.partnership };
   }
-  if (d.type === "sale") {
-    return {
-      groups: [
-        {
-          title: "О цене и структуре сделки",
-          questions: [
-            "На основании чего покупатель обосновывает предложенную цену?",
-            "Есть ли часть цены, зависящая от будущих показателей (earn-out)?",
-            "Как долго действует эксклюзивность переговоров с этим покупателем?",
-          ],
-        },
-        {
-          title: "О команде и продукте",
-          questions: [
-            "Что произойдёт с командой после сделки?",
-            "Сохранится ли бренд и продукт в текущем виде?",
-            "Есть ли обязательства по дальнейшему развитию продукта?",
-          ],
-        },
-      ],
-    };
-  }
+  if (d.type === "sale") return { groups: t.negotiation.sale };
   return {
     groups: [
       {
-        title: `Вопросы для проверки решения «${d.label}»`,
-        questions: d.drivers.map((driver) => `Что конкретно известно про: ${driver}?`),
+        title: t.negotiation.genericTitle(d.label),
+        questions: d.drivers.map((driver) => t.negotiation.genericQuestion(driver)),
       },
     ],
   };
 }
 
 /** §31 ТЗ — короткая версия ответа для акционера. */
-export function buildShareholderSummary(answer: Answer): string {
+export function buildShareholderSummary(answer: Answer, t: AdvisorText): string {
   return [
     answer.verdict,
     answer.verdictDetail,
-    `Предпочтительный сценарий: ${answer.recommendation}`,
-    `Уровень доказательности: ${answer.evidenceLevel}. ${answer.evidenceNote}`,
+    t.shareholder.preferredScenario(answer.recommendation),
+    t.shareholder.evidenceLine(evidenceLabel(answer.evidenceLevel, t), answer.evidenceNote),
   ].join("\n\n");
 }
-
-export const THINKING_STEPS = [
-  "Определяю тип управленческого решения",
-  "Собираю параметры ситуации из ваших ответов",
-  "Ищу релевантные кейсы по смыслу, а не по словам",
-  "Оцениваю применимость и различия",
-  "Формирую варианты, рекомендацию и риски",
-];
-
-export const ADVISOR_EXAMPLES = [
-  "У нас есть внутренний AI-продукт. Партнёр предлагает вывести его на рынок вместе. Стоит ли соглашаться?",
-  "Стоит ли выходить на рынок Узбекистана самостоятельно или через локального партнёра?",
-  "Продавать ли долю в непрофильном активе сейчас или развивать его дальше?",
-];

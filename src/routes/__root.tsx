@@ -11,23 +11,24 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { Toaster } from "../components/ui/sonner";
+import { I18nProvider } from "@/lib/i18n/provider";
+import { useT } from "@/lib/i18n";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
+  const t = useT();
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Страница не найдена</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Такой страницы не существует, либо она была перемещена.
-        </p>
+        <h2 className="mt-4 text-xl font-semibold text-foreground">{t.errors.notFoundTitle}</h2>
+        <p className="mt-2 text-sm text-muted-foreground">{t.errors.notFoundBody}</p>
         <div className="mt-6">
           <Link
             to="/"
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            На главную
+            {t.errors.toHome}
           </Link>
         </div>
       </div>
@@ -35,9 +36,18 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+function ErrorComponent(props: { error: Error; reset: () => void }) {
+  return (
+    <I18nProvider>
+      <ErrorScreen {...props} />
+    </I18nProvider>
+  );
+}
+
+function ErrorScreen({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
+  const t = useT();
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
@@ -46,11 +56,9 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          Страница не загрузилась
+          {t.errors.crashTitle}
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Что-то пошло не так. Попробуйте обновить страницу или вернуться на главную.
-        </p>
+        <p className="mt-2 text-sm text-muted-foreground">{t.errors.crashBody}</p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
@@ -59,13 +67,13 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
             }}
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            Обновить
+            {t.errors.retry}
           </button>
           <a
             href="/"
             className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
           >
-            На главную
+            {t.errors.toHome}
           </a>
         </div>
       </div>
@@ -81,13 +89,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "BI AQYL — Knowledge Discovery Platform" },
       {
         name: "description",
-        content: "Корпоративная AI-платформа поиска по знаниям BI Group.",
+        content: "BI Group corporate AI knowledge platform.",
       },
       { name: "author", content: "BI AQYL" },
       { property: "og:title", content: "BI AQYL — Knowledge Discovery Platform" },
       {
         property: "og:description",
-        content: "Корпоративная AI-платформа поиска по знаниям BI Group.",
+        content: "BI Group corporate AI knowledge platform.",
       },
 
       { property: "og:type", content: "website" },
@@ -134,9 +142,11 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
-      <Toaster position="top-center" />
+      <I18nProvider>
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <Outlet />
+        <Toaster position="top-center" />
+      </I18nProvider>
     </QueryClientProvider>
   );
 }

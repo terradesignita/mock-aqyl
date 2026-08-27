@@ -22,32 +22,32 @@ import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { hideBrokenPersonaImage } from "@/lib/persona-image";
 import { cn } from "@/lib/utils";
-import { useCouncilSessions, useTheme } from "@/hooks/useAppState";
+import { useCards, usePersonas, useT, type LocalizedPersona } from "@/lib/i18n";
+import { useActivity, useCouncilSessions, useTheme } from "@/hooks/useAppState";
 import { clampWidth, useResizablePanel } from "@/hooks/useResizablePanel";
-import { mockCards, type KnowledgeCardData } from "@/data/mockCards";
+import type { KnowledgeCardData } from "@/data/mockCards";
 import {
   buildFollowUpReplies,
   buildOpeningMessages,
   buildUserMessage,
-  COUNCIL_PERSONA_DISCLAIMER,
-  COUNCIL_PERSONAS,
-  getPersona,
   hasLikelyDisagreement,
-  QUICK_REPLIES,
+  resolveTopic,
   REACTION_EMOJIS,
   type CouncilChatMessage,
-  type CouncilPersona,
   type CouncilSession,
 } from "@/data/council";
 
 export const Route = createFileRoute("/council")({
   head: () => ({
-    meta: [{ title: "Консилиум — BI AQYL" }],
+    meta: [{ title: "Council — BI AQYL" }],
   }),
   component: CouncilPage,
 });
 
-const TODAY = "30.07.2026";
+/** Дата сессии в формате «дд.мм.гггг» — считается на момент вызова, не константа.
+ *  Раньше здесь было зашитое «30.07.2026»: сессии создавались с чужой датой, а раздел
+ *  «Сегодня» пустовал в любой другой день. */
+const todayLabel = () => new Date().toLocaleDateString("ru-RU");
 const MAX_PERSONAS = 3;
 
 // Персональный цвет — произвольный hex (Task 1), не именованный Tailwind-класс,
@@ -64,7 +64,7 @@ const PERSONA_TINT_CLASS = "bg-[color-mix(in_oklab,var(--persona-color)_10%,tran
  *  рационале ниже) остаётся отдельным, самым явным сигналом выбора. */
 const PERSONA_RESTING_TINT_CLASS = "bg-[color-mix(in_oklab,var(--persona-color)_4%,transparent)]";
 
-function personaColorVars(p: CouncilPersona): React.CSSProperties {
+function personaColorVars(p: LocalizedPersona): React.CSSProperties {
   return {
     "--persona-color": p.hex,
     "--persona-color-dark": p.darkHex ?? p.hex,
@@ -73,7 +73,7 @@ function personaColorVars(p: CouncilPersona): React.CSSProperties {
 
 /** personaColorVars + backgroundColor in one shot — for standalone PersonaAvatar
  *  usages that aren't already inside an element carrying the CSS variables. */
-function personaAvatarStyle(p: CouncilPersona): React.CSSProperties {
+function personaAvatarStyle(p: LocalizedPersona): React.CSSProperties {
   return { backgroundColor: p.hex, ...personaColorVars(p) };
 }
 
@@ -89,14 +89,20 @@ function PersonaTag({ tag, hex }: { tag: string; hex: string }) {
 }
 
 function AvatarStack({ personaIds, size = "xs" }: { personaIds: string[]; size?: "xs" | "lg" }) {
+  const personas = usePersonas();
+  const t = useT();
   const shown = personaIds.slice(0, 2);
   const rest = personaIds.length - shown.length;
-  const names = personaIds.map((id) => getPersona(id).name).join(", ");
+  const names = personaIds.map((id) => personas.get(id).name).join(", ");
   const overflowClass = size === "lg" ? "h-10 w-10 text-sm" : "h-6 w-6 text-xs";
   return (
-    <div role="img" aria-label={`Участники: ${names}`} className="flex items-center -space-x-2">
+    <div
+      role="img"
+      aria-label={t.council.participants(names)}
+      className="flex items-center -space-x-2"
+    >
       {shown.map((id) => {
-        const p = getPersona(id);
+        const p = personas.get(id);
         return (
           <PersonaAvatar
             key={id}
@@ -140,7 +146,9 @@ function groupMessages(
 }
 
 function ConversationCover({ session }: { session: CouncilSession }) {
-  const colors = session.personaIds.slice(0, 3).map((id) => getPersona(id).hex);
+  const personas = usePersonas();
+  const t = useT();
+  const colors = session.personaIds.slice(0, 3).map((id) => personas.get(id).hex);
   const anchors = ["0% 0%", "100% 0%", "50% 100%"];
   const backgroundImage = colors
     .map(
@@ -162,11 +170,10 @@ function ConversationCover({ session }: { session: CouncilSession }) {
         {session.topic.summary}
       </p>
       <p className="mt-2 text-xs text-muted-foreground">
-        {session.personaIds.length} {session.personaIds.length === 1 ? "участник" : "участника"} ·
-        на связи
+        {t.council.participantsCount(session.personaIds.length)} · {t.councilExtra.online}
       </p>
       <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-        AI-модели публичных подходов. Не являются реальными людьми и не выражают их частные взгляды.
+        {t.councilExtra.disclaimer}
       </p>
     </div>
   );
@@ -179,6 +186,7 @@ function ReactionBar({
   message: CouncilChatMessage;
   onToggle: (emoji: string) => void;
 }) {
+  const t = useT();
   const active = message.reactions ?? [];
   return (
     <div
@@ -196,7 +204,7 @@ function ReactionBar({
             key={emoji}
             type="button"
             aria-pressed={isActive}
-            aria-label={`Отреагировать ${emoji}`}
+            aria-label={t.council.react(emoji)}
             onClick={() => onToggle(emoji)}
             className={cn(
               "rounded-full border px-1.5 py-0.5 text-xs transition-colors",
@@ -232,7 +240,7 @@ function GalleryCard({
   onToggle,
   index,
 }: {
-  persona: CouncilPersona;
+  persona: LocalizedPersona;
   selected: boolean;
   disabled: boolean;
   onToggle: () => void;
@@ -337,6 +345,8 @@ function PersonaGallerySection({
   selected: string[];
   onChange: (ids: string[]) => void;
 }) {
+  const personas = usePersonas();
+  const t = useT();
   const [capacityHint, setCapacityHint] = useState(false);
   const capacityHintTimerRef = useRef<number | undefined>(undefined);
 
@@ -348,7 +358,7 @@ function PersonaGallerySection({
       return;
     }
     if (selected.length >= MAX_PERSONAS) {
-      toast.error("Можно выбрать не более трёх участников.");
+      toast.error(t.council.capacityReached);
       // Toast alone may not be enough for screen-reader users (toasts can be
       // easy to miss without a directed live region) — this in-page one is a
       // reliable fallback that always sits next to the thing it's about.
@@ -363,23 +373,20 @@ function PersonaGallerySection({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-1.5">
-        <h2 className="text-2xl font-bold text-foreground">Соберите консилиум</h2>
-        <HelpHint
-          label="Что такое консилиум"
-          text="Консилиум — это групповое обсуждение вашей задачи с несколькими AI-персонами. Каждая привносит свой взгляд на вопрос, поэтому вместо одного мнения вы получаете спор и разные точки зрения. Выберите от одного до трёх участников."
-        />
+        <h2 className="text-2xl font-bold text-foreground">{t.council.assembleTitle}</h2>
+        <HelpHint label={t.council.whatIsLabel} text={t.council.whatIsHint} />
       </div>
 
       <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
-        {COUNCIL_PERSONA_DISCLAIMER}
+        {t.personaDisclaimer}
       </p>
 
       <span role="status" aria-live="polite" className="sr-only">
-        {capacityHint && "Можно выбрать не более трёх участников."}
+        {capacityHint && t.council.capacityReached}
       </span>
 
       <span className="text-sm font-bold tabular-nums text-muted-foreground">
-        Выбрано {selected.length} из {MAX_PERSONAS}
+        {t.council.selectedOf(selected.length, MAX_PERSONAS)}
       </span>
 
       {selected.length >= 2 && !hasLikelyDisagreement(selected) && (
@@ -387,13 +394,12 @@ function PersonaGallerySection({
           role="status"
           className="rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-card-foreground"
         >
-          В этом составе взгляды похожи — спора может не быть. Попробуйте добавить контрарианку или
-          скептика.
+          {t.council.similarViews}
         </p>
       )}
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {COUNCIL_PERSONAS.map((p, index) => {
+        {personas.list.map((p, index) => {
           const isSelected = selected.includes(p.id);
           const disabled = !isSelected && selected.length >= MAX_PERSONAS;
           return (
@@ -419,23 +425,25 @@ function NewCouncilPanel({
   onCreate: (session: CouncilSession) => void;
   onCancel: () => void;
 }) {
+  const t = useT();
+  const cards = useCards();
   const [personaIds, setPersonaIds] = useState<string[]>([]);
   const [query, setQuery] = useState("");
   const [card, setCard] = useState<KnowledgeCardData | null>(null);
 
   const caseResults = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return mockCards.slice(0, 8);
-    return mockCards.filter((c) => c.title.toLowerCase().includes(q)).slice(0, 8);
-  }, [query]);
+    if (!q) return cards.slice(0, 8);
+    return cards.filter((c) => c.title.toLowerCase().includes(q)).slice(0, 8);
+  }, [cards, query]);
 
   const missing =
     personaIds.length === 0 && !card
-      ? "Выберите участников совета и кейс для обсуждения"
+      ? t.council.selectHint
       : personaIds.length === 0
-        ? "Добавьте хотя бы одного участника совета"
+        ? t.council.needParticipant
         : !card
-          ? "Выберите кейс, чтобы начать совет"
+          ? t.council.pickCaseTitle
           : null;
 
   const start = () => {
@@ -449,9 +457,9 @@ function NewCouncilPanel({
     onCreate({
       id: `session-${Date.now()}`,
       title: card.title,
-      date: TODAY,
+      date: todayLabel(),
       personaIds,
-      messages: buildOpeningMessages(personaIds, topic),
+      messages: buildOpeningMessages(personaIds, topic, t),
       topic,
     });
   };
@@ -463,23 +471,20 @@ function NewCouncilPanel({
 
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-1.5">
-            <h2 className="text-2xl font-bold text-foreground">О чём поговорим?</h2>
-            <HelpHint
-              label="Что здесь нужно выбрать"
-              text="Выберите кейс, который разберёт совет. Персоны будут обсуждать именно его — свою ситуацию, ключевой инсайт и бизнес-юнит."
-            />
+            <h2 className="text-2xl font-bold text-foreground">{t.council.topicQuestion}</h2>
+            <HelpHint label={t.council.pickCaseHintLabel} text={t.council.pickCaseHint} />
           </div>
 
           <div className="flex w-full max-w-xl items-center gap-2 rounded-xl border border-border bg-background px-3 transition-colors focus-within:border-primary">
             <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
             <label htmlFor="council-case-search" className="sr-only">
-              Найдите кейс по названию
+              {t.council.searchCase}
             </label>
             <input
               id="council-case-search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Найдите кейс по названию"
+              placeholder={t.council.searchCase}
               className="h-10 w-full min-w-0 bg-transparent text-base outline-none placeholder:text-muted-foreground sm:text-sm"
             />
           </div>
@@ -541,7 +546,7 @@ function NewCouncilPanel({
         )}
         <span className="ml-auto flex items-center gap-2">
           <Button variant="ghost" onClick={onCancel}>
-            Отмена
+            {t.common.cancel}
           </Button>
           <Button
             disabled={!!missing}
@@ -549,7 +554,7 @@ function NewCouncilPanel({
             onClick={start}
             className="gap-1.5"
           >
-            <Plus className="h-4 w-4" /> Начать совет
+            <Plus className="h-4 w-4" /> {t.council.startCouncil}
           </Button>
         </span>
       </div>
@@ -567,9 +572,11 @@ function PersonaPicker({
   onChange: (ids: string[]) => void;
   onClose: () => void;
 }) {
+  const personas = usePersonas();
+  const t = useT();
   const [query, setQuery] = useState("");
   const q = query.trim().toLowerCase();
-  const results = COUNCIL_PERSONAS.filter(
+  const results = personas.list.filter(
     (p) => !q || p.name.toLowerCase().includes(q) || p.role.toLowerCase().includes(q),
   );
 
@@ -588,14 +595,14 @@ function PersonaPicker({
     <div className="rounded-xl border border-border bg-background p-3">
       <div className="flex items-center justify-between gap-2 pb-2">
         <p className="text-xs font-bold tabular-nums text-muted-foreground">
-          Состав совета ({selected.length}/{MAX_PERSONAS})
+          {t.councilExtra.lineup(selected.length, MAX_PERSONAS)}
         </p>
         <button
           type="button"
           onClick={onClose}
           className="shrink-0 text-xs font-semibold text-primary hover:underline"
         >
-          Готово
+          {t.councilExtra.done}
         </button>
       </div>
       <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 transition-colors focus-within:border-primary">
@@ -603,8 +610,8 @@ function PersonaPicker({
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Найдите персону по имени или стилю"
-          aria-label="Найдите персону по имени или стилю"
+          placeholder={t.council.searchPersona}
+          aria-label={t.council.searchPersona}
           className="h-10 w-full min-w-0 bg-transparent text-base outline-none placeholder:text-muted-foreground sm:text-sm"
         />
       </div>
@@ -664,6 +671,8 @@ function SessionView({
   onFollowUp: (text: string) => void;
   onReact: (messageId: string, emoji: string) => void;
 }) {
+  const personas = usePersonas();
+  const t = useT();
   const [followUp, setFollowUp] = useState("");
   const [visibleCount, setVisibleCount] = useState(revealFromStart ? 0 : session.messages.length);
   const [typingAuthor, setTypingAuthor] = useState<string | null>(null);
@@ -747,7 +756,7 @@ function SessionView({
 
   const visibleMessages = session.messages.slice(0, visibleCount);
   const groups = groupMessages(visibleMessages);
-  const typingPersona = typingAuthor ? getPersona(typingAuthor) : null;
+  const typingPersona = typingAuthor ? personas.get(typingAuthor) : null;
 
   return (
     <div className="mx-auto flex min-h-full w-full max-w-[clamp(42rem,60vw,64rem)] flex-col px-6 py-8">
@@ -769,7 +778,7 @@ function SessionView({
                       </MessageBubble>
                       <p className="mt-1 text-right text-xs text-muted-foreground">
                         {m.time}
-                        {isRead && " · Прочитано ✓✓"}
+                        {isRead && t.council.readReceipt}
                       </p>
                     </div>
                   );
@@ -778,8 +787,8 @@ function SessionView({
             );
           }
 
-          const p = getPersona(group.author);
-          const replyTarget = group.items[0].replyTo ? getPersona(group.items[0].replyTo) : null;
+          const p = personas.get(group.author);
+          const replyTarget = group.items[0].replyTo ? personas.get(group.items[0].replyTo) : null;
 
           return (
             <div key={group.items[0].id} className="flex gap-3" style={personaColorVars(p)}>
@@ -797,7 +806,7 @@ function SessionView({
                   {p.name} <span className="font-normal text-muted-foreground">· {p.role}</span>
                   {replyTarget && (
                     <span className="ml-1.5 font-normal text-muted-foreground">
-                      · Ответ: {replyTarget.name.split(" ")[0]}
+                      {t.councilExtra.replyTo(replyTarget.name.split(" ")[0])}
                     </span>
                   )}
                 </p>
@@ -837,7 +846,7 @@ function SessionView({
               }
             />
             <div className="flex items-center gap-1.5 rounded-2xl rounded-tl-sm border border-border bg-card px-3 py-2.5">
-              <span className="sr-only">{typingPersona.name} печатает…</span>
+              <span className="sr-only">{t.councilExtra.typing(typingPersona.name)}</span>
               <span
                 aria-hidden
                 className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground"
@@ -860,7 +869,7 @@ function SessionView({
 
       <div className="sticky bottom-0 mt-6 space-y-2 border-t border-border bg-background pt-4 pb-2">
         <div className="flex flex-wrap gap-1.5">
-          {QUICK_REPLIES.map((q) => (
+          {t.councilTalk.quickReplies.map((q) => (
             <button
               key={q}
               type="button"
@@ -874,7 +883,7 @@ function SessionView({
         </div>
         <div className="flex gap-2">
           <label htmlFor="council-follow-up" className="sr-only">
-            Сообщение совету
+            {t.councilExtra.messageLabel}
           </label>
           <input
             id="council-follow-up"
@@ -882,14 +891,14 @@ function SessionView({
             onChange={(e) => setFollowUp(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && send(followUp)}
             disabled={isRevealing}
-            placeholder="Написать сообщение…"
+            placeholder={t.council.messagePlaceholder}
             className="h-10 w-full min-w-0 rounded-control border border-border bg-secondary/40 px-3 text-base outline-none transition-[border-color,opacity] placeholder:text-muted-foreground focus:border-primary disabled:opacity-60 sm:text-sm"
           />
           <Button
             size="icon"
             disabled={!followUp.trim() || isRevealing}
             onClick={() => send(followUp)}
-            aria-label="Отправить"
+            aria-label={t.council.send}
           >
             <Send className="h-4 w-4" />
           </Button>
@@ -900,9 +909,12 @@ function SessionView({
 }
 
 function CouncilPage() {
+  const personas = usePersonas();
+  const t = useT();
   const { dark, toggle } = useTheme();
   const { sessions, create, markRead, updatePersonas, addMessages, toggleReaction, remove } =
     useCouncilSessions();
+  const { log: logActivity } = useActivity();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [justCreatedId, setJustCreatedId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
@@ -929,11 +941,21 @@ function CouncilPage() {
     max: SESSIONS_WIDTH_MAX,
   });
 
-  const active = sessions.find((s) => s.id === activeId) ?? null;
+  const rawActive = sessions.find((s) => s.id === activeId) ?? null;
+  // Сид-сессии сохранены без реплик: их текст зависит от языка, поэтому
+  // собирается при открытии и меняется вместе с локалью.
+  const active = useMemo(() => {
+    if (!rawActive) return null;
+    const topic = resolveTopic(rawActive, t);
+    return rawActive.messages.length === 0
+      ? { ...rawActive, topic, messages: buildOpeningMessages(rawActive.personaIds, topic, t) }
+      : { ...rawActive, topic };
+  }, [rawActive, t]);
   const q = sessionQuery.trim().toLowerCase();
   const visibleSessions = q ? sessions.filter((s) => s.title.toLowerCase().includes(q)) : sessions;
-  const today = visibleSessions.filter((s) => s.date === TODAY);
-  const earlier = visibleSessions.filter((s) => s.date !== TODAY);
+  const currentDay = todayLabel();
+  const today = visibleSessions.filter((s) => s.date === currentDay);
+  const earlier = visibleSessions.filter((s) => s.date !== currentDay);
 
   const openSession = (id: string) => {
     setCreating(false);
@@ -948,13 +970,13 @@ function CouncilPage() {
   const deleteSession = (id: string) => {
     remove(id);
     if (id === activeId) setActiveId(null);
-    toast.success("Сессия удалена");
+    toast.success(t.council.sessionDeleted);
   };
 
   const submitFollowUp = (text: string) => {
     if (!active) return;
     const userMessage = buildUserMessage(text);
-    const replies = buildFollowUpReplies(active.personaIds, active.topic, text);
+    const replies = buildFollowUpReplies(active.personaIds, active.topic, text, t);
     addMessages(active.id, [userMessage, ...replies]);
   };
 
@@ -969,7 +991,7 @@ function CouncilPage() {
   return (
     <div className="flex min-h-screen flex-col bg-background md:h-screen md:overflow-hidden">
       <Header dark={dark} onToggleDark={toggle} />
-      <h1 className="sr-only">Консилиум</h1>
+      <h1 className="sr-only">{t.council.title}</h1>
 
       <div className="relative flex flex-1 flex-col md:min-h-0 md:flex-row">
         <aside
@@ -1006,7 +1028,7 @@ function CouncilPage() {
             role="separator"
             tabIndex={0}
             aria-orientation="vertical"
-            aria-label="Изменить ширину панели сессий"
+            aria-label={t.council.resizeSessions}
             aria-valuenow={sessionsWidth}
             aria-valuemin={SESSIONS_WIDTH_MIN}
             aria-valuemax={SESSIONS_WIDTH_MAX}
@@ -1015,7 +1037,7 @@ function CouncilPage() {
 
           <div className="flex items-center gap-2 pb-2">
             <p className="flex min-w-0 flex-1 items-center gap-1.5 truncate text-sm font-bold tracking-tight text-card-foreground">
-              Сессии
+              {t.council.sessions}
               <Badge variant="secondary" size="counter" className="font-bold">
                 {sessions.length}
               </Badge>
@@ -1026,8 +1048,8 @@ function CouncilPage() {
                 setShowSessions(false);
                 focusNext(sessionsRestoreRef);
               }}
-              aria-label="Свернуть панель сессий"
-              title="Свернуть панель"
+              aria-label={t.council.collapseSessions}
+              title={t.council.collapsePanel}
               className="hidden h-7 w-7 shrink-0 place-items-center rounded-md border border-border text-muted-foreground transition-colors hover:border-primary hover:text-primary md:grid"
             >
               <PanelLeftClose className="h-4 w-4" />
@@ -1038,7 +1060,7 @@ function CouncilPage() {
             className="h-11 w-full gap-1.5 rounded-2xl text-sm"
             onClick={() => setCreating(true)}
           >
-            <Plus className="h-4 w-4" /> Создать совет
+            <Plus className="h-4 w-4" /> {t.council.createCouncil}
           </Button>
 
           <div className="relative mt-3">
@@ -1046,8 +1068,8 @@ function CouncilPage() {
             <input
               value={sessionQuery}
               onChange={(e) => setSessionQuery(e.target.value)}
-              placeholder="Поиск по сессиям"
-              aria-label="Поиск по сессиям"
+              placeholder={t.council.searchSessions}
+              aria-label={t.council.searchSessions}
               className="h-9 w-full min-w-0 rounded-lg border border-border bg-secondary/30 pl-8 pr-3 text-base outline-none transition-colors placeholder:text-muted-foreground focus:border-primary sm:text-sm"
             />
           </div>
@@ -1055,7 +1077,9 @@ function CouncilPage() {
           <div className="mt-4 space-y-4">
             {today.length > 0 && (
               <div>
-                <p className="px-1 pb-1.5 text-xs font-bold text-muted-foreground">Сегодня</p>
+                <p className="px-1 pb-1.5 text-xs font-bold text-muted-foreground">
+                  {t.council.today}
+                </p>
                 <div className="space-y-1.5">
                   {today.map((s) => (
                     <SessionRow
@@ -1071,7 +1095,9 @@ function CouncilPage() {
             )}
             {earlier.length > 0 && (
               <div>
-                <p className="px-1 pb-1.5 text-xs font-bold text-muted-foreground">Ранее</p>
+                <p className="px-1 pb-1.5 text-xs font-bold text-muted-foreground">
+                  {t.council.earlier}
+                </p>
                 <div className="space-y-1.5">
                   {earlier.map((s) => (
                     <SessionRow
@@ -1087,13 +1113,13 @@ function CouncilPage() {
             )}
             {q && today.length === 0 && earlier.length === 0 && (
               <div className="px-1 text-xs text-muted-foreground">
-                <p>Ничего не найдено по «{sessionQuery.trim()}».</p>
+                <p>{t.council.nothingFound(sessionQuery.trim())}</p>
                 <button
                   type="button"
                   onClick={() => setSessionQuery("")}
                   className="mt-1 font-semibold text-primary hover:underline"
                 >
-                  Очистить поиск
+                  {t.councilExtra.clearSearch}
                 </button>
               </div>
             )}
@@ -1101,12 +1127,14 @@ function CouncilPage() {
 
           {active && (
             <div className="mt-4 border-t border-border pt-3">
-              <p className="mb-1.5 px-1 text-xs font-bold text-muted-foreground">Совет</p>
+              <p className="mb-1.5 px-1 text-xs font-bold text-muted-foreground">
+                {t.council.councilShort}
+              </p>
               {!pickerOpen && (
                 <>
                   <div className="flex flex-wrap gap-1.5 px-1">
                     {active.personaIds.map((id) => {
-                      const p = getPersona(id);
+                      const p = personas.get(id);
                       return (
                         <PersonaAvatar
                           key={id}
@@ -1125,7 +1153,7 @@ function CouncilPage() {
                     onClick={() => setPickerOpen(true)}
                     className="mt-2 w-full rounded-lg border border-border px-2 py-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:border-primary/30 hover:text-card-foreground"
                   >
-                    Изменить состав
+                    {t.councilExtra.changeLineup}
                   </button>
                 </>
               )}
@@ -1150,8 +1178,8 @@ function CouncilPage() {
               setShowSessions(true);
               focusNext(sessionsPanelRef);
             }}
-            aria-label="Показать сессии"
-            title="Показать панель сессий"
+            aria-label={t.council.showSessions}
+            title={t.council.showSessionsPanel}
             className="absolute left-0 top-1/2 z-20 hidden h-16 w-6 -translate-y-1/2 place-items-center rounded-r-lg border border-l-0 border-border bg-card text-muted-foreground shadow-sm transition-colors hover:text-primary md:grid"
           >
             <PanelLeft className="h-4 w-4" />
@@ -1171,6 +1199,7 @@ function CouncilPage() {
                 setCreating(false);
                 setActiveId(session.id);
                 setJustCreatedId(session.id);
+                logActivity("council", session.title);
               }}
             />
           ) : (
@@ -1198,7 +1227,9 @@ function SessionRow({
   onClick: (id: string) => void;
   onDelete: (id: string) => void;
 }) {
-  const accentHex = getPersona(session.personaIds[0]).hex;
+  const personas = usePersonas();
+  const t = useT();
+  const accentHex = personas.get(session.personaIds[0]).hex;
   const [confirmOpen, setConfirmOpen] = useState(false);
   return (
     <div
@@ -1222,7 +1253,7 @@ function SessionRow({
           {session.unread && (
             <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-success">
               <span aria-hidden className="h-2 w-2 rounded-full bg-success" />
-              <span className="sr-only">Непрочитано</span>
+              <span className="sr-only">{t.council.unread}</span>
             </span>
           )}
         </div>
@@ -1237,8 +1268,8 @@ function SessionRow({
           e.stopPropagation();
           setConfirmOpen(true);
         }}
-        aria-label={`Удалить сессию «${session.title}»`}
-        title="Удалить сессию"
+        aria-label={t.council.deleteSessionNamed(session.title)}
+        title={t.council.deleteSession}
         className="absolute right-2 top-2"
       >
         <Trash2 className="h-3.5 w-3.5" />
@@ -1247,18 +1278,18 @@ function SessionRow({
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Удалить сессию?</AlertDialogTitle>
+            <AlertDialogTitle>{t.council.deleteSessionTitle}</AlertDialogTitle>
             <AlertDialogDescription>
-              «{session.title}» и вся переписка совета будут удалены без возможности восстановления.
+              {t.councilExtra.deleteBody(session.title)}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogCancel>{t.common.cancel}</AlertDialogCancel>
             <AlertDialogAction
               className={buttonVariants({ variant: "destructive" })}
               onClick={() => onDelete(session.id)}
             >
-              Да, удалить
+              {t.councilExtra.deleteConfirm}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

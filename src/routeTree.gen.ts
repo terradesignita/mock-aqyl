@@ -9,10 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as CouncilRouteImport } from './routes/council'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CardIdRouteImport } from './routes/card.$id'
 
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CouncilRoute = CouncilRouteImport.update({
   id: '/council',
   path: '/council',
@@ -32,35 +38,46 @@ const CardIdRoute = CardIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/council': typeof CouncilRoute
+  '/settings': typeof SettingsRoute
   '/card/$id': typeof CardIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/council': typeof CouncilRoute
+  '/settings': typeof SettingsRoute
   '/card/$id': typeof CardIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/council': typeof CouncilRoute
+  '/settings': typeof SettingsRoute
   '/card/$id': typeof CardIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/council' | '/card/$id'
+  fullPaths: '/' | '/council' | '/settings' | '/card/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/council' | '/card/$id'
-  id: '__root__' | '/' | '/council' | '/card/$id'
+  to: '/' | '/council' | '/settings' | '/card/$id'
+  id: '__root__' | '/' | '/council' | '/settings' | '/card/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CouncilRoute: typeof CouncilRoute
+  SettingsRoute: typeof SettingsRoute
   CardIdRoute: typeof CardIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/council': {
       id: '/council'
       path: '/council'
@@ -88,6 +105,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CouncilRoute: CouncilRoute,
+  SettingsRoute: SettingsRoute,
   CardIdRoute: CardIdRoute,
 }
 export const routeTree = rootRouteImport

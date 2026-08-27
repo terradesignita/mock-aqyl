@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Bookmark, Building2, Files, Globe, Lock, Trash2, Users } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
@@ -13,12 +13,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Badge, badgeVariants } from "@/components/ui/badge";
+import { badgeVariants } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { HelpHint } from "@/components/HelpHint";
 import { HoverRevealIconButton } from "@/components/HoverRevealIconButton";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 
 interface KnowledgeCardProps {
   card: KnowledgeCardData & { matchScore?: number };
@@ -31,8 +32,6 @@ interface KnowledgeCardProps {
   isNew?: boolean;
 }
 
-type OverlayMode = "open" | null;
-
 export function KnowledgeCard({
   card,
   index,
@@ -43,44 +42,14 @@ export function KnowledgeCard({
   onTogglePrivate,
   isNew,
 }: KnowledgeCardProps) {
+  const t = useT();
   const isInternal = card.scope === "INTERNAL";
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [overlayMode, setOverlayMode] = useState<OverlayMode>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const articleRef = useRef<HTMLElement>(null);
-  const openLinkRef = useRef<HTMLAnchorElement>(null);
-  const openTriggerRef = useRef<HTMLButtonElement>(null);
   const prefersReducedMotion = useReducedMotion();
-
-  useEffect(() => {
-    if (!overlayMode) return;
-    openLinkRef.current?.focus();
-
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setOverlayMode(null);
-        // The trigger sits inside the `inert` chrome while the overlay is open —
-        // wait for the re-render that drops `inert` before focusing it, or the
-        // browser silently refuses (inert elements can't take focus).
-        requestAnimationFrame(() => openTriggerRef.current?.focus());
-      }
-    };
-    const onPointerDown = (e: MouseEvent) => {
-      if (articleRef.current && !articleRef.current.contains(e.target as Node)) {
-        setOverlayMode(null);
-      }
-    };
-    document.addEventListener("keydown", onKeyDown);
-    document.addEventListener("mousedown", onPointerDown);
-    return () => {
-      document.removeEventListener("keydown", onKeyDown);
-      document.removeEventListener("mousedown", onPointerDown);
-    };
-  }, [overlayMode]);
 
   return (
     <motion.article
-      ref={articleRef}
       initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={
@@ -88,15 +57,21 @@ export function KnowledgeCard({
           ? { duration: 0 }
           : { duration: 0.28, delay: Math.min(index, 9) * 0.05 }
       }
-      onClick={() => setOverlayMode("open")}
-      className="group relative flex h-full cursor-pointer flex-col rounded-card border border-border bg-card p-5 shadow-sm transition-[border-color,box-shadow,transform] duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_20px_45px_-10px_oklch(0.538_0.256_262.4/0.35)]"
+      className="group relative flex h-full flex-col rounded-card border border-border bg-card p-5 shadow-sm transition-[border-color,box-shadow,transform] duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-[0_20px_45px_-10px_oklch(0.538_0.256_262.4/0.35)]"
     >
-      {/* Card chrome: made inert while an overlay covers it, so Tab can't reach
-          controls hidden behind the dimmed backdrop. */}
-      <div inert={overlayMode !== null} className="flex h-full flex-col">
+      {/* Ссылка-подложка: карточка открывается одним кликом в любом месте и остаётся
+          единственной точкой входа для клавиатуры. Кнопки поверх — с `relative z-10`. */}
+      <Link
+        to="/card/$id"
+        params={{ id: card.id }}
+        aria-label={t.card.openCase(card.title)}
+        className="absolute inset-0 rounded-card focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+      />
+
+      <div className="flex h-full flex-col">
         {/* Header: visibility toggle & bookmark */}
         <div className="mb-4 flex items-center justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-1">
+          <div className="relative z-10 flex min-w-0 items-center gap-1">
             <Popover open={confirmOpen} onOpenChange={setConfirmOpen}>
               <PopoverTrigger asChild>
                 <button
@@ -110,7 +85,7 @@ export function KnowledgeCard({
                   )}
                 >
                   {isPrivate ? <Lock className="h-2.5 w-2.5" /> : <Users className="h-2.5 w-2.5" />}
-                  {isPrivate ? "Приватный" : "Общий"}
+                  {isPrivate ? t.card.private : t.card.shared}
                 </button>
               </PopoverTrigger>
               <PopoverContent
@@ -119,9 +94,7 @@ export function KnowledgeCard({
                 onClick={(e) => e.stopPropagation()}
               >
                 <p className="text-sm leading-relaxed text-card-foreground">
-                  {isPrivate
-                    ? "Сделать общедоступным? Материалы кейса попадут в общую базу знаний для всех сотрудников."
-                    : "Сделать приватным? Материалы кейса перестанут быть видны остальным сотрудникам."}
+                  {isPrivate ? t.card.makeSharedQuestion : t.card.makePrivateQuestion}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <Button
@@ -131,23 +104,16 @@ export function KnowledgeCard({
                       setConfirmOpen(false);
                     }}
                   >
-                    {isPrivate ? "Да, сделать общедоступным" : "Да, сделать приватным"}
+                    {isPrivate ? t.card.makeSharedConfirm : t.card.makePrivateConfirm}
                   </Button>
                   <Button size="sm" variant="ghost" onClick={() => setConfirmOpen(false)}>
-                    Отмена
+                    {t.common.cancel}
                   </Button>
                 </div>
               </PopoverContent>
             </Popover>
             <span onClick={(e) => e.stopPropagation()}>
-              <HelpHint
-                side="bottom"
-                text={
-                  isPrivate
-                    ? "Приватный: кейс виден только вам и скрыт из общей базы знаний для остальных сотрудников."
-                    : "Общий: кейс виден всем сотрудникам и участвует в общем поиске по базе знаний."
-                }
-              />
+              <HelpHint side="bottom" text={isPrivate ? t.card.privateHint : t.card.sharedHint} />
             </span>
           </div>
 
@@ -156,8 +122,8 @@ export function KnowledgeCard({
               e.stopPropagation();
               onToggleBookmark(card.id);
             }}
-            aria-label={bookmarked ? "Убрать из закладок" : "В закладки"}
-            className={`-m-1 shrink-0 rounded-full p-1 transition-colors active:scale-[0.96] ${
+            aria-label={bookmarked ? t.card.removeBookmark : t.card.addBookmark}
+            className={`relative z-10 -m-1 shrink-0 rounded-full p-1 transition-colors active:scale-[0.96] ${
               bookmarked ? "text-accent" : "text-muted-foreground hover:text-accent"
             }`}
           >
@@ -172,22 +138,16 @@ export function KnowledgeCard({
         <div className="mb-4">
           <p className="text-base font-bold leading-snug text-card-foreground transition-colors group-hover:text-primary">
             {isNew && (
-              <span className="mr-1.5 inline-flex items-center gap-1 align-middle">
-                <Badge variant="primary" className="font-bold">
-                  Новый кейс
-                </Badge>
-                <span onClick={(e) => e.stopPropagation()}>
-                  <HelpHint
-                    side="bottom"
-                    text="Кейс добавлен и распознан автоматически."
-                    className="motion-safe:animate-pulse"
-                  />
-                </span>
-              </span>
+              <span
+                aria-hidden
+                title={t.card.unreadDot}
+                className="mr-2 inline-block h-2 w-2 shrink-0 rounded-full bg-primary align-middle"
+              />
             )}
             {card.title}
+            {isNew && <span className="sr-only"> — {t.card.unreadSr}</span>}
           </p>
-          <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+          <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
             {card.executive_summary}
           </p>
         </div>
@@ -203,37 +163,28 @@ export function KnowledgeCard({
             <span
               className={`whitespace-nowrap ${isInternal ? "text-scope-internal" : "text-scope-external"}`}
             >
-              {isInternal ? "Внутренний опыт" : "Мировой опыт"}
+              {isInternal ? t.card.internal : t.card.external}
             </span>
             <span aria-hidden>·</span>
             <Files className="h-3.5 w-3.5 shrink-0" />
-            <span className="whitespace-nowrap">{card.citations.length} файлов</span>
+            <span className="whitespace-nowrap">{t.card.filesCount(card.citations.length)}</span>
           </span>
 
-          <div className="flex shrink-0 items-center gap-1">
-            {/* Настоящая, фокусируемая точка входа — сама карточка кликабельна только
-               мышью (не role="button"), чтобы не вкладывать реальные кнопки внутрь
-               элемента, объявленного скринридеру как кнопка. */}
-            <button
-              ref={openTriggerRef}
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setOverlayMode("open");
-              }}
-              aria-label={`Открыть кейс: ${card.title}`}
-              className="-m-1 inline-flex items-center gap-1 rounded-md p-1 text-xs font-bold text-primary transition-colors hover:bg-primary/8 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          <div className="relative z-10 flex shrink-0 items-center gap-1">
+            <span
+              aria-hidden
+              className="inline-flex items-center gap-1 text-xs font-bold text-primary opacity-0 transition-opacity group-hover:opacity-100"
             >
-              Открыть <ArrowRight className="h-3.5 w-3.5" />
-            </button>
+              {t.common.open} <ArrowRight className="h-3.5 w-3.5" />
+            </span>
             <HoverRevealIconButton
               tone="destructive"
               onClick={(e) => {
                 e.stopPropagation();
                 setDeleteConfirmOpen(true);
               }}
-              aria-label="Удалить кейс"
-              title="Удалить кейс"
+              aria-label={t.card.deleteCase}
+              title={t.card.deleteCase}
             >
               <Trash2 className="h-4 w-4" />
             </HoverRevealIconButton>
@@ -241,42 +192,19 @@ export function KnowledgeCard({
         </div>
       </div>
 
-      {/* Open-confirmation overlay */}
-      {overlayMode === "open" && (
-        <div
-          className="absolute inset-0 z-10 grid place-items-center rounded-card bg-primary/70 backdrop-blur-[2px] animate-in fade-in duration-150"
-          onClick={(e) => {
-            e.stopPropagation();
-            setOverlayMode(null);
-          }}
-        >
-          <Link
-            ref={openLinkRef}
-            to="/card/$id"
-            params={{ id: card.id }}
-            onClick={(e) => e.stopPropagation()}
-            className="inline-flex items-center gap-1.5 rounded-full bg-card px-5 py-2.5 text-sm font-bold text-primary shadow-lg transition-transform active:scale-[0.96] hover:bg-card/90"
-          >
-            Открыть <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-      )}
-
       <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
         <AlertDialogContent onClick={(e) => e.stopPropagation()}>
           <AlertDialogHeader>
-            <AlertDialogTitle>Удалить кейс?</AlertDialogTitle>
-            <AlertDialogDescription>
-              «{card.title}» будет удалён из списка. Это действие нельзя отменить.
-            </AlertDialogDescription>
+            <AlertDialogTitle>{t.card.deleteTitle}</AlertDialogTitle>
+            <AlertDialogDescription>{t.card.deleteBody(card.title)}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogCancel>{t.common.cancel}</AlertDialogCancel>
             <AlertDialogAction
               className={buttonVariants({ variant: "destructive" })}
               onClick={() => onDelete(card.id)}
             >
-              Да, удалить
+              {t.card.deleteConfirm}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

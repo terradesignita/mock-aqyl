@@ -16,6 +16,7 @@ import type { Answer } from "@/data/advisor";
 import { Badge } from "@/components/ui/badge";
 import { HelpHint } from "@/components/HelpHint";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 
 const APPLICABILITY_TONE: Record<Answer["caseRef"]["applicability"], string> = {
   "Высокая применимость": "border-scope-internal/50 bg-scope-internal/10 text-scope-internal",
@@ -41,6 +42,7 @@ function Section({
   defaultOpen?: boolean;
   children: React.ReactNode;
 }) {
+  const t = useT();
   const [open, setOpen] = useState(defaultOpen);
   return (
     <section className="overflow-hidden rounded-card border border-border bg-card shadow-soft transition-colors hover:border-primary/30">
@@ -52,7 +54,7 @@ function Section({
         <Icon className="h-4 w-4 shrink-0 text-primary" />
         <h3 className="flex-1 text-sm font-bold text-card-foreground">{title}</h3>
         <span className="hidden text-xs font-medium text-muted-foreground/50 sm:inline">
-          {open ? "Свернуть" : "Развернуть"}
+          {open ? t.common.collapse : t.common.expand}
         </span>
         <ChevronDown
           className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
@@ -81,6 +83,7 @@ function Bullets({ items }: { items: string[] }) {
 }
 
 export function AdvisorAnswer({ answer }: { answer: Answer }) {
+  const t = useT();
   const refusal = answer.evidenceLevel === "недостаточно данных";
 
   const verdict = (
@@ -92,7 +95,7 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
       }`}
     >
       <p className={`text-xs font-bold ${refusal ? "text-destructive" : "text-primary"}`}>
-        {refusal ? "Честный отказ" : "Краткий вывод"}
+        {refusal ? t.advisor.verdictRefusal : t.advisor.verdictShort}
       </p>
       <h2 className="mt-1.5 text-xl font-extrabold leading-snug text-card-foreground">
         {answer.verdict}
@@ -104,7 +107,7 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
           <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent/15">
             <Lightbulb className="h-3.5 w-3.5" />
           </span>
-          Главный стратегический инсайт
+          {t.advisor.mainInsight}
         </p>
         <p className="mt-2 text-sm font-semibold leading-relaxed text-card-foreground">
           {answer.insight}
@@ -116,12 +119,9 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
           variant="outline"
           className={cn("gap-1.5 font-bold", EVIDENCE_TONE[answer.evidenceLevel])}
         >
-          Уровень доказательности: {answer.evidenceLevel}
+          {t.advisor.evidenceLevel(t.evidence[answer.evidenceLevel])}
         </Badge>
-        <HelpHint
-          label="Что значит уровень доказательности"
-          text="Шкала: высокий — несколько независимых источников; средний — один надёжный источник; низкий — косвенные данные; недостаточно данных — советник отказывается от рекомендации."
-        />
+        <HelpHint label={t.advisor.evidenceHintLabel} text={t.advisor.evidenceHint} />
         <span className="text-xs text-muted-foreground">{answer.evidenceNote}</span>
       </div>
     </section>
@@ -129,8 +129,10 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
 
   return (
     <div className="space-y-3">
+      {verdict}
+
       <div className="grid items-start gap-3 xl:grid-cols-2">
-        <Section title="Почему сделан такой вывод" icon={ListChecks}>
+        <Section title={t.advisor.sectionWhy} icon={ListChecks} defaultOpen>
           <ol className="space-y-2">
             {answer.arguments.map((a, i) => (
               <li key={a} className="flex gap-2.5 text-sm leading-relaxed text-card-foreground">
@@ -143,31 +145,28 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
           </ol>
         </Section>
 
-        <Section title={`Релевантный кейс: ${answer.caseRef.title}`} icon={BookOpen}>
+        <Section title={t.advisor.sectionCase(answer.caseRef.title)} icon={BookOpen}>
           <div className="flex items-center gap-1.5">
             <Badge
               variant="outline"
               className={cn("font-bold", APPLICABILITY_TONE[answer.caseRef.applicability])}
             >
-              {answer.caseRef.applicability}
+              {t.applicability[answer.caseRef.applicability]}
             </Badge>
-            <HelpHint
-              label="Что значит применимость кейса"
-              text="Насколько похож этот кейс на вашу ситуацию: высокая — условия почти идентичны; частичная — совпадает часть факторов; слабая — только общая логика, детали переносить нельзя."
-            />
+            <HelpHint label={t.advisor.applicabilityHintLabel} text={t.advisor.applicabilityHint} />
           </div>
           <p className="mt-2 text-sm leading-relaxed text-card-foreground">
             {answer.caseRef.summary}
           </p>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             <div className="rounded-control border border-scope-internal/40 bg-scope-internal/8 p-3">
-              <p className="text-xs font-bold text-scope-internal">Что совпадает</p>
+              <p className="text-xs font-bold text-scope-internal">{t.advisor.matches}</p>
               <div className="mt-1.5">
                 <Bullets items={answer.caseRef.matches} />
               </div>
             </div>
             <div className="rounded-control border border-destructive/40 bg-destructive/8 p-3">
-              <p className="text-xs font-bold text-destructive">Что различается</p>
+              <p className="text-xs font-bold text-destructive">{t.advisor.differences}</p>
               <div className="mt-1.5">
                 <Bullets items={answer.caseRef.differences} />
               </div>
@@ -175,42 +174,42 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
           </div>
         </Section>
 
-        <Section title="Что можно и что нельзя переносить" icon={Target}>
+        <Section title={t.advisor.sectionTransfer} icon={Target}>
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <p className="mb-1.5 text-xs font-bold text-primary">Можно перенести</p>
+              <p className="mb-1.5 text-xs font-bold text-primary">{t.advisor.canTransfer}</p>
               <Bullets items={answer.transferable} />
             </div>
             <div>
               <p className="mb-1.5 text-xs font-bold text-muted-foreground">
-                Нельзя переносить напрямую
+                {t.advisor.cannotTransfer}
               </p>
               <Bullets items={answer.nonTransferable} />
             </div>
           </div>
         </Section>
 
-        <Section title="Рекомендация и предлагаемые условия" icon={Target}>
+        <Section title={t.advisor.sectionRecommendation} icon={Target} defaultOpen>
           <p className="rounded-control border-l-4 border-primary bg-primary/6 p-3 text-sm font-semibold leading-relaxed text-card-foreground">
             {answer.recommendation}
           </p>
           <p className="mb-1.5 mt-3 text-xs font-bold text-muted-foreground">
-            Предлагаемые условия
+            {t.advisor.proposedTerms}
           </p>
           <Bullets items={answer.terms} />
         </Section>
       </div>
 
-      <Section title="Варианты решения" icon={ListChecks}>
+      <Section title={t.advisor.sectionScenarios} icon={ListChecks}>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] border-collapse text-sm">
             <thead>
               <tr className="text-left text-xs text-muted-foreground">
-                <th className="py-2 pr-3 font-semibold">Сценарий</th>
-                <th className="py-2 pr-3 font-semibold">Скорость</th>
-                <th className="py-2 pr-3 font-semibold">Контроль</th>
-                <th className="py-2 pr-3 font-semibold">Риск</th>
-                <th className="py-2 font-semibold">Когда подходит</th>
+                <th className="py-2 pr-3 font-semibold">{t.advisor.colScenario}</th>
+                <th className="py-2 pr-3 font-semibold">{t.advisor.colSpeed}</th>
+                <th className="py-2 pr-3 font-semibold">{t.advisor.colControl}</th>
+                <th className="py-2 pr-3 font-semibold">{t.advisor.colRisk}</th>
+                <th className="py-2 font-semibold">{t.advisor.colWhen}</th>
               </tr>
             </thead>
             <tbody>
@@ -223,7 +222,7 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
                     {s.name}
                     {s.recommended && (
                       <Badge variant="primary" className="ml-2 font-bold">
-                        рекомендуем
+                        {t.advisor.recommendedBadge}
                       </Badge>
                     )}
                   </td>
@@ -239,24 +238,24 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
       </Section>
 
       <div className="grid items-start gap-3 xl:grid-cols-2">
-        <Section title="Риски" icon={AlertTriangle}>
+        <Section title={t.advisor.sectionRisks} icon={AlertTriangle}>
           <Bullets items={answer.risks} />
         </Section>
 
-        <Section title="Что может изменить рекомендацию" icon={CircleHelp}>
+        <Section title={t.advisor.sectionChangeFactors} icon={CircleHelp}>
           <Bullets items={answer.changeFactors} />
         </Section>
       </div>
 
       <div className="grid items-start gap-3 xl:grid-cols-2">
-        <Section title="Чего не хватает для окончательного решения" icon={ShieldQuestion}>
+        <Section title={t.advisor.sectionMissing} icon={ShieldQuestion}>
           <Bullets items={answer.missing} />
         </Section>
 
         <Section
           title={
             <span className="inline-flex items-center gap-2">
-              Источники
+              {t.advisor.sectionSources}
               <Badge variant="tint" size="counter" className="h-5 min-w-5 font-bold">
                 {answer.sources.length}
               </Badge>
@@ -265,15 +264,15 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
           icon={Quote}
         >
           <p className="mb-2 flex items-center gap-1.5 text-xs text-muted-foreground">
-            Тип источника и его вес в выводе
-            <HelpHint text="Тип источника: факт из документа, авторский анализ, ваша заметка или сгенерировано ИИ. Вес в выводе: определяющий — на нём строится вывод; подтверждающий — усиливает его; контекстный — просто фон." />
+            {t.advisor.sourceKindWeight}
+            <HelpHint text={t.advisor.sourceKindHint} />
           </p>
           <ul className="space-y-2">
             {answer.sources.map((s) => (
               <li key={s.id}>
                 <button
                   type="button"
-                  onClick={() => toast.success(`Источник «${s.title}» открыт`)}
+                  onClick={() => toast.success(t.advisor.sourceOpened(s.title))}
                   className="group w-full rounded-control border border-border bg-secondary/40 p-3 text-left transition-colors hover:border-primary/40 hover:bg-secondary/60"
                 >
                   <div className="flex flex-wrap items-center gap-2">
@@ -297,8 +296,6 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
           </ul>
         </Section>
       </div>
-
-      {verdict}
     </div>
   );
 }

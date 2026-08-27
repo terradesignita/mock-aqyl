@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Plus } from "lucide-react";
 import { HelpHint } from "@/components/HelpHint";
 import type { AdvisorSelection, ClarifyQuestion, Dilemma } from "@/data/advisor";
+import { useT } from "@/lib/i18n";
 
 interface Props {
   dilemma: Dilemma;
@@ -15,6 +16,7 @@ interface Props {
 const UNKNOWN = "__unknown";
 
 export function ClarifyBlock({ dilemma, questions, selection, onChange, index, onIndex }: Props) {
+  const t = useT();
   const [ownOpen, setOwnOpen] = useState(false);
   const q = questions[Math.min(index, questions.length - 1)];
   if (!q) return null;
@@ -35,13 +37,13 @@ export function ClarifyBlock({ dilemma, questions, selection, onChange, index, o
     onChange({ ...selection, choices: { ...selection.choices, [q.id]: next } });
   };
 
-  const options = q.unknown ? [...q.options, { id: UNKNOWN, label: "Пока неизвестно" }] : q.options;
+  const options = q.unknown ? [...q.options, { id: UNKNOWN, label: t.clarify.unknown }] : q.options;
   const showOwn = ownOpen || own.length > 0;
 
   return (
     <div className="rounded-card border border-border bg-card p-5 shadow-soft">
       <span role="status" aria-live="polite" className="sr-only">
-        {`Вопрос ${index + 1} из ${questions.length}: ${q.title}`}
+        {t.clarify.questionOfTitle(index + 1, questions.length, q.title)}
       </span>
       {/* Точки-прогресс: сколько вопросов и где мы сейчас */}
       <div className="flex items-center gap-2">
@@ -54,7 +56,7 @@ export function ClarifyBlock({ dilemma, questions, selection, onChange, index, o
               key={item.id}
               type="button"
               onClick={() => onIndex(i)}
-              aria-label={`Вопрос ${i + 1}`}
+              aria-label={t.clarify.questionN(i + 1)}
               className="flex h-6 flex-1 items-center"
             >
               <span
@@ -76,7 +78,7 @@ export function ClarifyBlock({ dilemma, questions, selection, onChange, index, o
         <span className="mt-1">
           <HelpHint
             side="right"
-            text={`${q.multi ? "Можно выбрать несколько вариантов." : "Выберите один вариант."} На вывод влияют: ${dilemma.drivers.join(", ")}.`}
+            text={t.clarify.modeHint(Boolean(q.multi), dilemma.drivers.join(", "))}
           />
         </span>
       </div>
@@ -119,7 +121,7 @@ export function ClarifyBlock({ dilemma, questions, selection, onChange, index, o
       {showOwn ? (
         <>
           <label htmlFor={`clarify-own-${q.id}`} className="sr-only">
-            {`Свой вариант ответа: ${q.ownPlaceholder}`}
+            {t.clarify.ownAnswerLabel(q.ownPlaceholder)}
           </label>
           <textarea
             id={`clarify-own-${q.id}`}
@@ -129,7 +131,7 @@ export function ClarifyBlock({ dilemma, questions, selection, onChange, index, o
               onChange({ ...selection, own: { ...selection.own, [q.id]: e.target.value } })
             }
             rows={2}
-            placeholder={`Свой вариант: ${q.ownPlaceholder}`}
+            placeholder={t.clarify.ownOption(q.ownPlaceholder)}
             className="mt-2.5 w-full resize-y rounded-control border border-border bg-secondary/40 px-3 py-2 text-base outline-none transition-colors placeholder:text-muted-foreground focus:border-primary sm:text-sm"
           />
         </>
@@ -139,7 +141,7 @@ export function ClarifyBlock({ dilemma, questions, selection, onChange, index, o
           onClick={() => setOwnOpen(true)}
           className="mt-2.5 inline-flex items-center gap-1.5 rounded-full border border-dashed border-border px-3 py-1 text-xs font-semibold text-muted-foreground transition-colors hover:border-primary hover:text-primary"
         >
-          <Plus className="h-3 w-3" /> Ответить своими словами
+          <Plus className="h-3 w-3" /> {t.advisor.ownAnswer}
         </button>
       )}
     </div>

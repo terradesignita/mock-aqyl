@@ -200,7 +200,10 @@ export const mockCards: KnowledgeCardData[] = [
       { step: "1. Assess", description: "Оценить текущее состояние процессов управления рисками" },
       { step: "2. Map", description: "Определить критические риск-области и владельцев" },
       { step: "3. Control", description: "Внедрить контроли и регулярный мониторинг" },
-      { step: "4. Optimize", description: "Автоматизировать сбор сигналов и оптимизировать реакцию" },
+      {
+        step: "4. Optimize",
+        description: "Автоматизировать сбор сигналов и оптимизировать реакцию",
+      },
     ],
     citations: [
       { chunk_id: "chunk_42", source_anchor: "Деловой отчёт компании Z (2024, стр. 15)" },
@@ -225,8 +228,14 @@ export const mockCards: KnowledgeCardData[] = [
     core_insight:
       "Экономия появляется только когда модель ведут подрядчики, а не проектный офис: −18% переделок.",
     framework: [
-      { step: "1. Договор", description: "Требование вести модель зашивается в контракт подрядчика" },
-      { step: "2. Регламент", description: "Единый classifier и цикл обновления модели раз в неделю" },
+      {
+        step: "1. Договор",
+        description: "Требование вести модель зашивается в контракт подрядчика",
+      },
+      {
+        step: "2. Регламент",
+        description: "Единый classifier и цикл обновления модели раз в неделю",
+      },
       { step: "3. Контроль", description: "Коллизии закрываются до выхода на площадку" },
     ],
     citations: [
@@ -252,7 +261,10 @@ export const mockCards: KnowledgeCardData[] = [
     core_insight:
       "Автономия без чётких интерфейсов между командами превращается в хаос — контракт API важнее размера.",
     framework: [
-      { step: "1. Ownership", description: "Одна команда — один сервис и один измеримый результат" },
+      {
+        step: "1. Ownership",
+        description: "Одна команда — один сервис и один измеримый результат",
+      },
       { step: "2. Interface", description: "Взаимодействие только через явные контракты" },
       { step: "3. Metrics", description: "Команда сама видит свои метрики в реальном времени" },
     ],
@@ -296,10 +308,12 @@ export const mockCards: KnowledgeCardData[] = [
     title: "Подкаст: как мы сократили цикл закупки с 45 до 19 дней",
     executive_summary:
       "Разбор внутреннего кейса закупочной службы: три узких места и решения, которые сработали.",
-    core_insight:
-      "80% задержек давали не согласования, а неполные технические задания на входе.",
+    core_insight: "80% задержек давали не согласования, а неполные технические задания на входе.",
     framework: [
-      { step: "1. Шаблон ТЗ", description: "Обязательный чек-лист полноты перед регистрацией заявки" },
+      {
+        step: "1. Шаблон ТЗ",
+        description: "Обязательный чек-лист полноты перед регистрацией заявки",
+      },
       { step: "2. Параллель", description: "Юридическая и техническая проверка идут одновременно" },
       { step: "3. SLA", description: "Явные сроки на каждом шаге и эскалация при просрочке" },
     ],
@@ -322,8 +336,7 @@ export const mockCards: KnowledgeCardData[] = [
     title: "Innovation Portfolio: 70-20-10 Rule",
     executive_summary:
       "Как распределять инвестиции между ядром, смежными и прорывными инициативами.",
-    core_insight:
-      "Компании, удерживающие 10% на прорывные ставки 5+ лет, дают на 30% больший TSR.",
+    core_insight: "Компании, удерживающие 10% на прорывные ставки 5+ лет, дают на 30% больший TSR.",
     framework: [
       { step: "70% Core", description: "Улучшение текущего бизнеса" },
       { step: "20% Adjacent", description: "Смежные рынки и продукты" },
@@ -348,11 +361,8 @@ export const mockCards: KnowledgeCardData[] = [
     title: "Тәуекелдерді басқару: практикалық бақылау парағы",
     executive_summary:
       "Жоба деңгейінде тәуекелдерді анықтауға және бақылауға арналған қысқа чек-лист.",
-    core_insight:
-      "Тәуекел иесі тағайындалмаған жағдайда, шаралардың 60%-ы орындалмайды.",
-    citations: [
-      { chunk_id: "chunk_501", source_anchor: "Ішкі әдістеме, 2025, 8-бет" },
-    ],
+    core_insight: "Тәуекел иесі тағайындалмаған жағдайда, шаралардың 60%-ы орындалмайды.",
+    citations: [{ chunk_id: "chunk_501", source_anchor: "Ішкі әдістеме, 2025, 8-бет" }],
     source: "Lessons Learned BI",
     author: "Регионалды офис",
     language: "KK",
@@ -532,8 +542,7 @@ export const mockCards: KnowledgeCardData[] = [
   {
     id: "card_015",
     title: "Pricing Power: три способа поднять цену без потери клиента",
-    executive_summary:
-      "Обзор практик ценообразования на зрелых рынках с высокой конкуренцией.",
+    executive_summary: "Обзор практик ценообразования на зрелых рынках с высокой конкуренцией.",
     core_insight:
       "Сегментированное предложение приносит больше, чем линейное повышение прайса на 3–5%.",
     framework: [
@@ -560,8 +569,7 @@ export const mockCards: KnowledgeCardData[] = [
     title: "Risklərin idarə edilməsi: layihə səviyyəsində yanaşma",
     executive_summary:
       "Layihə komandası üçün risklərin qeydiyyatı və monitorinqi üzrə qısa təlimat.",
-    core_insight:
-      "Risk reyestri həftəlik yenilənmədikdə, o, iki ay ərzində aktuallığını itirir.",
+    core_insight: "Risk reyestri həftəlik yenilənmədikdə, o, iki ay ərzində aktuallığını itirir.",
     citations: [{ chunk_id: "chunk_1300", source_anchor: "Daxili metodika, 2025" }],
     source: "Lessons Learned BI",
     author: "Региональный офис",
@@ -630,10 +638,8 @@ export const mockCards: KnowledgeCardData[] = [
   {
     id: "card_019",
     title: "Подкаст: как устроен инновационный конвейер в промышленности",
-    executive_summary:
-      "Разговор с директором завода о том, как идеи рабочих доходят до внедрения.",
-    core_insight:
-      "Идея внедряется, если у неё есть бюджет до 1 млн ₸ без согласования сверху.",
+    executive_summary: "Разговор с директором завода о том, как идеи рабочих доходят до внедрения.",
+    core_insight: "Идея внедряется, если у неё есть бюджет до 1 млн ₸ без согласования сверху.",
     citations: [
       { chunk_id: "chunk_1600", source_anchor: "Подкаст «Производство», выпуск 6, 09:15" },
     ],
@@ -650,8 +656,7 @@ export const mockCards: KnowledgeCardData[] = [
   {
     id: "card_020",
     title: "Change Management: модель ADKAR на практике",
-    executive_summary:
-      "Пять состояний сотрудника при изменении и типовые ошибки на каждом из них.",
+    executive_summary: "Пять состояний сотрудника при изменении и типовые ошибки на каждом из них.",
     core_insight:
       "Большинство программ обучают навыку (A), не создав осознание потребности (Awareness).",
     framework: [

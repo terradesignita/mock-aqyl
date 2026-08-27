@@ -271,3 +271,211 @@ export function useFeedback(cardId: string) {
 
   return { stats, record, reset };
 }
+
+/** Пользовательский файл, добавленный в кейс: то, что после обработки хранил бы бэкенд. */
+export interface UploadedSource {
+  id: string;
+  title: string;
+  format: string;
+  size: string;
+  date: string;
+  /** Имя исходного файла — название материала выведено из содержимого, а не из него. */
+  fileName?: string;
+  /** Начало текста, если формат читается в браузере. */
+  excerpt?: string;
+}
+
+export interface CardSourceState {
+  /** null — пользователь ещё не менял выбор, значит выбраны все источники. */
+  selected: string[] | null;
+  renames: Record<string, string>;
+  removed: string[];
+  uploads: UploadedSource[];
+}
+
+const EMPTY_SOURCE_STATE: CardSourceState = {
+  selected: null,
+  renames: {},
+  removed: [],
+  uploads: [],
+};
+
+/**
+ * Состояние панели источников кейса: выбор, переименования, удаления и загрузки.
+ * Всё переживает перезагрузку — иначе выбор контекста и правки исчезают при F5 (BUG-24).
+ */
+export function useCardSources(cardId: string, allIds: string[]) {
+  const [all, setAll, hydrated] = useLocalStorage<Record<string, CardSourceState>>(
+    "biaqyl:card-sources",
+    {},
+  );
+  const state = { ...EMPTY_SOURCE_STATE, ...(all[cardId] ?? {}) };
+
+  const patch = useCallback(
+    (next: (prev: CardSourceState) => CardSourceState) =>
+      setAll((prev) => ({
+        ...prev,
+        [cardId]: next({ ...EMPTY_SOURCE_STATE, ...(prev[cardId] ?? {}) }),
+      })),
+    [cardId, setAll],
+  );
+
+  // Живые источники = исходные кейса + загруженные пользователем, минус удалённые.
+  const liveIds = [...allIds, ...state.uploads.map((u) => u.id)].filter(
+    (id) => !state.removed.includes(id),
+  );
+  const selected = (state.selected ?? allIds).filter((id) => liveIds.includes(id));
+
+  const toggle = useCallback(
+    (id: string) =>
+      patch((prev) => {
+        const base = prev.selected ?? allIds;
+        return {
+          ...prev,
+          selected: base.includes(id) ? base.filter((x) => x !== id) : [...base, id],
+        };
+      }),
+    [patch, allIds],
+  );
+
+  const toggleAll = useCallback(
+    () =>
+      patch((prev) => {
+        const live = [...allIds, ...prev.uploads.map((u) => u.id)].filter(
+          (id) => !prev.removed.includes(id),
+        );
+        const base = (prev.selected ?? allIds).filter((id) => live.includes(id));
+        return { ...prev, selected: base.length === live.length ? [] : live };
+      }),
+    [patch, allIds],
+  );
+
+  const rename = useCallback(
+    (id: string, title: string) =>
+      patch((prev) => ({ ...prev, renames: { ...prev.renames, [id]: title } })),
+    [patch],
+  );
+
+  const removeSource = useCallback(
+    (id: string) =>
+      patch((prev) => ({
+        ...prev,
+        removed: prev.removed.includes(id) ? prev.removed : [...prev.removed, id],
+        selected: (prev.selected ?? allIds).filter((x) => x !== id),
+        uploads: prev.uploads.filter((u) => u.id !== id),
+      })),
+    [patch, allIds],
+  );
+
+  const addUploads = useCallback(
+    (files: Omit<UploadedSource, "id" | "date">[]) => {
+      const created = files.map((f, i) => ({
+        ...f,
+        id: `upload_${Date.now()}_${i}`,
+        date: new Date().toLocaleDateString("ru-RU"),
+      }));
+      patch((prev) => ({
+        ...prev,
+        uploads: [...prev.uploads, ...created],
+        selected: [...(prev.selected ?? allIds), ...created.map((c) => c.id)],
+      }));
+      return created;
+    },
+    [patch, allIds],
+  );
+
+  return {
+    selected,
+    renames: state.renames,
+    removed: state.removed,
+    uploads: state.uploads,
+    hydrated,
+    toggle,
+    toggleAll,
+    rename,
+    removeSource,
+    addUploads,
+  };
+}
+
+/** Незавершённая консультация советника — восстанавливается после перезагрузки (BUG-03). */
+export interface AdvisorDraft {
+  query: string;
+  stage: "clarify" | "understanding" | "answer";
+  qIndex: number;
+  selection: AdvisorSelection;
+  thread: { author: "user" | "advisor"; text: string }[];
+  followUpFlags: FollowUpFlags;
+  savedAt: string;
+}
+
+export function useAdvisorDraft() {
+  const [draft, setDraft, hydrated] = useLocalStorage<AdvisorDraft | null>(
+    "biaqyl:advisor-draft",
+    null,
+  );
+  const clear = useCallback(() => setDraft(null), [setDraft]);
+  return { draft, setDraft, clear, hydrated };
+}
+
+/** Тип действия в журнале активности — из него считаются метрики на экране настроек. */
+export type ActivityType = "question" | "artifact" | "upload" | "advisor" | "council" | "note";
+
+export interface ActivityEvent {
+  id: string;
+  type: ActivityType;
+  /** Unix-время: по нему строится разбивка по дням. */
+  at: number;
+  label: string;
+}
+
+/** Сколько событий храним — журнал нужен для агрегатов, не для аудита. */
+const ACTIVITY_LIMIT = 200;
+
+/**
+ * Журнал действий пользователя. В продукте это события на сервере; здесь —
+ * локальная запись, но цифры на экране метрик настоящие, а не заглушка из нулей.
+ */
+export function useActivity() {
+  const [events, setEvents, hydrated] = useLocalStorage<ActivityEvent[]>("biaqyl:activity", []);
+
+  const log = useCallback(
+    (type: ActivityType, label: string) =>
+      setEvents((prev) =>
+        [
+          {
+            id: `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+            type,
+            at: Date.now(),
+            label,
+          },
+          ...prev,
+        ].slice(0, ACTIVITY_LIMIT),
+      ),
+    [setEvents],
+  );
+
+  const clear = useCallback(() => setEvents([]), [setEvents]);
+
+  return { events, log, clear, hydrated };
+}
+
+/** Все сохранённые оценки и жалобы по всем материалам — сводка для редакторов базы. */
+export function useAllFeedback() {
+  const [all, , hydrated] = useLocalStorage<Record<string, FeedbackStats>>("biaqyl:feedback", {});
+
+  const totals = Object.values(all).reduce(
+    (acc, s) => {
+      acc.up += s.up;
+      acc.down += s.down;
+      acc.reports += s.reports;
+      for (const [reason, count] of Object.entries(s.reasons)) {
+        acc.reasons[reason] = (acc.reasons[reason] ?? 0) + count;
+      }
+      return acc;
+    },
+    { up: 0, down: 0, reports: 0, reasons: {} as Record<string, number> },
+  );
+
+  return { totals, byCard: all, hydrated };
+}

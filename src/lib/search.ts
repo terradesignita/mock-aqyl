@@ -1,5 +1,4 @@
 import type { KnowledgeCardData, Lang, MediaType, Scope } from "@/data/mockCards";
-import { mockCards } from "@/data/mockCards";
 
 export interface Filters {
   mediaType: MediaType | "all";
@@ -17,7 +16,13 @@ export const emptyFilters: Filters = {
 
 function matchesTopics(card: KnowledgeCardData, topics: string[]) {
   if (topics.length === 0) return true;
-  const haystack = [card.title, card.executive_summary, card.core_insight, card.tags.join(" "), card.business_unit]
+  const haystack = [
+    card.title,
+    card.executive_summary,
+    card.core_insight,
+    card.tags.join(" "),
+    card.business_unit,
+  ]
     .join(" ")
     .toLowerCase();
   return topics.some((topic) => haystack.includes(topic.trim().toLowerCase()));
@@ -56,15 +61,18 @@ export interface SearchResult extends KnowledgeCardData {
 export type ScopeFilter = Scope | "ALL";
 
 export function searchCards(
+  cards: KnowledgeCardData[],
   query: string,
   scope: ScopeFilter,
   filters: Filters,
   onlyBookmarked?: string[] | null,
 ): SearchResult[] {
-  return mockCards
+  return cards
     .filter((c) => (scope === "ALL" ? true : c.scope === scope))
     .filter((c) => (filters.mediaType === "all" ? true : c.media_type === filters.mediaType))
-    .filter((c) => (filters.businessUnit === "all" ? true : c.business_unit === filters.businessUnit))
+    .filter((c) =>
+      filters.businessUnit === "all" ? true : c.business_unit === filters.businessUnit,
+    )
     .filter((c) => (filters.language === "all" ? true : c.language === filters.language))
     .filter((c) => matchesTopics(c, filters.topics))
     .filter((c) => (onlyBookmarked ? onlyBookmarked.includes(c.id) : true))
@@ -72,12 +80,5 @@ export function searchCards(
     .filter((c) => c.matchScore >= 0)
     .sort((a, b) => b.matchScore - a.matchScore);
 }
-
-export const MEDIA_LABELS: Record<MediaType, string> = {
-  document: "Документ",
-  video: "Видео",
-  podcast: "Подкаст",
-  presentation: "Презентация",
-};
 
 export const LANGUAGES = ["RU", "EN", "KK", "UZ", "AZ"] as const;

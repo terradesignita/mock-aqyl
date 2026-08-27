@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ChevronLeft, ChevronRight, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { KnowledgeCardData } from "@/data/mockCards";
+import { useT, type Dictionary } from "@/lib/i18n";
 
 export interface Slide {
   kicker: string;
@@ -11,53 +12,52 @@ export interface Slide {
   note: string;
 }
 
-export function buildSlides(card: KnowledgeCardData): Slide[] {
+export function buildSlides(card: KnowledgeCardData, t: Dictionary): Slide[] {
   const steps = card.framework?.map((f) => f.step.replace(/^\d+\.\s*/, "")) ?? [];
   const descriptions = card.framework?.map((f) => f.description) ?? [];
+  const v = t.viewers;
 
   return [
     {
       kicker: card.business_unit,
       title: card.title,
-      bullets: [
-        `${card.source} · ${card.author}`,
-        `${card.date} · релевантность ${card.relevance}%`,
-      ],
-      note: "Начать с боли текущего процесса — 40 секунд, без цифр.",
+      bullets: [`${card.source} · ${card.author}`, v.deckRelevance(card.date, card.relevance)],
+      note: v.deckNote1,
     },
     {
-      kicker: "Контекст",
-      title: "Что происходит сейчас",
+      kicker: v.deckKickerContext,
+      title: v.deckTitleNow,
       bullets: card.executive_summary.split(/(?<=\.)\s+/).slice(0, 4),
-      note: "Дать аудитории узнать себя в описании. Спросить: «у вас так же?»",
+      note: v.deckNote2,
     },
     {
-      kicker: "Ключевой инсайт",
-      title: "Главный вывод",
+      kicker: v.deckKickerInsight,
+      title: v.deckTitleInsight,
       big: card.core_insight,
-      note: "Пауза после цифры. Не комментировать 3 секунды.",
+      note: v.deckNote3,
     },
-    ...steps.map((s, i) => ({
-      kicker: `Шаг ${i + 1} из ${steps.length}`,
-      title: s,
-      bullets: [descriptions[i] ?? "Фиксируем результат и передаём владельцу процесса."],
-      note: `Пример из практики «${card.business_unit}» — 30 секунд.`,
+    ...steps.map((step, i) => ({
+      kicker: v.deckStepKicker(i + 1, steps.length),
+      title: step,
+      bullets: [descriptions[i] ?? v.deckStepFallback],
+      note: v.deckStepNote(card.business_unit),
     })),
     {
-      kicker: "Next steps",
-      title: "Пилот на 6 недель",
+      kicker: v.deckKickerNext,
+      title: v.deckTitlePilot,
       bullets: [
-        `Владелец: ${card.author}`,
-        `Периметр: ${card.business_unit}, один объект`,
-        "Чек-поинт: через 30 дней",
-        "Бюджет: в рамках текущего OPEX",
+        v.deckOwner(card.author),
+        v.deckScope(card.business_unit),
+        v.deckCheckpoint,
+        v.deckBudget,
       ],
-      note: "Закрыть договорённостью о дате чек-поинта прямо на встрече.",
+      note: v.deckNoteLast,
     },
   ];
 }
 
 export function DeckViewer({ slides, fullscreen }: { slides: Slide[]; fullscreen: boolean }) {
+  const t = useT();
   const [i, setI] = useState(0);
   const [notes, setNotes] = useState(true);
   const s = slides[i];
@@ -102,7 +102,7 @@ export function DeckViewer({ slides, fullscreen }: { slides: Slide[]; fullscreen
 
       <div className="flex items-center justify-between gap-2">
         <Button size="sm" variant="outline" className="gap-1.5" onClick={() => go(-1)}>
-          <ChevronLeft className="h-3.5 w-3.5" /> Назад
+          <ChevronLeft className="h-3.5 w-3.5" /> {t.viewers.deckBack}
         </Button>
         <Button
           size="sm"
@@ -110,16 +110,16 @@ export function DeckViewer({ slides, fullscreen }: { slides: Slide[]; fullscreen
           className="gap-1.5 text-xs"
           onClick={() => setNotes((v) => !v)}
         >
-          <Play className="h-3 w-3" /> {notes ? "Скрыть заметки" : "Спикер-ноты"}
+          <Play className="h-3 w-3" /> {notes ? t.viewers.deckHideNotes : t.viewers.deckShowNotes}
         </Button>
         <Button size="sm" variant="outline" className="gap-1.5" onClick={() => go(1)}>
-          Далее <ChevronRight className="h-3.5 w-3.5" />
+          {t.viewers.deckNext} <ChevronRight className="h-3.5 w-3.5" />
         </Button>
       </div>
 
       {notes && (
         <p className="rounded-xl border border-dashed border-border bg-secondary/40 p-3 text-xs leading-relaxed text-muted-foreground">
-          <span className="font-semibold text-card-foreground">Спикер-нота: </span>
+          <span className="font-semibold text-card-foreground">{t.viewers.deckSpeakerNote}</span>
           {s.note}
         </p>
       )}
@@ -129,7 +129,7 @@ export function DeckViewer({ slides, fullscreen }: { slides: Slide[]; fullscreen
           <button
             key={sl.title + idx}
             onClick={() => setI(idx)}
-            aria-label={`Слайд ${idx + 1}`}
+            aria-label={t.viewers.deckSlideN(idx + 1)}
             className={`h-14 w-24 shrink-0 rounded-lg border p-1.5 text-left text-[9px] leading-tight transition-[color,border-color,background-color,box-shadow] ${
               idx === i
                 ? "border-primary bg-primary/10 text-card-foreground ring-2 ring-primary/30"

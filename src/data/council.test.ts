@@ -1,17 +1,18 @@
 import { describe, expect, it } from "vitest";
 import {
   COUNCIL_PERSONAS,
-  COUNCIL_PERSONA_DISCLAIMER,
   SEED_COUNCIL_SESSIONS,
   buildPersonaTake,
   buildOpeningMessages,
   buildFollowUpReplies,
   hasLikelyDisagreement,
+  resolveTopic,
   pickDefaultTrio,
-  QUICK_REPLIES,
-  FOLLOW_UP_FALLBACK_TEXT,
   REACTION_EMOJIS,
 } from "./council";
+import { ru } from "@/lib/i18n/ru";
+import { en } from "@/lib/i18n/en";
+import { kk } from "@/lib/i18n/kk";
 
 describe("real leader names never leak into generated text", () => {
   // "Джек Ма" is deliberately excluded from this stem list — "Ма" is too short
@@ -45,18 +46,20 @@ describe("real leader names never leak into generated text", () => {
 
   it("buildPersonaTake never attributes a quote to a real leader", () => {
     for (const p of COUNCIL_PERSONAS) {
-      buildPersonaTake(p.id, topic).forEach(assertClean);
+      buildPersonaTake(p.id, topic, ru).forEach(assertClean);
     }
   });
 
   it("buildOpeningMessages never attributes the disagreement reaction to a real leader", () => {
-    buildOpeningMessages(["founder", "contrarian"], topic).forEach((m) => assertClean(m.text));
+    buildOpeningMessages(["founder", "contrarian"], topic, ru).forEach((m) => assertClean(m.text));
   });
 
   it("buildFollowUpReplies never attributes any keyword-rule reply to a real leader", () => {
-    buildFollowUpReplies(["resilience"], topic, "Какие риски?").forEach((m) => assertClean(m.text));
-    buildFollowUpReplies(["operator"], topic, "Дайте план").forEach((m) => assertClean(m.text));
-    buildFollowUpReplies(["contrarian"], topic, "Вы согласны друг с другом?").forEach((m) =>
+    buildFollowUpReplies(["resilience"], topic, "Какие риски?", ru).forEach((m) =>
+      assertClean(m.text),
+    );
+    buildFollowUpReplies(["operator"], topic, "Дайте план", ru).forEach((m) => assertClean(m.text));
+    buildFollowUpReplies(["contrarian"], topic, "Вы согласны друг с другом?", ru).forEach((m) =>
       assertClean(m.text),
     );
   });
@@ -119,12 +122,11 @@ describe("COUNCIL_PERSONAS", () => {
   });
 
   it("uses the approved 12 real-world leader profiles", () => {
-    expect(COUNCIL_PERSONAS.map((persona) => persona.name)).toEqual(
-      expect.arrayContaining(EXPECTED_REAL_LEADERS),
-    );
-    expect(COUNCIL_PERSONAS.map((persona) => persona.name)).toHaveLength(12);
+    const names = COUNCIL_PERSONAS.map((persona) => ru.personas[persona.id].name);
+    expect(names).toEqual(expect.arrayContaining(EXPECTED_REAL_LEADERS));
+    expect(names).toHaveLength(12);
     for (const name of FICTIONAL_NAMES) {
-      expect(COUNCIL_PERSONAS.some((persona) => persona.name === name)).toBe(false);
+      expect(names).not.toContain(name);
     }
   });
 
@@ -137,9 +139,9 @@ describe("COUNCIL_PERSONAS", () => {
   });
 
   it("uses the approved tag for every stable persona id", () => {
-    expect(
-      Object.fromEntries(COUNCIL_PERSONAS.map((persona) => [persona.id, persona.tag])),
-    ).toEqual(EXPECTED_TAGS_BY_ID);
+    expect(Object.fromEntries(COUNCIL_PERSONAS.map((p) => [p.id, ru.personas[p.id].tag]))).toEqual(
+      EXPECTED_TAGS_BY_ID,
+    );
   });
 
   it("does not retain the obsolete inspiredBy presentation field", () => {
@@ -149,7 +151,7 @@ describe("COUNCIL_PERSONAS", () => {
   });
 
   it("exposes the approved public-approach disclaimer", () => {
-    expect(COUNCIL_PERSONA_DISCLAIMER).toBe(
+    expect(ru.personaDisclaimer).toBe(
       "Цифровые модели публично известных подходов. Это не реальные люди и не их текущие или частные мнения.",
     );
   });
@@ -194,8 +196,13 @@ describe("persona color contrast", () => {
   });
 
   it("every persona has a non-empty tag", () => {
-    for (const p of COUNCIL_PERSONAS) {
-      expect(p.tag.length).toBeGreaterThan(0);
+    for (const dict of [ru, en, kk]) {
+      for (const p of COUNCIL_PERSONAS) {
+        expect(dict.personas[p.id].tag.length).toBeGreaterThan(0);
+        expect(dict.personas[p.id].name.length).toBeGreaterThan(0);
+        expect(dict.personas[p.id].role.length).toBeGreaterThan(0);
+        expect(dict.personas[p.id].description.length).toBeGreaterThan(0);
+      }
     }
   });
 
@@ -248,11 +255,26 @@ describe("SEED_COUNCIL_SESSIONS", () => {
     }
   });
 
-  it("has at least one opening message per persona in the session", () => {
+  it("builds at least one opening message per persona of a seed session", () => {
     for (const session of SEED_COUNCIL_SESSIONS) {
-      const authors = new Set(session.messages.map((m) => m.author));
+      const messages = buildOpeningMessages(session.personaIds, resolveTopic(session, ru), ru);
+      const authors = new Set(messages.map((m) => m.author));
       for (const id of session.personaIds) {
         expect(authors.has(id)).toBe(true);
+      }
+    }
+  });
+
+  it("builds seed openings in every locale", () => {
+    for (const dict of [ru, en, kk]) {
+      for (const session of SEED_COUNCIL_SESSIONS) {
+        const messages = buildOpeningMessages(
+          session.personaIds,
+          resolveTopic(session, dict),
+          dict,
+        );
+        expect(messages.length).toBeGreaterThanOrEqual(session.personaIds.length);
+        expect(messages.every((m) => m.text.trim().length > 0)).toBe(true);
       }
     }
   });
@@ -268,7 +290,7 @@ describe("buildPersonaTake", () => {
 
   it("has a distinct case for every persona (no silent default fallback)", () => {
     for (const p of COUNCIL_PERSONAS) {
-      const messages = buildPersonaTake(p.id, topic);
+      const messages = buildPersonaTake(p.id, topic, ru);
       expect(messages.length).toBeGreaterThan(0);
       expect(messages.join(" ")).not.toBe(topic.insight);
     }
@@ -284,26 +306,26 @@ describe("buildOpeningMessages", () => {
   };
 
   it("includes at least one message per selected persona", () => {
-    const messages = buildOpeningMessages(["founder", "operator"], topic);
+    const messages = buildOpeningMessages(["founder", "operator"], topic, ru);
     const authors = new Set(messages.map((m) => m.author));
     expect(authors.has("founder")).toBe(true);
     expect(authors.has("operator")).toBe(true);
   });
 
   it("adds a disagreement reaction when a bullish and skeptical persona are both present", () => {
-    const messages = buildOpeningMessages(["founder", "contrarian"], topic);
+    const messages = buildOpeningMessages(["founder", "contrarian"], topic, ru);
     const reaction = messages.find((m) => m.replyTo === "founder");
     expect(reaction).toBeDefined();
     expect(reaction?.author).toBe("contrarian");
   });
 
   it("adds no disagreement reaction without a bullish/skeptical pair", () => {
-    const messages = buildOpeningMessages(["operator", "engineer"], topic);
+    const messages = buildOpeningMessages(["operator", "engineer"], topic, ru);
     expect(messages.some((m) => m.replyTo)).toBe(false);
   });
 
   it("every message has a non-empty time string", () => {
-    const messages = buildOpeningMessages(["founder", "contrarian"], topic);
+    const messages = buildOpeningMessages(["founder", "contrarian"], topic, ru);
     for (const m of messages) expect(m.time.length).toBeGreaterThan(0);
   });
 });
@@ -317,12 +339,17 @@ describe("buildFollowUpReplies", () => {
   };
 
   it("matches a persona by keyword when present in the council", () => {
-    const messages = buildFollowUpReplies(["resilience", "operator"], topic, "Какие тут риски?");
+    const messages = buildFollowUpReplies(
+      ["resilience", "operator"],
+      topic,
+      "Какие тут риски?",
+      ru,
+    );
     expect(messages.some((m) => m.author === "resilience")).toBe(true);
   });
 
   it("falls back to the first persona with an honest reply when nothing matches", () => {
-    const messages = buildFollowUpReplies(["operator", "engineer"], topic, "асдфасдф");
+    const messages = buildFollowUpReplies(["operator", "engineer"], topic, "асдфасдф", ru);
     expect(messages).toHaveLength(1);
     expect(messages[0].author).toBe("operator");
     expect(messages[0].text.length).toBeGreaterThan(0);
@@ -344,7 +371,7 @@ describe("pickDefaultTrio", () => {
   });
 });
 
-describe("QUICK_REPLIES", () => {
+describe("ru.councilTalk.quickReplies", () => {
   it("every quick reply matches a keyword rule when its persona is present", () => {
     const personaIds = ["resilience", "operator", "contrarian"];
     const topic = {
@@ -353,9 +380,9 @@ describe("QUICK_REPLIES", () => {
       insight: "Переговорная сила растёт после подтверждения спроса.",
       businessUnit: "Товары для дома",
     };
-    for (const reply of QUICK_REPLIES) {
-      const messages = buildFollowUpReplies(personaIds, topic, reply);
-      expect(messages.some((m) => m.text !== FOLLOW_UP_FALLBACK_TEXT)).toBe(true);
+    for (const reply of ru.councilTalk.quickReplies) {
+      const messages = buildFollowUpReplies(personaIds, topic, reply, ru);
+      expect(messages.some((m) => m.text !== ru.councilTalk.fallback)).toBe(true);
     }
   });
 });
