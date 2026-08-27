@@ -1,14 +1,4 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
-
+# Прототип внутренней базы знаний BI Group: индексация запрещена целиком.
+# На экранах — внутренние кейсы, направления и заметки; авторизации в прототипе нет.
 User-agent: *
-Allow: /
+Disallow: /
