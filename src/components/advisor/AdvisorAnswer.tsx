@@ -114,6 +114,30 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
         </p>
       </div>
 
+      {!refusal && (
+        <div className="mt-4 border-t border-primary/15 pt-4">
+          <p className="text-xs font-bold text-muted-foreground">
+            {t.advisor.sectionRecommendation}
+          </p>
+          <p className="mt-1.5 rounded-control border-l-4 border-primary bg-primary/6 p-3 text-sm font-semibold leading-relaxed text-card-foreground">
+            {answer.recommendation}
+          </p>
+          <p className="mb-1.5 mt-3 text-xs font-bold text-muted-foreground">
+            {t.advisor.proposedTerms}
+          </p>
+          <ul className="flex flex-wrap gap-1.5">
+            {answer.terms.map((term) => (
+              <li
+                key={term}
+                className="rounded-control border border-border bg-card px-2.5 py-1 text-xs font-medium text-card-foreground"
+              >
+                {term}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <Badge
           variant="outline"
@@ -131,7 +155,50 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
     <div className="space-y-3">
       {verdict}
 
+      {/* Перевёрнутая пирамида (рис. 42): из чего состоит решение — раскрыто.
+          Раньше «Варианты решения» и «Риски» были закрыты, то есть суть ответа не читалась. */}
+      <Section title={t.advisor.sectionScenarios} icon={ListChecks} defaultOpen>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[640px] border-collapse text-sm">
+            <thead>
+              <tr className="text-left text-xs text-muted-foreground">
+                <th className="py-2 pr-3 font-semibold">{t.advisor.colScenario}</th>
+                <th className="py-2 pr-3 font-semibold">{t.advisor.colSpeed}</th>
+                <th className="py-2 pr-3 font-semibold">{t.advisor.colControl}</th>
+                <th className="py-2 pr-3 font-semibold">{t.advisor.colRisk}</th>
+                <th className="py-2 font-semibold">{t.advisor.colWhen}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {answer.scenarios.map((s) => (
+                <tr
+                  key={s.name}
+                  className={`border-t border-border ${s.recommended ? "bg-primary/6" : ""}`}
+                >
+                  <td className="py-2 pr-3 font-semibold text-card-foreground">
+                    {s.name}
+                    {s.recommended && (
+                      <Badge variant="primary" className="ml-2 font-bold">
+                        {t.advisor.recommendedBadge}
+                      </Badge>
+                    )}
+                  </td>
+                  <td className="py-2 pr-3 text-muted-foreground">{s.speed}</td>
+                  <td className="py-2 pr-3 text-muted-foreground">{s.control}</td>
+                  <td className="py-2 pr-3 text-muted-foreground">{s.risk}</td>
+                  <td className="py-2 text-muted-foreground">{s.when}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Section>
+
       <div className="grid items-start gap-3 xl:grid-cols-2">
+        <Section title={t.advisor.sectionRisks} icon={AlertTriangle} defaultOpen>
+          <Bullets items={answer.risks} />
+        </Section>
+
         <Section title={t.advisor.sectionWhy} icon={ListChecks} defaultOpen>
           <ol className="space-y-2">
             {answer.arguments.map((a, i) => (
@@ -144,7 +211,14 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
             ))}
           </ol>
         </Section>
+      </div>
 
+      {/* Справочное — «откуда я это взял». К нему возвращаются, с него не начинают. */}
+      <p className="pt-1 text-xs font-bold uppercase tracking-wide text-muted-foreground/70">
+        {t.advisor.referenceGroup}
+      </p>
+
+      <div className="grid items-start gap-3 xl:grid-cols-2">
         <Section title={t.advisor.sectionCase(answer.caseRef.title)} icon={BookOpen}>
           <div className="flex items-center gap-1.5">
             <Badge
@@ -189,65 +263,10 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
           </div>
         </Section>
 
-        <Section title={t.advisor.sectionRecommendation} icon={Target} defaultOpen>
-          <p className="rounded-control border-l-4 border-primary bg-primary/6 p-3 text-sm font-semibold leading-relaxed text-card-foreground">
-            {answer.recommendation}
-          </p>
-          <p className="mb-1.5 mt-3 text-xs font-bold text-muted-foreground">
-            {t.advisor.proposedTerms}
-          </p>
-          <Bullets items={answer.terms} />
-        </Section>
-      </div>
-
-      <Section title={t.advisor.sectionScenarios} icon={ListChecks}>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px] border-collapse text-sm">
-            <thead>
-              <tr className="text-left text-xs text-muted-foreground">
-                <th className="py-2 pr-3 font-semibold">{t.advisor.colScenario}</th>
-                <th className="py-2 pr-3 font-semibold">{t.advisor.colSpeed}</th>
-                <th className="py-2 pr-3 font-semibold">{t.advisor.colControl}</th>
-                <th className="py-2 pr-3 font-semibold">{t.advisor.colRisk}</th>
-                <th className="py-2 font-semibold">{t.advisor.colWhen}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {answer.scenarios.map((s) => (
-                <tr
-                  key={s.name}
-                  className={`border-t border-border ${s.recommended ? "bg-primary/6" : ""}`}
-                >
-                  <td className="py-2 pr-3 font-semibold text-card-foreground">
-                    {s.name}
-                    {s.recommended && (
-                      <Badge variant="primary" className="ml-2 font-bold">
-                        {t.advisor.recommendedBadge}
-                      </Badge>
-                    )}
-                  </td>
-                  <td className="py-2 pr-3 text-muted-foreground">{s.speed}</td>
-                  <td className="py-2 pr-3 text-muted-foreground">{s.control}</td>
-                  <td className="py-2 pr-3 text-muted-foreground">{s.risk}</td>
-                  <td className="py-2 text-muted-foreground">{s.when}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Section>
-
-      <div className="grid items-start gap-3 xl:grid-cols-2">
-        <Section title={t.advisor.sectionRisks} icon={AlertTriangle}>
-          <Bullets items={answer.risks} />
-        </Section>
-
         <Section title={t.advisor.sectionChangeFactors} icon={CircleHelp}>
           <Bullets items={answer.changeFactors} />
         </Section>
-      </div>
 
-      <div className="grid items-start gap-3 xl:grid-cols-2">
         <Section title={t.advisor.sectionMissing} icon={ShieldQuestion}>
           <Bullets items={answer.missing} />
         </Section>

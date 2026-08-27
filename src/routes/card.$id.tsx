@@ -21,6 +21,7 @@ import {
   useFeedback,
   useNotes,
   useTheme,
+  useUserCards,
 } from "@/hooks/useAppState";
 import { clampWidth, useResizablePanel } from "@/hooks/useResizablePanel";
 import { cn } from "@/lib/utils";
@@ -60,13 +61,20 @@ export const Route = createFileRoute("/card/$id")({
     // Загрузчик работает до React-контекста, поэтому берёт исходную карточку:
     // ему нужно только знать, что такая есть, и отдать метатеги.
     const card = getCardById(params.id);
-    if (!card) throw notFound();
+    // Кейсы, созданные пользователем, лежат в localStorage — на этом этапе их не видно,
+    // поэтому такой id пропускаем дальше, а разбирается он уже в компоненте.
+    if (!card) {
+      if (!params.id.startsWith("case_")) throw notFound();
+      return { card: null };
+    }
     return { card };
   },
   head: ({ loaderData }) => {
-    if (!loaderData) {
+    if (!loaderData?.card) {
       return {
-        meta: [{ title: "Case not found — BI AQYL" }, { name: "robots", content: "noindex" }],
+        // Кейс пользователя живёт в localStorage: до React его не видно, заголовок
+        // вкладки ставит сам компонент. Поэтому здесь нейтральный, а не «не найдено».
+        meta: [{ title: "BI AQYL" }, { name: "robots", content: "noindex" }],
       };
     }
     const { card } = loaderData;
@@ -84,9 +92,47 @@ export const Route = createFileRoute("/card/$id")({
   component: CardWorkspace,
 });
 
+/** Кейс приходит либо из данных (загрузчик), либо из локальных, созданных пользователем. */
 function CardWorkspace() {
   const t = useT();
-  const { card: base } = Route.useLoaderData() as { card: KnowledgeCardData };
+  const { dark, toggle } = useTheme();
+  const { id } = Route.useParams();
+  const { card: routeCard } = Route.useLoaderData() as { card: KnowledgeCardData | null };
+  const { cards: userCards, hydrated } = useUserCards();
+  const card = routeCard ?? userCards.find((c) => c.id === id) ?? null;
+
+  if (!card) {
+    // До чтения localStorage не знаем, есть кейс или нет — не показываем ложное «не найдено».
+    if (!hydrated) return null;
+    return (
+      <div className="flex min-h-screen flex-col bg-background">
+        <Header dark={dark} onToggleDark={toggle} />
+        <div className="flex flex-1 items-center justify-center px-4 py-16">
+          <div className="max-w-md text-center">
+            <h1 className="text-xl font-bold text-foreground">{t.errors.notFoundTitle}</h1>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              {t.errors.notFoundBody}
+            </p>
+            <Button asChild size="sm" className="mt-4">
+              <Link to="/">{t.errors.toHome}</Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return <CardWorkspaceInner key={card.id} base={card} />;
+}
+
+function CardWorkspaceInner({ base }: { base: KnowledgeCardData }) {
+  const t = useT();
+
+  // Кейс, созданный пользователем, загрузчик не видел — заголовок вкладки ставим здесь.
+  useEffect(() => {
+    if (getCardById(base.id)) return;
+    document.title = `${base.title} — BI AQYL`;
+  }, [base.id, base.title]);
   // Текст карточки — в языке интерфейса; структура и id те же.
   const card = useCard(base.id) ?? base;
   const { title, rename } = useCardTitle(card.id, card.title);

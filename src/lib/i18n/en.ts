@@ -469,6 +469,7 @@ export const en: Dictionary = {
     sectionRecommendation: "Recommendation and proposed terms",
     proposedTerms: "Proposed terms",
     sectionScenarios: "Options",
+    referenceGroup: "Reference — where this comes from",
     colScenario: "Scenario",
     colSpeed: "Speed",
     colControl: "Control",
@@ -667,6 +668,25 @@ export const en: Dictionary = {
     },
   },
 
+  /** Creating a case from a file. The report (fig. 40): an entry point for new knowledge. */
+  newCase: {
+    cta: "New case",
+    title: "New case",
+    body: "A case is a material plus everything around it: sources, the chat and artefacts. Start with a file — a document, a deck, audio or video.",
+    unitLabel: "Business unit",
+    dropTitle: "Drop a file here or pick one from disk",
+    dropBody: (n: number) =>
+      `${n} ${pluralEn(n, "format", "formats")} accepted. The case name comes from the content, not the file name.`,
+    pickFile: "Pick a file",
+    onlyFirstFile: (rest: number) =>
+      `${rest} ${pluralEn(rest, "file", "files")} left out: a case starts from one material, add the rest inside the case.`,
+    created: (title: string) => `Case "${title}" created`,
+    pendingSummary:
+      "The file content has not been parsed yet — this prototype does not extract text. The source is attached, and the chat and artefacts will rely on it.",
+    pendingInsight: "The core insight will appear once the material is parsed.",
+    searchHotkey: 'Press "/" to search',
+  },
+
   artifactContent: {
     quizIntro: (questions: number, cites: number) =>
       `${questions} ${pluralEn(questions, "question", "questions")} on the material. Assembled from ${cites} ${pluralEn(cites, "fragment", "fragments")}.`,
@@ -740,6 +760,7 @@ export const en: Dictionary = {
     infoSources: "Sources",
     infoSteps: "Rollout steps",
     infoLanguage: "Original language",
+    infoMediaType: "Material type",
     infoType: "Content type",
     infoYear: "Year",
     infoBlock1: "Block 1 · Headline",
@@ -786,7 +807,7 @@ export const en: Dictionary = {
   },
 
   viewers: {
-    deckRelevance: (date: string, relevance: number) => `${date} · relevance ${relevance}%`,
+    deckMeta: (date: string, kind: string) => `${date} · ${kind}`,
     deckNote1: "Open with the pain of the current process — 40 seconds, no numbers.",
     deckKickerContext: "Context",
     deckTitleNow: "What happens today",
@@ -845,7 +866,11 @@ export const en: Dictionary = {
     cardsTextAction: (unit: string) =>
       `Get the ${unit} team together for 60 minutes and record the current metrics.`,
     infoPathFallback: "Insight → Pilot → Scale-up",
-    infoRelevance: "Relevance",
+    cardsOriginCited: (n: number) =>
+      n === 0 ? "No fragment cited" : `From ${n} ${pluralEn(n, "fragment", "fragments")}`,
+    cardsOriginSource: (source: string) => `Source: ${source}`,
+    cardsOriginFramework: "From the author's framework",
+    cardsOriginModel: "Model's own estimate, not from the source",
   },
 
   /** Направления бизнеса. Ключ — каноническое русское значение из данных. */

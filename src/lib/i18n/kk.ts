@@ -466,6 +466,7 @@ export const kk: Dictionary = {
     sectionRecommendation: "Ұсыныс және ұсынылатын шарттар",
     proposedTerms: "Ұсынылатын шарттар",
     sectionScenarios: "Шешім нұсқалары",
+    referenceGroup: "Анықтама — бұл қайдан алынды",
     colScenario: "Сценарий",
     colSpeed: "Жылдамдық",
     colControl: "Бақылау",
@@ -663,6 +664,25 @@ export const kk: Dictionary = {
     },
   },
 
+  /** Файлдан кейс жасау. Есеп (40-сурет): жаңа білім үшін кіру нүктесі. */
+  newCase: {
+    cta: "Жаңа кейс",
+    title: "Жаңа кейс",
+    body: "Кейс — материал және оның айналасындағының бәрі: дереккөздер, диалог және артефактілер. Файлдан бастаңыз: құжат, слайдтар, аудио немесе бейне.",
+    unitLabel: "Бағыт",
+    dropTitle: "Файлды осында тастаңыз немесе дискіден таңдаңыз",
+    dropBody: (n: number) =>
+      `${n} формат қабылданады. Кейс атауын файл атынан емес, мазмұнынан аламыз.`,
+    pickFile: "Файл таңдау",
+    onlyFirstFile: (rest: number) =>
+      `${rest} файл алынмады: кейс бір материалдан жасалады, қалғанын кейс ішінде қосыңыз.`,
+    created: (title: string) => `«${title}» кейсі жасалды`,
+    pendingSummary:
+      "Файл мазмұны әлі талданбаған — прототипте мәтінді шығару жоқ. Дереккөз қосылды, диалог пен артефактілер оған сүйенеді.",
+    pendingInsight: "Негізгі тұжырым материал талданғаннан кейін пайда болады.",
+    searchHotkey: "Іздеу үшін «/» басыңыз",
+  },
+
   artifactContent: {
     quizIntro: (questions: number, cites: number) =>
       `Материал бойынша ${questions} сұрақ. ${cites} фрагменттен жиналды.`,
@@ -734,6 +754,7 @@ export const kk: Dictionary = {
     infoSources: "Дереккөз",
     infoSteps: "Енгізу қадамы",
     infoLanguage: "Түпнұсқа тілі",
+    infoMediaType: "Материал түрі",
     infoType: "Мазмұн түрі",
     infoYear: "Жыл",
     infoBlock1: "1-блок · Тақырып",
@@ -779,7 +800,7 @@ export const kk: Dictionary = {
   },
 
   viewers: {
-    deckRelevance: (date: string, relevance: number) => `${date} · релеванттылық ${relevance}%`,
+    deckMeta: (date: string, kind: string) => `${date} · ${kind}`,
     deckNote1: "Қазіргі процестің ауыртпалығынан бастау — 40 секунд, сансыз.",
     deckKickerContext: "Контекст",
     deckTitleNow: "Қазір не болып жатыр",
@@ -838,7 +859,10 @@ export const kk: Dictionary = {
     cardsTextAction: (unit: string) =>
       `«${unit}» командасын 60 минутқа жинап, қазіргі метрикаларды тіркеу.`,
     infoPathFallback: "Инсайт → Пилот → Ауқымдау",
-    infoRelevance: "Релеванттылық",
+    cardsOriginCited: (n: number) => (n === 0 ? "Фрагментке сілтеме жоқ" : `${n} фрагмент бойынша`),
+    cardsOriginSource: (source: string) => `Дереккөз: ${source}`,
+    cardsOriginFramework: "Автор фреймворкінен",
+    cardsOriginModel: "Модельдің бағасы, дереккөзден емес",
   },
 
   /** Направления бизнеса. Ключ — каноническое русское значение из данных. */

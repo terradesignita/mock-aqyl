@@ -18,10 +18,15 @@ import {
   useOnboardingSeen,
   usePrivateCards,
   useScope,
+  useSeedCardSource,
   useTheme,
+  useUserCards,
   type AdvisorSession,
 } from "@/hooks/useAppState";
 import { AdvisorFlow } from "@/components/advisor/AdvisorFlow";
+import { NewCaseDialog, type NewCaseUpload } from "@/components/NewCaseDialog";
+import { BUSINESS_UNITS, type KnowledgeCardData } from "@/data/mockCards";
+import { CURRENT_USER } from "@/data/backend";
 import { OnboardingModals } from "@/components/OnboardingModals";
 import { Button } from "@/components/ui/button";
 import { useCards, useT } from "@/lib/i18n";
@@ -67,7 +72,10 @@ export const Route = createFileRoute("/")({
 
 function Dashboard() {
   const t = useT();
-  const cards = useCards();
+  const seedCards = useCards();
+  // Кейсы, созданные пользователем, живут в общей сетке — сверху, как самые свежие.
+  const { cards: userCards, add: addUserCard } = useUserCards();
+  const cards = useMemo(() => [...userCards, ...seedCards], [userCards, seedCards]);
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
   const { dark, toggle } = useTheme();
@@ -84,6 +92,7 @@ function Dashboard() {
   };
   const { history, push, clear } = useHistory();
   const { log: logActivity } = useActivity();
+  const seedCardSource = useSeedCardSource();
   const {
     sessions: advisorSessions,
     save: saveAdvisorSession,
@@ -103,6 +112,7 @@ function Dashboard() {
   const [visibility, setVisibility] = useState<VisibilityFilter>("all");
   const [page, setPage] = useState(0);
   const [onboardingClosed, setOnboardingClosed] = useState(false);
+  const [newCaseOpen, setNewCaseOpen] = useState(false);
   const firstRender = useRef(true);
 
   const focusOnAdvisor = advisor && (searchFocused || query.trim().length > 0);
@@ -186,6 +196,13 @@ function Dashboard() {
     logActivity("advisor", q);
   };
 
+  const createCase = (card: KnowledgeCardData, upload: NewCaseUpload) => {
+    addUserCard(card);
+    seedCardSource(card.id, upload);
+    logActivity("upload", card.title);
+    void navigate({ to: "/card/$id", params: { id: card.id } });
+  };
+
   const openSavedSession = (s: AdvisorSession) => {
     setQuery(s.query);
     setAdvisorQuery(s.query);
@@ -202,6 +219,13 @@ function Dashboard() {
           }}
         />
       )}
+      <NewCaseDialog
+        open={newCaseOpen}
+        onOpenChange={setNewCaseOpen}
+        onCreated={createCase}
+        defaultUnit={BUSINESS_UNITS[CURRENT_USER.businessUnitIndex] ?? BUSINESS_UNITS[0]}
+      />
+
       <Header
         dark={dark}
         onToggleDark={toggle}
@@ -226,6 +250,7 @@ function Dashboard() {
           filters={filters}
           onFiltersChange={setFilters}
           onFocusChange={setSearchFocused}
+          onNewCase={() => setNewCaseOpen(true)}
           totalLabel={
             advisor
               ? t.dashboard.advisorIntroTitle
@@ -350,18 +375,26 @@ function Dashboard() {
                 <p className="mt-1 max-w-sm text-xs leading-relaxed text-muted-foreground">
                   {hasNarrowing ? t.dashboard.emptyNarrowedBody : t.dashboard.emptyBody}
                 </p>
-                {hasNarrowing && (
-                  <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-                    <Button size="sm" variant="outline" onClick={resetNarrowing}>
-                      {t.dashboard.resetAll}
-                    </Button>
-                    {debounced && (
-                      <Button size="sm" variant="ghost" onClick={() => setQuery("")}>
-                        {t.dashboard.clearQuery}
+                <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                  {hasNarrowing ? (
+                    <>
+                      <Button size="sm" variant="outline" onClick={resetNarrowing}>
+                        {t.dashboard.resetAll}
                       </Button>
-                    )}
-                  </div>
-                )}
+                      {debounced && (
+                        <Button size="sm" variant="ghost" onClick={() => setQuery("")}>
+                          {t.dashboard.clearQuery}
+                        </Button>
+                      )}
+                    </>
+                  ) : (
+                    // База пуста и ничего не сужено — единственное осмысленное действие здесь
+                    // это создать кейс, а не сбрасывать фильтры.
+                    <Button size="sm" onClick={() => setNewCaseOpen(true)}>
+                      {t.newCase.cta}
+                    </Button>
+                  )}
+                </div>
               </div>
             ) : (
               <>

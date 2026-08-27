@@ -7,7 +7,9 @@ export interface InsightCard {
   tag: string;
   title: string;
   text: string;
-  metric?: string;
+  /** Откуда взята мысль: фрагменты источника, фреймворк автора или оценка модели.
+   *  Раньше здесь стояли `relevance` и язык оригинала — числа, которые ничего не измеряли. */
+  origin: string;
 }
 
 export function buildInsightCards(card: KnowledgeCardData, t: Dictionary): InsightCard[] {
@@ -20,31 +22,31 @@ export function buildInsightCards(card: KnowledgeCardData, t: Dictionary): Insig
       tag: v.cardsTagInsight,
       title: v.cardsTitleInsight,
       text: card.core_insight,
-      metric: `${card.relevance}%`,
+      origin: v.cardsOriginCited(card.citations.length),
     },
     {
       tag: v.cardsTagContext,
       title: v.cardsTitleContext,
       text: card.executive_summary,
-      metric: card.language,
+      origin: v.cardsOriginSource(card.source),
     },
     ...steps.slice(0, 4).map((step, i) => ({
       tag: v.cardsTagStep(i + 1),
       title: step,
       text: descriptions[i] ?? v.cardsStepFallback,
-      metric: `0${i + 1}`,
+      origin: v.cardsOriginFramework,
     })),
     {
       tag: v.cardsTagRisk,
       title: v.cardsTitleRisk,
       text: v.cardsTextRisk,
-      metric: "⚠",
+      origin: v.cardsOriginModel,
     },
     {
       tag: v.cardsTagAction,
       title: v.cardsTitleAction,
       text: v.cardsTextAction(card.business_unit),
-      metric: "60′",
+      origin: v.cardsOriginModel,
     },
   ];
 }
@@ -94,10 +96,10 @@ export function CardsDeck({ cards }: { cards: InsightCard[] }) {
             <p className="relative line-clamp-5 text-xs leading-relaxed text-primary-foreground/90">
               {c.text}
             </p>
-            <div className="relative flex items-end justify-between">
-              <Quote className="h-4 w-4 text-primary-foreground/50" />
-              <span className="text-2xl font-bold tabular-nums text-primary-foreground/85">
-                {c.metric}
+            <div className="relative flex items-end gap-2">
+              <Quote className="h-4 w-4 shrink-0 text-primary-foreground/50" />
+              <span className="min-w-0 truncate rounded-full bg-primary-foreground/18 px-2 py-1 text-[11px] font-semibold leading-none text-primary-foreground/90">
+                {c.origin}
               </span>
             </div>
           </article>

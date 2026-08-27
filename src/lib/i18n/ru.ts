@@ -312,7 +312,8 @@ export const ru = {
     thinking: (n: number) =>
       `Анализирую ${n} ${pluralRu(n, "источник", "источника", "источников")}...`,
     questionLabel: "Вопрос по выбранным источникам",
-    placeholder: (n: number) => `Задайте вопрос по ${n} выбранным источникам...`,
+    placeholder: (n: number) =>
+      `Задайте вопрос по ${n} ${pluralRu(n, "выбранному источнику", "выбранным источникам", "выбранным источникам")}…`,
     placeholderEmpty: "Отметьте источник слева, чтобы задать вопрос",
     placeholderListening: "Слушаю...",
     placeholderRequesting: "Запрашиваю микрофон...",
@@ -475,6 +476,7 @@ export const ru = {
     sectionRecommendation: "Рекомендация и предлагаемые условия",
     proposedTerms: "Предлагаемые условия",
     sectionScenarios: "Варианты решения",
+    referenceGroup: "Справочное — откуда это взято",
     colScenario: "Сценарий",
     colSpeed: "Скорость",
     colControl: "Контроль",
@@ -675,6 +677,25 @@ export const ru = {
     },
   },
 
+  /** Создание кейса из файла. Отчёт (рис. 40): вход для нового знания на дашборде. */
+  newCase: {
+    cta: "Новый кейс",
+    title: "Новый кейс",
+    body: "Кейс — это материал плюс всё, что вокруг него: источники, диалог и артефакты. Начните с файла: документа, слайдов, аудио или видео.",
+    unitLabel: "Направление",
+    dropTitle: "Перетащите файл или выберите на диске",
+    dropBody: (n: number) =>
+      `Принимаем ${n} ${pluralRu(n, "формат", "формата", "форматов")}. Название кейса возьмём из содержимого, а не из имени файла.`,
+    pickFile: "Выбрать файл",
+    onlyFirstFile: (rest: number) =>
+      `${rest} ${pluralRu(rest, "файл", "файла", "файлов")} не взяли: кейс создаётся из одного материала, остальные добавьте внутри кейса.`,
+    created: (title: string) => `Кейс «${title}» создан`,
+    pendingSummary:
+      "Содержимое файла ещё не разобрано — в прототипе нет извлечения текста. Источник добавлен, диалог и артефакты будут опираться на него.",
+    pendingInsight: "Главный вывод появится после разбора материала.",
+    searchHotkey: "Нажмите «/» для поиска",
+  },
+
   artifactContent: {
     quizIntro: (questions: number, cites: number) =>
       `${questions} ${pluralRu(questions, "вопрос", "вопроса", "вопросов")} по материалу. Собрано из ${cites} ${pluralRu(cites, "фрагмента", "фрагментов", "фрагментов")}.`,
@@ -748,6 +769,7 @@ export const ru = {
     infoSources: "Источников",
     infoSteps: "Шагов внедрения",
     infoLanguage: "Язык оригинала",
+    infoMediaType: "Тип материала",
     infoType: "Тип контента",
     infoYear: "Год",
     infoBlock1: "Блок 1 · Заголовок",
@@ -793,7 +815,7 @@ export const ru = {
   },
 
   viewers: {
-    deckRelevance: (date: string, relevance: number) => `${date} · релевантность ${relevance}%`,
+    deckMeta: (date: string, kind: string) => `${date} · ${kind}`,
     deckNote1: "Начать с боли текущего процесса — 40 секунд, без цифр.",
     deckKickerContext: "Контекст",
     deckTitleNow: "Что происходит сейчас",
@@ -850,7 +872,13 @@ export const ru = {
     cardsTextAction: (unit: string) =>
       `Собрать команду «${unit}» на 60 минут и зафиксировать текущие метрики.`,
     infoPathFallback: "Инсайт → Пилот → Масштабирование",
-    infoRelevance: "Релевантность",
+    cardsOriginCited: (n: number) =>
+      n === 0
+        ? "Без ссылки на фрагмент"
+        : `По ${n} ${pluralRu(n, "фрагменту", "фрагментам", "фрагментам")}`,
+    cardsOriginSource: (source: string) => `Источник: ${source}`,
+    cardsOriginFramework: "Из фреймворка автора",
+    cardsOriginModel: "Оценка модели, не из источника",
   },
 
   /** Направления бизнеса. Ключ — каноническое русское значение из данных. */

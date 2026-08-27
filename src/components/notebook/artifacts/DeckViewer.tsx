@@ -21,7 +21,7 @@ export function buildSlides(card: KnowledgeCardData, t: Dictionary): Slide[] {
     {
       kicker: card.business_unit,
       title: card.title,
-      bullets: [`${card.source} · ${card.author}`, v.deckRelevance(card.date, card.relevance)],
+      bullets: [`${card.source} · ${card.author}`, v.deckMeta(card.date, t.media[card.media_type])],
       note: v.deckNote1,
     },
     {

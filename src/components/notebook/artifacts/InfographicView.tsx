@@ -13,13 +13,13 @@ export function InfographicView({
   const path = steps.length ? steps.join(" → ") : t.viewers.infoPathFallback;
 
   const stats = [
-    { label: t.viewers.infoRelevance, value: `${card.relevance}%` },
     { label: t.artifactContent.infoSources, value: String(card.citations.length) },
     {
       label: t.artifactContent.infoSteps,
       value: steps.length ? String(steps.length) : "—",
     },
     { label: t.artifactContent.infoLanguage, value: card.language },
+    { label: t.artifactContent.infoMediaType, value: t.media[card.media_type] },
   ];
 
   return (

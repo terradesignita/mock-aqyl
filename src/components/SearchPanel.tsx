@@ -1,11 +1,12 @@
 import { HelpHint } from "@/components/HelpHint";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
   History,
   Loader2,
   Mic,
   MicOff,
+  Plus,
   Search,
   SlidersHorizontal,
   Sparkles,
@@ -43,6 +44,8 @@ interface SearchPanelProps {
   filters: Filters;
   onFiltersChange: (f: Filters) => void;
   onFocusChange?: (focused: boolean) => void;
+  /** Создать кейс из файла — единственная точка входа для нового знания (рис. 40). */
+  onNewCase: () => void;
 }
 
 /** Приветствие по времени суток. Считается после монтирования: часовой пояс сервера
@@ -81,6 +84,7 @@ export function SearchPanel({
   filters,
   onFiltersChange,
   onFocusChange,
+  onNewCase,
 }: SearchPanelProps) {
   const activeFilterCount = [filters.businessUnit, filters.language].filter(
     (v) => v !== "all",
@@ -88,6 +92,22 @@ export function SearchPanel({
 
   const t = useT();
   const greeting = useGreeting(t);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // «/» ставит курсор в поиск — как в рис. 40. Внутри полей ввода клавиша работает как обычно.
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "/" || e.metaKey || e.ctrlKey || e.altKey) return;
+      const el = e.target as HTMLElement | null;
+      if (el?.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(el?.tagName ?? "")) {
+        return;
+      }
+      e.preventDefault();
+      inputRef.current?.focus();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
   const voice = useVoiceInput({
     messages: t.voice,
     onText: onQueryChange,
@@ -97,20 +117,26 @@ export function SearchPanel({
 
   return (
     <section className="mx-auto w-full max-w-[1600px] px-4 pb-2 pt-6 sm:px-6">
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">
-        <h1 className="truncate text-2xl font-extrabold tracking-tight text-foreground sm:text-[28px]">
+      <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+        <h1 className="min-w-0 flex-1 truncate text-2xl font-extrabold tracking-tight text-foreground sm:text-[28px]">
           {greeting}, {t.profile.firstName}
         </h1>
-        {totalLabel && (
-          <p
-            className={cn(
-              "text-sm",
-              advisor ? "font-semibold text-primary" : "text-muted-foreground",
-            )}
-          >
-            {totalLabel}
-          </p>
-        )}
+        <div className="flex items-center gap-3">
+          {totalLabel && (
+            <p
+              className={cn(
+                "text-sm",
+                advisor ? "font-semibold text-primary" : "text-muted-foreground",
+              )}
+            >
+              {totalLabel}
+            </p>
+          )}
+          <Button size="sm" className="h-9 shrink-0 font-bold" onClick={onNewCase}>
+            <Plus className="mr-1.5 h-4 w-4" />
+            {t.newCase.cta}
+          </Button>
+        </div>
       </div>
 
       <div className="mt-4 grid gap-3">
@@ -160,6 +186,7 @@ export function SearchPanel({
             {advisor ? t.dashboard.advisorLabel : t.dashboard.searchLabel}
           </label>
           <input
+            ref={inputRef}
             id="main-search-query"
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
@@ -172,6 +199,11 @@ export function SearchPanel({
             className="h-11 w-full min-w-0 bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground/70 sm:text-sm"
           />
           <span className="flex items-center gap-1">
+            {!query && (
+              <kbd className="mr-1 hidden rounded border border-border bg-secondary px-1.5 py-0.5 text-[11px] font-semibold text-muted-foreground sm:inline">
+                /
+              </kbd>
+            )}
             {query && (
               <button
                 onClick={() => onQueryChange("")}

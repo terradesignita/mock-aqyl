@@ -7,6 +7,7 @@ import {
   type CouncilSession,
 } from "@/data/council";
 import type { AdvisorSelection, FollowUpFlags } from "@/data/advisor";
+import type { KnowledgeCardData } from "@/data/mockCards";
 
 export function useTheme() {
   const [dark, setDark] = useLocalStorage<boolean>("biaqyl:dark", false);
@@ -478,4 +479,49 @@ export function useAllFeedback() {
   );
 
   return { totals, byCard: all, hydrated };
+}
+
+/**
+ * Первый источник нового кейса — файл, из которого кейс и создан. Без этого кейс
+ * открывался с пустым контекстом: «0 из 0 источников» при том, что файл был.
+ */
+export function useSeedCardSource() {
+  const [, setAll] = useLocalStorage<Record<string, CardSourceState>>("biaqyl:card-sources", {});
+
+  return useCallback(
+    (cardId: string, upload: Omit<UploadedSource, "id" | "date">) => {
+      const created: UploadedSource = {
+        ...upload,
+        id: `upload_${Date.now()}`,
+        date: new Date().toLocaleDateString("ru-RU"),
+      };
+      setAll((prev) => ({
+        ...prev,
+        [cardId]: {
+          ...EMPTY_SOURCE_STATE,
+          ...(prev[cardId] ?? {}),
+          uploads: [...(prev[cardId]?.uploads ?? []), created],
+          selected: [created.id],
+        },
+      }));
+    },
+    [setAll],
+  );
+}
+
+/**
+ * Кейсы, созданные пользователем через «Новый кейс». В продукте их создаёт бэкенд
+ * после разбора файла; здесь они живут локально, но проходят тот же путь: файл →
+ * этапы обработки → кейс в общей сетке. Раньше создать кейс было нельзя вообще —
+ * загрузка существовала только внутри уже открытого кейса.
+ */
+export function useUserCards() {
+  const [cards, setCards, hydrated] = useLocalStorage<KnowledgeCardData[]>("biaqyl:user-cards", []);
+
+  const add = useCallback(
+    (card: KnowledgeCardData) => setCards((prev) => [card, ...prev]),
+    [setCards],
+  );
+
+  return { cards, add, hydrated };
 }
