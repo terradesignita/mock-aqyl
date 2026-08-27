@@ -1,4 +1,3 @@
-import { HelpHint } from "@/components/HelpHint";
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
@@ -117,15 +116,17 @@ export function SearchPanel({
 
   return (
     <section className="mx-auto w-full max-w-[1600px] px-4 pb-2 pt-6 sm:px-6">
-      <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+      <div className="flex items-end justify-between gap-4">
         <h1 className="min-w-0 flex-1 truncate text-2xl font-extrabold tracking-tight text-foreground sm:text-[28px]">
           {greeting}, {t.profile.firstName}
         </h1>
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-3">
+          {/* Подпись про режим длинная: рядом с приветствием она стоит только на широком
+              экране, иначе съедает его. Ниже lg — своей строкой. */}
           {totalLabel && (
             <p
               className={cn(
-                "text-sm",
+                "hidden max-w-[46ch] truncate text-sm lg:block",
                 advisor ? "font-semibold text-primary" : "text-muted-foreground",
               )}
             >
@@ -138,6 +139,16 @@ export function SearchPanel({
           </Button>
         </div>
       </div>
+      {totalLabel && (
+        <p
+          className={cn(
+            "mt-1 text-sm lg:hidden",
+            advisor ? "font-semibold text-primary" : "text-muted-foreground",
+          )}
+        >
+          {totalLabel}
+        </p>
+      )}
 
       <div className="mt-4 grid gap-3">
         <div className="group grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-border bg-card px-3 py-2 shadow-soft transition-shadow focus-within:shadow-[0_0_0_4px_color-mix(in_oklab,var(--primary)_14%,transparent)]">
@@ -176,10 +187,6 @@ export function SearchPanel({
                 {advisor ? t.dashboard.advisorMode : t.dashboard.searchMode}
               </span>
             </button>
-            <HelpHint
-              side="bottom"
-              text={advisor ? t.dashboard.advisorHintOn : t.dashboard.advisorHintOff}
-            />
           </div>
 
           <label htmlFor="main-search-query" className="sr-only">

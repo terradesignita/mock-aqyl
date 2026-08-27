@@ -1,4 +1,3 @@
-import { HelpHint } from "@/components/HelpHint";
 import { useEffect, useRef, useState } from "react";
 import {
   AlertTriangle,
@@ -448,7 +447,6 @@ ${content.items
         <span className="min-w-0">
           <p className="flex min-w-0 items-center gap-1.5 truncate text-base font-bold tracking-tight text-card-foreground">
             {t.studio.title}
-            <HelpHint side="bottom" text={t.studio.hint} />
           </p>
           <p className="text-xs text-muted-foreground">
             {t.studio.readyOf(generated.length, ARTIFACTS.length)} ·{" "}

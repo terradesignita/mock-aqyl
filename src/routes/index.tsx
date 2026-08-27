@@ -18,14 +18,13 @@ import {
   useOnboardingSeen,
   usePrivateCards,
   useScope,
-  useSeedCardSource,
   useTheme,
   useUserCards,
   type AdvisorSession,
 } from "@/hooks/useAppState";
 import { AdvisorFlow } from "@/components/advisor/AdvisorFlow";
-import { NewCaseDialog, type NewCaseUpload } from "@/components/NewCaseDialog";
-import { BUSINESS_UNITS, type KnowledgeCardData } from "@/data/mockCards";
+import { NewCaseDialog } from "@/components/NewCaseDialog";
+import { BUSINESS_UNITS } from "@/data/mockCards";
 import { CURRENT_USER } from "@/data/backend";
 import { OnboardingModals } from "@/components/OnboardingModals";
 import { Button } from "@/components/ui/button";
@@ -74,7 +73,7 @@ function Dashboard() {
   const t = useT();
   const seedCards = useCards();
   // Кейсы, созданные пользователем, живут в общей сетке — сверху, как самые свежие.
-  const { cards: userCards, add: addUserCard } = useUserCards();
+  const { cards: userCards } = useUserCards();
   const cards = useMemo(() => [...userCards, ...seedCards], [userCards, seedCards]);
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
@@ -92,7 +91,6 @@ function Dashboard() {
   };
   const { history, push, clear } = useHistory();
   const { log: logActivity } = useActivity();
-  const seedCardSource = useSeedCardSource();
   const {
     sessions: advisorSessions,
     save: saveAdvisorSession,
@@ -196,13 +194,6 @@ function Dashboard() {
     logActivity("advisor", q);
   };
 
-  const createCase = (card: KnowledgeCardData, upload: NewCaseUpload) => {
-    addUserCard(card);
-    seedCardSource(card.id, upload);
-    logActivity("upload", card.title);
-    void navigate({ to: "/card/$id", params: { id: card.id } });
-  };
-
   const openSavedSession = (s: AdvisorSession) => {
     setQuery(s.query);
     setAdvisorQuery(s.query);
@@ -222,7 +213,6 @@ function Dashboard() {
       <NewCaseDialog
         open={newCaseOpen}
         onOpenChange={setNewCaseOpen}
-        onCreated={createCase}
         defaultUnit={BUSINESS_UNITS[CURRENT_USER.businessUnitIndex] ?? BUSINESS_UNITS[0]}
       />
 

@@ -12,6 +12,8 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { Toaster } from "../components/ui/sonner";
 import { I18nProvider } from "@/lib/i18n/provider";
+import { IngestProvider } from "@/lib/ingest";
+import { IngestWidget } from "@/components/IngestWidget";
 import { useT } from "@/lib/i18n";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
@@ -143,8 +145,12 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <I18nProvider>
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
+        <IngestProvider>
+          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+          <Outlet />
+          {/* Статус обработки файлов виден с любого экрана, а не только внутри кейса. */}
+          <IngestWidget />
+        </IngestProvider>
         <Toaster position="top-center" />
       </I18nProvider>
     </QueryClientProvider>

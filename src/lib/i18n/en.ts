@@ -63,10 +63,6 @@ export const en: Dictionary = {
     advisorMode: "AI advisor",
     searchMode: "Search",
     advisorSwitchLabel: "AI advisor mode",
-    advisorHintOn:
-      "Turn this on when you need to make a decision: the advisor asks clarifying questions and returns a recommendation with scenarios. Turned off, it is plain material search.",
-    advisorHintOff:
-      "Plain search only looks through cases: titles, summaries and tags. Turn on the AI advisor when you need to make a management decision rather than find a document.",
     searchLabel: "Search BI AQYL materials",
     advisorLabel: "Describe the business situation for the AI advisor",
     searchPlaceholder: "Ask BI AQYL: find materials, cases and decks",
@@ -95,9 +91,6 @@ export const en: Dictionary = {
     visibilityAll: "All",
     visibilityPrivate: "Private",
     visibilityShared: "Shared",
-    visibilityHintLabel: "What Private and Shared mean",
-    visibilityHint:
-      "Private — cases only you can see. Shared — available to every employee and included in company-wide search.",
     bookmarks: "Bookmarks",
     emptyNarrowedTitle: "Nothing matched",
     emptyNarrowedBody: "The filters are too tight. Clear them and the materials come back.",
@@ -142,10 +135,6 @@ export const en: Dictionary = {
       "Make this private? The case materials will no longer be visible to others.",
     makeSharedConfirm: "Yes, make it shared",
     makePrivateConfirm: "Yes, make it private",
-    privateHint:
-      "Private: the case is visible only to you and hidden from the shared knowledge base.",
-    sharedHint:
-      "Shared: the case is visible to every employee and included in knowledge-base search.",
     addBookmark: "Bookmark",
     removeBookmark: "Remove bookmark",
     bookmarkAdded: "Added to bookmarks",
@@ -191,7 +180,6 @@ export const en: Dictionary = {
     deselectAll: "Deselect all",
     collapse: "Collapse the sources panel",
     collapseTitle: "Collapse panel",
-    hint: "Checked sources are the context for the assistant and the artifacts. Uncheck a material to keep it out of the answers. With nothing selected the assistant will not answer.",
     noneSelected:
       "No source is selected — the assistant cannot answer and artifacts cannot be built.",
     dropzone: "Drop files here or click to choose",
@@ -208,8 +196,6 @@ export const en: Dictionary = {
     groupFilesEmpty: "No files yet — upload the first one",
     groupLinks: "Links to materials",
     groupLinksEmpty: "This case has no links",
-    groupLinksHint:
-      "External materials the case refers to. They count towards the context just like files.",
     rejectedTitle: "Not added — format not supported",
     rejectedHide: "Hide the rejected-files message",
     rejectedBody:
@@ -220,8 +206,6 @@ export const en: Dictionary = {
     addedOne: (title: string) => `“${title}” added to the case`,
     noTypeLabel: "no extension",
     notes: "Notes",
-    notesHint:
-      "Assistant answers you saved with “To notes” land here. You can copy or delete them.",
     notesEmpty: "Save answers from the conversation — they will show up here.",
     removeNote: "Delete note",
     linkLabel: "Link",
@@ -301,8 +285,6 @@ export const en: Dictionary = {
     assistant: "AQYL assistant",
     contextOf: (selected: number, total: number) =>
       `Context: ${selected} of ${total} ${pluralEn(total, "source", "sources")}`,
-    contextHint:
-      "The assistant answers only from the sources checked in the left panel. Footnotes [1], [2] in the answer lead to the exact quotes.",
     refusal:
       "I cannot answer: no material is selected in the sources panel.\n\nCheck at least one source on the left — the answer is built only from the selected context, and without it I have nothing to stand on.",
     thinking: (n: number) => `Analysing ${n} ${pluralEn(n, "source", "sources")}…`,
@@ -365,7 +347,6 @@ export const en: Dictionary = {
 
   studio: {
     title: "Artifacts",
-    hint: "Ready-made formats built from the selected sources: quiz, deck, report, cards, podcast, infographic. “⋮” — regenerate, open fullscreen or download.",
     readyOf: (ready: number, total: number) => `${ready} of ${total} ready`,
     contextCount: (n: number) => `context: ${n} ${pluralEn(n, "source", "sources")}`,
     collapse: "Collapse the artifacts panel",
@@ -430,8 +411,6 @@ export const en: Dictionary = {
     stageThinking: "Analysis",
     stageAnswer: "Recommendation",
     stageStatus: (label: string) => `Stage: ${label}`,
-    typeHint: (known: string) =>
-      `The type of decision was inferred from your request. From it we can tell: ${known}.`,
     savedIndicator: "Saved — it comes back after a reload",
     savedIndicatorShort: "Saved",
     notManagerialTitle: "This looks like a search for materials, not a management question",
@@ -453,14 +432,8 @@ export const en: Dictionary = {
     verdictRefusal: "An honest refusal",
     mainInsight: "Key strategic insight",
     evidenceLevel: (level: string) => `Evidence level: ${level}`,
-    evidenceHintLabel: "What the evidence level means",
-    evidenceHint:
-      "The scale: high — several independent sources; medium — one reliable source; low — indirect data; insufficient data — the advisor declines to recommend.",
     sectionWhy: "Why this conclusion",
     sectionCase: (title: string) => `Comparable case: ${title}`,
-    applicabilityHintLabel: "What case applicability means",
-    applicabilityHint:
-      "How close this case is to your situation: high — conditions are near identical; partial — some factors match; weak — only the general logic, the details do not transfer.",
     matches: "What matches",
     differences: "What differs",
     sectionTransfer: "What transfers and what does not",
@@ -481,8 +454,6 @@ export const en: Dictionary = {
     sectionMissing: "What is missing for a final decision",
     sectionSources: "Sources",
     sourceKindWeight: "Source type and its weight in the conclusion",
-    sourceKindHint:
-      "Source type: a fact from a document, the author’s analysis, your own note, or AI-generated. Weight: decisive — the conclusion rests on it; supporting — it reinforces it; contextual — background only.",
     sourceOpened: (title: string) => `Source “${title}” opened`,
     followUpTitle: "Clarify or change the terms",
     followUpThinking: "Checking what changes in the recommendation…",
@@ -499,9 +470,6 @@ export const en: Dictionary = {
   council: {
     title: "Council",
     assembleTitle: "Assemble your council",
-    whatIsLabel: "What the council is",
-    whatIsHint:
-      "The council is a group discussion of your problem with several AI personas. Each brings its own angle, so instead of one opinion you get an argument and competing points of view. Pick one to three participants.",
     selectedOf: (selected: number, max: number) => `Selected ${selected} of ${max}`,
     capacityReached: "You can pick at most three participants.",
     similarViews:
@@ -524,7 +492,6 @@ export const en: Dictionary = {
     pickCaseTitle: "Pick a case to start the council",
     pickCaseHint:
       "Pick the case the council will work through. The personas discuss that case — the situation, the key insight and the quotes all come from it.",
-    pickCaseHintLabel: "What to pick here",
     needParticipant: "Add at least one council member",
     searchCase: "Find a case by title",
     searchPersona: "Find a persona by name or style",
@@ -678,13 +645,63 @@ export const en: Dictionary = {
     dropBody: (n: number) =>
       `${n} ${pluralEn(n, "format", "formats")} accepted. The case name comes from the content, not the file name.`,
     pickFile: "Pick a file",
-    onlyFirstFile: (rest: number) =>
-      `${rest} ${pluralEn(rest, "file", "files")} left out: a case starts from one material, add the rest inside the case.`,
-    created: (title: string) => `Case "${title}" created`,
+    progressNote: "The case appears in the list right away; parsing runs in the background.",
     pendingSummary:
       "The file content has not been parsed yet — this prototype does not extract text. The source is attached, and the chat and artefacts will rely on it.",
     pendingInsight: "The core insight will appear once the material is parsed.",
     searchHotkey: 'Press "/" to search',
+  },
+
+  /** File processing status widget — fig. 41. */
+  ingestWidget: {
+    titleRunning: (n: number) => `Processing ${n} ${pluralEn(n, "file", "files")}`,
+    titleDone: (n: number) => `${n} ${pluralEn(n, "file", "files")} ready`,
+    titleError: (n: number) => `${n} ${pluralEn(n, "file", "files")} not accepted`,
+    titleMixed: (done: number, failed: number) => `${done} ready · ${failed} not accepted`,
+    collapse: "Collapse processing status",
+    expand: "Expand processing status",
+    close: "Clear finished",
+    dismissOne: "Remove from the list",
+    done: "Parsed and added to the case",
+    open: "Open",
+    rejected: (format: string) => `${format} — format not supported`,
+    pickAnother: "Pick another file",
+  },
+
+  /** A single place for help instead of 18 "?" buttons across the UI (report §6). */
+  help: {
+    open: "How this works",
+    title: "How this works",
+    subtitle:
+      "The seven ideas the platform rests on — everything the on-screen labels could not explain by themselves.",
+    caseTitle: "Case and material",
+    caseBody:
+      "A case is a folder on one topic; materials go inside it (a report, a deck, a recording, an article). A material is one document inside the case. Cases are created with the “New case” button from a file: the name comes from the content, not the file name.",
+    sourcesTitle: "Sources and context",
+    sourcesBody:
+      "The assistant answers only from the sources ticked in the left panel. Unticking one takes it out of the context, and the answer changes. With nothing ticked the assistant refuses to answer rather than inventing one. Footnotes [1], [2] lead to the exact quotes.",
+    advisorTitle: "Search and the AI advisor",
+    advisorBody:
+      "Search looks through cases: titles, summaries and tags. The AI advisor is for making a decision: it asks clarifying questions, shows how it understood the situation, and returns a recommendation with options, terms and risks.",
+    evidenceTitle: "Evidence and applicability",
+    evidenceBody:
+      "Evidence says what the conclusion stands on: high — several independent sources; medium — one reliable source; low — indirect data; not enough data — the advisor declines to recommend. Applicability says how close the reference case is to your situation: high, partial or a weak analogy.",
+    artifactsTitle: "Artefacts",
+    artifactsBody:
+      "Ready-made formats built from the ticked sources: a quiz, a deck, a report, cards, a podcast, an infographic. The “⋮” on a tile regenerates, opens fullscreen or downloads. Check figures and quotes against the original before you send anything on.",
+    councilTitle: "Council",
+    councilBody:
+      "A group discussion of your problem with several AI personas at once: instead of one opinion you get an argument and competing views. The personas are digital models of publicly known approaches, not real people and not their private views. One to three participants.",
+    privacyTitle: "Private and shared cases",
+    privacyBody:
+      "A private case is visible only to you and stays out of the shared search. A shared one is available to everyone. You switch this on the case card itself.",
+    shortcutsTitle: "Keyboard shortcuts",
+    keySlash: "/",
+    keySlashWhat: "focus the search",
+    keyEsc: "Esc",
+    keyEscWhat: "close the window",
+    keyF: "F",
+    keyFWhat: "artefact fullscreen",
   },
 
   artifactContent: {

@@ -4,7 +4,6 @@ import { Check, Info, PanelLeft, PanelLeftClose, Plus, Search, Send, Trash2 } fr
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { toast } from "sonner";
 import { Header } from "@/components/Header";
-import { HelpHint } from "@/components/HelpHint";
 import { HoverRevealIconButton } from "@/components/HoverRevealIconButton";
 import { MessageBubble } from "@/components/MessageBubble";
 import { PersonaAvatar, PersonaSilhouette } from "@/components/PersonaAvatar";
@@ -372,10 +371,7 @@ function PersonaGallerySection({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-1.5">
-        <h2 className="text-2xl font-bold text-foreground">{t.council.assembleTitle}</h2>
-        <HelpHint label={t.council.whatIsLabel} text={t.council.whatIsHint} />
-      </div>
+      <h2 className="text-2xl font-bold text-foreground">{t.council.assembleTitle}</h2>
 
       <p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
         {t.personaDisclaimer}
@@ -470,9 +466,12 @@ function NewCouncilPanel({
         <PersonaGallerySection selected={personaIds} onChange={setPersonaIds} />
 
         <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-1.5">
+          <div>
             <h2 className="text-2xl font-bold text-foreground">{t.council.topicQuestion}</h2>
-            <HelpHint label={t.council.pickCaseHintLabel} text={t.council.pickCaseHint} />
+            {/* Что именно выбирают и почему — видимой строкой, а не подсказкой. */}
+            <p className="mt-1 max-w-xl text-sm leading-relaxed text-muted-foreground">
+              {t.council.pickCaseHint}
+            </p>
           </div>
 
           <div className="flex w-full max-w-xl items-center gap-2 rounded-xl border border-border bg-background px-3 transition-colors focus-within:border-primary">

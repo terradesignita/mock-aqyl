@@ -3,7 +3,7 @@ import { Link, createFileRoute, notFound } from "@tanstack/react-router";
 import { Bookmark, Link2, Pencil, PanelLeft, PanelRight, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { Header } from "@/components/Header";
-import { SourcesPanel, type AcceptedUpload } from "@/components/notebook/SourcesPanel";
+import { SourcesPanel } from "@/components/notebook/SourcesPanel";
 import { SourceReaderDialog } from "@/components/notebook/SourceReaderDialog";
 import { buildNotebookSources, uploadedSource, type NotebookSource } from "@/lib/sources";
 import { NotebookChat } from "@/components/notebook/NotebookChat";
@@ -206,11 +206,6 @@ function CardWorkspaceInner({ base }: { base: KnowledgeCardData }) {
   const isInternal = card.scope === "INTERNAL";
   const selectedCitations = sources.filter((s) => selected.includes(s.id)).map((s) => s.anchor);
 
-  const handleUpload = (files: AcceptedUpload[]) => {
-    sourceState.addUploads(files);
-    for (const f of files) logActivity("upload", f.title);
-  };
-
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
@@ -374,7 +369,6 @@ function CardWorkspaceInner({ base }: { base: KnowledgeCardData }) {
               onToggleAll={sourceState.toggleAll}
               onRename={sourceState.rename}
               onRemove={sourceState.removeSource}
-              onUpload={handleUpload}
               onOpenSource={(s) => {
                 setHighlight(null);
                 setReader(s);
@@ -410,7 +404,6 @@ function CardWorkspaceInner({ base }: { base: KnowledgeCardData }) {
               onToggleAll={sourceState.toggleAll}
               onRename={sourceState.rename}
               onRemove={sourceState.removeSource}
-              onUpload={handleUpload}
               onOpenSource={(s) => {
                 setHighlight(null);
                 setReader(s);

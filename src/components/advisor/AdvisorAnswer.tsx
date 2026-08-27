@@ -14,7 +14,6 @@ import {
 import { toast } from "sonner";
 import type { Answer } from "@/data/advisor";
 import { Badge } from "@/components/ui/badge";
-import { HelpHint } from "@/components/HelpHint";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
 
@@ -145,7 +144,6 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
         >
           {t.advisor.evidenceLevel(t.evidence[answer.evidenceLevel])}
         </Badge>
-        <HelpHint label={t.advisor.evidenceHintLabel} text={t.advisor.evidenceHint} />
         <span className="text-xs text-muted-foreground">{answer.evidenceNote}</span>
       </div>
     </section>
@@ -227,7 +225,6 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
             >
               {t.applicability[answer.caseRef.applicability]}
             </Badge>
-            <HelpHint label={t.advisor.applicabilityHintLabel} text={t.advisor.applicabilityHint} />
           </div>
           <p className="mt-2 text-sm leading-relaxed text-card-foreground">
             {answer.caseRef.summary}
@@ -282,10 +279,7 @@ export function AdvisorAnswer({ answer }: { answer: Answer }) {
           }
           icon={Quote}
         >
-          <p className="mb-2 flex items-center gap-1.5 text-xs text-muted-foreground">
-            {t.advisor.sourceKindWeight}
-            <HelpHint text={t.advisor.sourceKindHint} />
-          </p>
+          <p className="mb-2 text-xs text-muted-foreground">{t.advisor.sourceKindWeight}</p>
           <ul className="space-y-2">
             {answer.sources.map((s) => (
               <li key={s.id}>

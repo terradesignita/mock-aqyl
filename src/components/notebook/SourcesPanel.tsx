@@ -1,4 +1,3 @@
-import { HelpHint } from "@/components/HelpHint";
 import { HoverRevealIconButton } from "@/components/HoverRevealIconButton";
 import { Badge } from "@/components/ui/badge";
 import { useEffect, useRef, useState } from "react";
@@ -34,7 +33,8 @@ import {
 } from "@/lib/sources";
 import type { StoredNote } from "@/hooks/useAppState";
 import { downloadFile, safeFileName } from "@/lib/utils";
-import { BCP47, useI18n, useT } from "@/lib/i18n";
+import { useT } from "@/lib/i18n";
+import { useIngest } from "@/lib/ingest";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,25 +43,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-export interface AcceptedUpload {
-  /** Название, выведенное из содержимого или таймстемпа, а не имя файла. */
-  title: string;
-  format: string;
-  size: string;
-  fileName: string;
-  excerpt?: string;
-}
-
-/** Файл в обработке: этапы и текущий шаг. */
-interface Processing {
-  key: string;
-  fileName: string;
-  size: string;
-  stages: IngestStage[];
-  step: number;
-  upload: AcceptedUpload;
-}
 
 interface Props {
   card: KnowledgeCardData;
@@ -72,7 +53,6 @@ interface Props {
   onToggleAll: () => void;
   onRename: (id: string, title: string) => void;
   onRemove: (id: string) => void;
-  onUpload: (files: AcceptedUpload[]) => void;
   onOpenSource: (source: NotebookSource) => void;
   notes: StoredNote[];
   onRemoveNote: (id: string) => void;
@@ -105,24 +85,21 @@ export function SourcesPanel({
   onToggleAll,
   onRename,
   onRemove,
-  onUpload,
   onOpenSource,
   notes,
   onRemoveNote,
   onCollapse,
 }: Props) {
   const t = useT();
-  const { locale } = useI18n();
   const [drag, setDrag] = useState(false);
-  const [processing, setProcessing] = useState<Processing[]>([]);
-  const [rejected, setRejected] = useState<{ name: string; format: string }[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const timersRef = useRef<number[]>([]);
-
-  useEffect(() => {
-    const timers = timersRef.current;
-    return () => timers.forEach((t) => window.clearTimeout(t));
-  }, []);
+  const { jobs, start, dismiss } = useIngest();
+  const processing = jobs.filter(
+    (j) => j.cardId === card.id && j.state === "running" && j.stages.length > 0,
+  );
+  const rejected = jobs.filter(
+    (j) => j.state === "error" && j.target.kind === "case" && j.target.cardId === card.id,
+  );
 
   const allSelected = selected.length === sources.length && sources.length > 0;
   const files = sources.filter((s) => s.kind === "file");
@@ -130,74 +107,9 @@ export function SourcesPanel({
 
   const titleOf = (s: NotebookSource) => renames[s.id] ?? s.title;
 
-  /**
-   * Принимает файлы: валидирует формат, проводит по этапам обработки и добавляет
-   * источники с названием из содержимого. Отклонённые файлы называются явно.
-   */
-  const accept = async (list: FileList | File[] | null) => {
-    const incoming = Array.from(list ?? []);
-    if (incoming.length === 0) return;
-
-    const { accepted, rejected: bad } = triageFiles(incoming);
-
-    if (bad.length > 0) {
-      setRejected(
-        bad.map((f) => ({ name: f.name, format: extensionOf(f.name) || t.sources.noTypeLabel })),
-      );
-      toast.error(
-        bad.length === 1 ? t.sources.rejectedOne(bad[0].name) : t.sources.rejectedMany(bad.length),
-      );
-    }
-    if (accepted.length === 0) return;
-
-    for (const file of accepted) {
-      const stages = ingestStages(file.name, t);
-      const title = await deriveTitle(file, t, BCP47[locale]);
-      const excerpt =
-        familyOf(file.name) === "text"
-          ? await file
-              .text()
-              .then((t) => t.trim().slice(0, 900))
-              .catch(() => undefined)
-          : undefined;
-
-      const item: Processing = {
-        key: `${file.name}_${file.size}_${Date.now()}`,
-        fileName: file.name,
-        size: formatBytes(file.size, t),
-        stages,
-        step: 0,
-        upload: {
-          title,
-          format: extensionOf(file.name).toUpperCase(),
-          size: formatBytes(file.size, t),
-          fileName: file.name,
-          excerpt,
-        },
-      };
-
-      setProcessing((p) => [...p, item]);
-
-      // Этапы проходят последовательно — так же, как приходят статусы по SSE.
-      stages.forEach((_, i) => {
-        if (i === 0) return;
-        timersRef.current.push(
-          window.setTimeout(
-            () => setProcessing((p) => p.map((x) => (x.key === item.key ? { ...x, step: i } : x))),
-            i * STAGE_MS,
-          ),
-        );
-      });
-
-      timersRef.current.push(
-        window.setTimeout(() => {
-          setProcessing((p) => p.filter((x) => x.key !== item.key));
-          onUpload([item.upload]);
-          toast.success(t.sources.addedOne(title));
-        }, stages.length * STAGE_MS),
-      );
-    }
-  };
+  /** Файлы уходят в общую обработку: её статус виден и здесь, и в виджете на любом экране. */
+  const accept = (list: FileList | File[] | null) =>
+    void start(list, { kind: "case", cardId: card.id });
 
   const rename = (s: NotebookSource) => {
     const next = window.prompt(t.sources.renamePrompt, titleOf(s));
@@ -300,19 +212,12 @@ export function SourcesPanel({
     );
   };
 
-  const group = (
-    label: string,
-    dot: string,
-    items: NotebookSource[],
-    empty: string,
-    hint?: string,
-  ) => (
+  const group = (label: string, dot: string, items: NotebookSource[], empty: string) => (
     <div>
       <p className="flex items-center gap-1.5 px-1 pb-1 text-xs font-semibold text-muted-foreground">
         <span aria-hidden className={`h-2 w-2 rounded-full ${dot}`} />
         {label}
         <Counter value={items.length} />
-        {hint && <HelpHint side="bottom" text={hint} />}
       </p>
       {items.length === 0 ? (
         <p className="px-1 py-1 text-xs text-muted-foreground">{empty}</p>
@@ -331,7 +236,6 @@ export function SourcesPanel({
           <span className="text-xs font-medium text-muted-foreground">
             {t.sources.selectedOf(sources.length)}
           </span>
-          <HelpHint side="bottom" text={t.sources.hint} />
         </p>
         <button
           onClick={onToggleAll}
@@ -406,7 +310,7 @@ export function SourcesPanel({
               const stage = p.stages[p.step];
               return (
                 <li
-                  key={p.key}
+                  key={p.id}
                   className="rounded-lg border border-primary/40 bg-primary/8 px-2.5 py-2 text-xs"
                 >
                   <p className="flex items-center gap-2 text-card-foreground">
@@ -444,17 +348,29 @@ export function SourcesPanel({
               <AlertTriangle className="mt-px h-3.5 w-3.5 shrink-0" />
               <span className="flex-1">{t.sources.rejectedTitle}</span>
               <button
-                onClick={() => setRejected([])}
+                onClick={() => rejected.forEach((r) => dismiss(r.id))}
                 aria-label={t.sources.rejectedHide}
                 className="-m-1 shrink-0 p-1 text-destructive/70 transition-colors hover:text-destructive"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
             </p>
-            <ul className="mt-1.5 space-y-0.5">
+            <ul className="mt-1.5 space-y-1">
               {rejected.map((r) => (
-                <li key={r.name} className="truncate text-xs text-card-foreground">
-                  {r.name} <span className="text-muted-foreground">· {r.format}</span>
+                <li
+                  key={r.id}
+                  className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 text-xs text-card-foreground"
+                >
+                  <span className="truncate">
+                    {r.fileName} <span className="text-muted-foreground">· {r.badFormat}</span>
+                  </span>
+                  {/* Отклонённый файл больше не надо искать заново вручную. */}
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="shrink-0 font-bold text-primary hover:underline"
+                  >
+                    {t.ingestWidget.pickAnother}
+                  </button>
                 </li>
               ))}
             </ul>
@@ -467,20 +383,13 @@ export function SourcesPanel({
 
       <div className="flex-1 space-y-3 overflow-y-auto px-3 pb-3">
         {group(t.sources.groupFiles, "bg-src-file", files, t.sources.groupFilesEmpty)}
-        {group(
-          t.sources.groupLinks,
-          "bg-src-link",
-          links,
-          t.sources.groupLinksEmpty,
-          t.sources.groupLinksHint,
-        )}
+        {group(t.sources.groupLinks, "bg-src-link", links, t.sources.groupLinksEmpty)}
       </div>
 
       <div className="max-h-[45%] overflow-y-auto border-t border-border p-3">
         <p className="flex items-center gap-1.5 pb-1.5 text-xs font-semibold text-card-foreground">
           <NotebookPen className="h-3.5 w-3.5 text-primary" /> {t.sources.notes}
           <Counter value={notes.length} />
-          <HelpHint side="top" text={t.sources.notesHint} />
         </p>
         {notes.length === 0 ? (
           <p className="rounded-lg border border-dashed border-border p-2.5 text-xs leading-relaxed text-muted-foreground">

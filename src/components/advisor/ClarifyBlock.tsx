@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { HelpHint } from "@/components/HelpHint";
 import type { AdvisorSelection, ClarifyQuestion, Dilemma } from "@/data/advisor";
 import { useT } from "@/lib/i18n";
 
@@ -73,14 +72,12 @@ export function ClarifyBlock({ dilemma, questions, selection, onChange, index, o
         </span>
       </div>
 
-      <div className="mt-4 flex items-start gap-2">
+      <div className="mt-4">
         <h2 className="text-base font-bold leading-snug text-card-foreground">{q.title}</h2>
-        <span className="mt-1">
-          <HelpHint
-            side="right"
-            text={t.clarify.modeHint(Boolean(q.multi), dilemma.drivers.join(", "))}
-          />
-        </span>
+        {/* Сколько вариантов можно выбрать и что от них зависит — видно всегда. */}
+        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+          {t.clarify.modeHint(Boolean(q.multi), dilemma.drivers.join(", "))}
+        </p>
       </div>
 
       <div

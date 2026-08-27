@@ -368,23 +368,6 @@ export function useCardSources(cardId: string, allIds: string[]) {
     [patch, allIds],
   );
 
-  const addUploads = useCallback(
-    (files: Omit<UploadedSource, "id" | "date">[]) => {
-      const created = files.map((f, i) => ({
-        ...f,
-        id: `upload_${Date.now()}_${i}`,
-        date: new Date().toLocaleDateString("ru-RU"),
-      }));
-      patch((prev) => ({
-        ...prev,
-        uploads: [...prev.uploads, ...created],
-        selected: [...(prev.selected ?? allIds), ...created.map((c) => c.id)],
-      }));
-      return created;
-    },
-    [patch, allIds],
-  );
-
   return {
     selected,
     renames: state.renames,
@@ -395,7 +378,6 @@ export function useCardSources(cardId: string, allIds: string[]) {
     toggleAll,
     rename,
     removeSource,
-    addUploads,
   };
 }
 
@@ -482,30 +464,21 @@ export function useAllFeedback() {
 }
 
 /**
- * Первый источник нового кейса — файл, из которого кейс и создан. Без этого кейс
- * открывался с пустым контекстом: «0 из 0 источников» при том, что файл был.
+ * Сколько материалов реально в каждом кейсе: исходные минус удалённые плюс
+ * загруженные. Без этого карточка нового кейса писала «0 файлов» при наличии файла.
  */
-export function useSeedCardSource() {
-  const [, setAll] = useLocalStorage<Record<string, CardSourceState>>("biaqyl:card-sources", {});
+export function useCardFileCounts() {
+  const [all] = useLocalStorage<Record<string, CardSourceState>>("biaqyl:card-sources", {});
 
   return useCallback(
-    (cardId: string, upload: Omit<UploadedSource, "id" | "date">) => {
-      const created: UploadedSource = {
-        ...upload,
-        id: `upload_${Date.now()}`,
-        date: new Date().toLocaleDateString("ru-RU"),
-      };
-      setAll((prev) => ({
-        ...prev,
-        [cardId]: {
-          ...EMPTY_SOURCE_STATE,
-          ...(prev[cardId] ?? {}),
-          uploads: [...(prev[cardId]?.uploads ?? []), created],
-          selected: [created.id],
-        },
-      }));
+    (card: KnowledgeCardData) => {
+      const state = all[card.id];
+      if (!state) return card.citations.length;
+      const removed = state.removed ?? [];
+      const base = card.citations.filter((c) => !removed.includes(c.chunk_id)).length;
+      return base + (state.uploads?.length ?? 0);
     },
-    [setAll],
+    [all],
   );
 }
 

@@ -13,7 +13,6 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { HelpHint } from "@/components/HelpHint";
 import { MessageBubble } from "@/components/MessageBubble";
 import {
   buildAnswer,
@@ -245,7 +244,6 @@ export function AdvisorFlow({ query, onReset, initialSession, onSave }: Props) {
         <span className="grid h-6 w-6 place-items-center rounded-full bg-primary/12">
           <Sparkles className="h-3.5 w-3.5 text-primary" />
         </span>
-        <HelpHint side="bottom" text={t.advisor.typeHint(known.join("; "))} />
         <span className="mx-1 min-w-0 flex-1">
           <Stepper stage={stage} onGoTo={setStage} />
         </span>

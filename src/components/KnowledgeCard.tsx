@@ -1,6 +1,16 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Bookmark, Building2, Files, Globe, Lock, Trash2, Users } from "lucide-react";
+import {
+  ArrowRight,
+  Bookmark,
+  Building2,
+  Files,
+  Globe,
+  Loader2,
+  Lock,
+  Trash2,
+  Users,
+} from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import type { KnowledgeCardData } from "@/data/mockCards";
 import {
@@ -15,11 +25,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { badgeVariants } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { HelpHint } from "@/components/HelpHint";
 import { HoverRevealIconButton } from "@/components/HoverRevealIconButton";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
+import { useIngest } from "@/lib/ingest";
+import { useCardFileCounts } from "@/hooks/useAppState";
 
 interface KnowledgeCardProps {
   card: KnowledgeCardData & { matchScore?: number };
@@ -43,6 +54,10 @@ export function KnowledgeCard({
   isNew,
 }: KnowledgeCardProps) {
   const t = useT();
+  const { jobFor } = useIngest();
+  const fileCount = useCardFileCounts();
+  // Файл кейса ещё разбирается — показываем это на самой карточке (рис. 41).
+  const job = jobFor(card.id);
   const isInternal = card.scope === "INTERNAL";
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -112,9 +127,6 @@ export function KnowledgeCard({
                 </div>
               </PopoverContent>
             </Popover>
-            <span onClick={(e) => e.stopPropagation()}>
-              <HelpHint side="bottom" text={isPrivate ? t.card.privateHint : t.card.sharedHint} />
-            </span>
           </div>
 
           <button
@@ -147,9 +159,29 @@ export function KnowledgeCard({
             {card.title}
             {isNew && <span className="sr-only"> — {t.card.unreadSr}</span>}
           </p>
-          <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
-            {card.executive_summary}
-          </p>
+          {job ? (
+            <div className="mt-2">
+              <div className="h-1 overflow-hidden rounded-full bg-secondary">
+                <div
+                  className="h-full rounded-full bg-primary transition-[width] duration-500"
+                  style={{ width: `${((job.step + 1) / job.stages.length) * 100}%` }}
+                />
+              </div>
+              <p className="mt-1.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-primary" />
+                <span className="min-w-0 truncate font-semibold text-primary">
+                  {job.stages[job.step]?.label}
+                </span>
+                <span className="ml-auto shrink-0 tabular-nums">
+                  {Math.round(((job.step + 1) / job.stages.length) * 100)} %
+                </span>
+              </p>
+            </div>
+          ) : (
+            <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+              {card.executive_summary}
+            </p>
+          )}
         </div>
 
         {/* Footer: scope, file count & delete */}
@@ -167,7 +199,7 @@ export function KnowledgeCard({
             </span>
             <span aria-hidden>·</span>
             <Files className="h-3.5 w-3.5 shrink-0" />
-            <span className="whitespace-nowrap">{t.card.filesCount(card.citations.length)}</span>
+            <span className="whitespace-nowrap">{t.card.filesCount(fileCount(card))}</span>
           </span>
 
           <div className="relative z-10 flex shrink-0 items-center gap-1">

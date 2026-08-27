@@ -1,4 +1,3 @@
-import { HelpHint } from "@/components/HelpHint";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
@@ -316,7 +315,6 @@ export function NotebookChat({
           >
             {selectedCitations.length === 0 && <AlertTriangle className="h-3.5 w-3.5" />}
             {t.chat.contextOf(selectedCitations.length, sources.length)}
-            <HelpHint side="left" text={t.chat.contextHint} />
           </span>
         </div>
         <div

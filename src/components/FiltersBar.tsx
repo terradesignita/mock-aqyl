@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Bookmark, Hash, X } from "lucide-react";
-import { HelpHint } from "@/components/HelpHint";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { TOPIC_TAGS } from "@/data/mockCards";
 import type { Filters } from "@/lib/search";
@@ -201,7 +200,6 @@ export function FiltersBar({
               </button>
             ))}
           </div>
-          <HelpHint label={t.dashboard.visibilityHintLabel} text={t.dashboard.visibilityHint} />
         </div>
 
         <button

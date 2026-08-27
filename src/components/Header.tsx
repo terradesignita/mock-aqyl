@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Home, LogOut, Moon, Settings, Sun, User, Users } from "lucide-react";
 import { toast } from "sonner";
 import { BiLogo } from "@/components/BiLogo";
+import { HelpSheet } from "@/components/HelpSheet";
 import { PersonaAvatar } from "@/components/PersonaAvatar";
 import { CURRENT_USER } from "@/data/backend";
 import { BUSINESS_UNITS } from "@/data/mockCards";
@@ -67,6 +68,9 @@ export function Header({ dark, onToggleDark, className }: HeaderProps) {
         </nav>
 
         <div className="flex items-center gap-2 justify-self-end">
+          {/* Единственный вход в справку: подсказки «?» из рабочих зон убраны. */}
+          <HelpSheet />
+
           <div className="flex items-center rounded-full border border-border bg-background p-0.5">
             <button
               onClick={() => dark && onToggleDark()}
