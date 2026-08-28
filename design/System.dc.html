@@ -1,0 +1,235 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700;800&family=Manrope:wght@500;600;700;800&display=swap">
+  <style>
+    body {
+      margin: 0;
+      font-family: "Golos Text", ui-sans-serif, system-ui, sans-serif;
+      font-size: 15px;
+      color: oklch(0.218 0.036 251.3);
+      background: oklch(0.975 0.005 258.3);
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: oklch(0.538 0.256 262.4); }
+    a:hover { color: oklch(0.459 0.214 262.1); }
+    .disp { font-family: "Manrope", "Golos Text", ui-sans-serif, sans-serif; }
+    .sw { height: 34px; border-radius: 7px; display: flex; align-items: flex-end; padding: 5px 6px; font-size: 9px; font-weight: 600; color: #fff; }
+    .card { background: oklch(1 0 0); border: 1px solid oklch(0.916 0.016 257.2); border-radius: 12px; padding: 18px; box-shadow: 0 1px 2px oklch(0.218 0.036 251.3 / 0.06); }
+    .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+  </style>
+</helmet>
+
+<div style="padding: 40px; display: flex; flex-direction: column; gap: 30px">
+
+  <div style="display: flex; flex-direction: column; gap: 6px">
+    <div class="disp eyebrow" style="color: oklch(0.484 0.041 256.4)">Проблема 4 · система</div>
+    <div class="disp" style="font-size: 27px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15">Шкала плоская, а семантических цветов двадцать четыре</div>
+    <div style="max-width: 940px; font-size: 14px; line-height: 1.6; color: oklch(0.484 0.041 256.4); text-wrap: pretty">Manrope подключён как display-шрифт и почти не используется как display. Иерархия держится на весе и цвете, а не на размере. Цвет при этом перегружен: когда «значение» есть у двадцати четырёх оттенков, его нет ни у одного.</div>
+  </div>
+
+  <!-- ================= ТИПОГРАФИКА ================= -->
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px">
+
+    <div class="card" style="display: flex; flex-direction: column; gap: 16px">
+      <div style="display: flex; align-items: center; gap: 8px">
+        <span style="width: 7px; height: 7px; border-radius: 999px; background: oklch(0.545 0.208 25.3)"></span>
+        <span class="disp eyebrow" style="color: oklch(0.545 0.208 25.3)">Шкала сейчас</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 11px">
+        <div style="display: grid; grid-template-columns: 66px minmax(0, 1fr); gap: 14px; align-items: baseline">
+          <span style="font-size: 10px; color: oklch(0.484 0.041 256.4); font-variant-numeric: tabular-nums">28 / 800</span>
+          <span class="disp" style="font-size: 28px; font-weight: 800; letter-spacing: -0.01em">Добрый день, Марат</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 66px minmax(0, 1fr); gap: 14px; align-items: baseline">
+          <span style="font-size: 10px; color: oklch(0.484 0.041 256.4); font-variant-numeric: tabular-nums">20 / 800</span>
+          <span class="disp" style="font-size: 20px; font-weight: 800">Кейсы</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 66px minmax(0, 1fr); gap: 14px; align-items: baseline">
+          <span style="font-size: 10px; color: oklch(0.484 0.041 256.4); font-variant-numeric: tabular-nums">16 / 700</span>
+          <span style="font-size: 16px; font-weight: 700">HBS Case: Amazon's Two-Pizza Teams</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 66px minmax(0, 1fr); gap: 14px; align-items: baseline">
+          <span style="font-size: 10px; color: oklch(0.484 0.041 256.4); font-variant-numeric: tabular-nums">14 / 400</span>
+          <span style="font-size: 14px; color: oklch(0.484 0.041 256.4)">Как ограничение размера команды меняет скорость</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 66px minmax(0, 1fr); gap: 14px; align-items: baseline">
+          <span style="font-size: 10px; color: oklch(0.484 0.041 256.4); font-variant-numeric: tabular-nums">12 / 500</span>
+          <span style="font-size: 12px; color: oklch(0.484 0.041 256.4)">Мировой опыт · 2 файла</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 66px minmax(0, 1fr); gap: 14px; align-items: baseline">
+          <span style="font-size: 10px; color: oklch(0.484 0.041 256.4); font-variant-numeric: tabular-nums">12 / 600</span>
+          <span style="font-size: 12px; font-weight: 600">Общий</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 66px minmax(0, 1fr); gap: 14px; align-items: baseline">
+          <span style="font-size: 10px; color: oklch(0.484 0.041 256.4); font-variant-numeric: tabular-nums">12 / 400</span>
+          <span style="font-size: 12px; color: oklch(0.484 0.041 256.4)">PPTX · 8.1 МБ · Презентация</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 66px minmax(0, 1fr); gap: 14px; align-items: baseline">
+          <span style="font-size: 10px; color: oklch(0.484 0.041 256.4); font-variant-numeric: tabular-nums">12 / 400</span>
+          <span style="font-size: 12px; color: oklch(0.484 0.041 256.4)">Контекст: 3 из 3 источников</span>
+        </div>
+      </div>
+      <div style="padding: 11px 13px; background: color-mix(in oklab, oklch(0.545 0.208 25.3) 6%, oklch(1 0 0)); border: 1px solid color-mix(in oklab, oklch(0.545 0.208 25.3) 22%, transparent); border-radius: 9px; font-size: 12px; line-height: 1.6; color: oklch(0.484 0.041 256.4)">Пять из восьми строк живут в 12–14px. Всё, что не заголовок экрана, различается только весом. 12px здесь и подпись, и бейдж, и метаданные, и главное состояние продукта.</div>
+    </div>
+
+    <div class="card" style="display: flex; flex-direction: column; gap: 16px">
+      <div style="display: flex; align-items: center; gap: 8px">
+        <span style="width: 7px; height: 7px; border-radius: 999px; background: oklch(0.500 0.149 162.5)"></span>
+        <span class="disp eyebrow" style="color: oklch(0.500 0.149 162.5)">Шкала предлагаемая · шесть ступеней</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 13px">
+        <div style="display: grid; grid-template-columns: 90px minmax(0, 1fr); gap: 14px; align-items: baseline">
+          <span class="disp" style="font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: oklch(0.484 0.041 256.4)">Display 32</span>
+          <span class="disp" style="font-size: 32px; font-weight: 800; letter-spacing: -0.026em; line-height: 1.1">Кейсы</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 90px minmax(0, 1fr); gap: 14px; align-items: baseline">
+          <span class="disp" style="font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: oklch(0.484 0.041 256.4)">Title 22</span>
+          <span class="disp" style="font-size: 22px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2">С чего начнём по материалу?</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 90px minmax(0, 1fr); gap: 14px; align-items: baseline">
+          <span class="disp" style="font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: oklch(0.484 0.041 256.4)">Subtitle 17</span>
+          <span class="disp" style="font-size: 17px; font-weight: 700; letter-spacing: -0.011em; line-height: 1.3">HBS Case: Amazon's Two-Pizza Teams</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 90px minmax(0, 1fr); gap: 14px; align-items: baseline">
+          <span class="disp" style="font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: oklch(0.484 0.041 256.4)">Body 15</span>
+          <span style="font-size: 15px; line-height: 1.65">Ответ строится только по выбранному контексту — без него у меня нет оснований.</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 90px minmax(0, 1fr); gap: 14px; align-items: baseline">
+          <span class="disp" style="font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: oklch(0.484 0.041 256.4)">Meta 13</span>
+          <span style="font-size: 13px; color: oklch(0.484 0.041 256.4)">Мировой опыт · 2 материала · 2019</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 90px minmax(0, 1fr); gap: 14px; align-items: baseline">
+          <span class="disp" style="font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: oklch(0.484 0.041 256.4)">Label 11</span>
+          <span class="disp eyebrow" style="color: oklch(0.484 0.041 256.4)">Готово · можно собрать</span>
+        </div>
+      </div>
+      <div style="padding: 11px 13px; background: color-mix(in oklab, oklch(0.500 0.149 162.5) 6%, oklch(1 0 0)); border: 1px solid color-mix(in oklab, oklch(0.500 0.149 162.5) 24%, transparent); border-radius: 9px; font-size: 12px; line-height: 1.6; color: oklch(0.484 0.041 256.4)">Шесть ступеней вместо восьми пересекающихся. Manrope работает от 17px и выше с отрицательным трекингом, Golos держит тело от 13px. <b style="color: oklch(0.218 0.036 251.3); font-weight: 600">13px — пол для вторичного текста</b>, 11px только для капса-меток. Диапазон вырос с 12–28 до 11–32: иерархия появляется до чтения.</div>
+    </div>
+  </div>
+
+  <!-- ================= ЦВЕТ ================= -->
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px">
+
+    <div class="card" style="display: flex; flex-direction: column; gap: 16px">
+      <div style="display: flex; align-items: center; gap: 8px">
+        <span style="width: 7px; height: 7px; border-radius: 999px; background: oklch(0.545 0.208 25.3)"></span>
+        <span class="disp eyebrow" style="color: oklch(0.545 0.208 25.3)">Цвет сейчас · 24 значения</span>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 9px">
+        <div>
+          <div style="font-size: 11px; font-weight: 600; color: oklch(0.484 0.041 256.4); margin-bottom: 5px">Бренд и статус · 6</div>
+          <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 5px">
+            <span class="sw" style="background: oklch(0.538 0.256 262.4)">primary</span>
+            <span class="sw" style="background: oklch(0.356 0.216 270.2)">accent</span>
+            <span class="sw" style="background: oklch(0.500 0.149 162.5)">success</span>
+            <span class="sw" style="background: oklch(0.559 0.120 70.1)">warning</span>
+            <span class="sw" style="background: oklch(0.545 0.208 25.3)">destruct</span>
+            <span class="sw" style="background: oklch(0.623 0.188 259.8)">info</span>
+          </div>
+        </div>
+        <div>
+          <div style="font-size: 11px; font-weight: 600; color: oklch(0.484 0.041 256.4); margin-bottom: 5px">Scope и источники · 4</div>
+          <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 5px">
+            <span class="sw" style="background: oklch(0.540 0.100 175.2)">internal</span>
+            <span class="sw" style="background: oklch(0.572 0.180 40.5)">external</span>
+            <span class="sw" style="background: oklch(0.538 0.256 262.4)">src-file</span>
+            <span class="sw" style="background: oklch(0.500 0.140 195.0)">src-link</span>
+          </div>
+        </div>
+        <div>
+          <div style="font-size: 11px; font-weight: 600; color: oklch(0.484 0.041 256.4); margin-bottom: 5px">Артефакты · 6</div>
+          <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 5px">
+            <span class="sw" style="background: oklch(0.580 0.200 300.0)">quiz</span>
+            <span class="sw" style="background: oklch(0.650 0.180 45.0)">deck</span>
+            <span class="sw" style="background: oklch(0.538 0.220 262.4)">report</span>
+            <span class="sw" style="background: oklch(0.600 0.150 175.0)">cards</span>
+            <span class="sw" style="background: oklch(0.600 0.200 350.0)">podcast</span>
+            <span class="sw" style="background: oklch(0.680 0.160 85.0)">infogr</span>
+          </div>
+        </div>
+        <div>
+          <div style="font-size: 11px; font-weight: 600; color: oklch(0.484 0.041 256.4); margin-bottom: 5px">Чипы тем в фильтрах · 8</div>
+          <div style="display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 5px">
+            <span class="sw" style="background: #be123c; font-size: 8px">rose</span>
+            <span class="sw" style="background: #b45309; font-size: 8px">amber</span>
+            <span class="sw" style="background: #047857; font-size: 8px">emerald</span>
+            <span class="sw" style="background: #0369a1; font-size: 8px">sky</span>
+            <span class="sw" style="background: #6d28d9; font-size: 8px">violet</span>
+            <span class="sw" style="background: #c2410c; font-size: 8px">orange</span>
+            <span class="sw" style="background: #0f766e; font-size: 8px">teal</span>
+            <span class="sw" style="background: #a21caf; font-size: 8px">fuchsia</span>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size: 11px; font-weight: 600; color: oklch(0.484 0.041 256.4); margin-bottom: 5px">Тест в градациях серого — пять «разных» смыслов сливаются</div>
+        <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 5px">
+          <span class="sw" style="background: oklch(0.538 0 0); font-size: 8px">src-file</span>
+          <span class="sw" style="background: oklch(0.538 0 0); font-size: 8px">report</span>
+          <span class="sw" style="background: oklch(0.540 0 0); font-size: 8px">internal</span>
+          <span class="sw" style="background: oklch(0.572 0 0); font-size: 8px">external</span>
+          <span class="sw" style="background: oklch(0.580 0 0); font-size: 8px">quiz</span>
+        </div>
+      </div>
+
+      <div style="padding: 11px 13px; background: color-mix(in oklab, oklch(0.545 0.208 25.3) 6%, oklch(1 0 0)); border: 1px solid color-mix(in oklab, oklch(0.545 0.208 25.3) 22%, transparent); border-radius: 9px; font-size: 12px; line-height: 1.6; color: oklch(0.484 0.041 256.4)">Двадцать четыре оттенка со «значением» — и ни один не запоминается. Пять из них лежат в диапазоне светлоты 0.538–0.580: на печати и в градациях серого это один и тот же цвет. <b style="color: oklch(0.218 0.036 251.3); font-weight: 600">src-file и report — буквально один цвет</b> с разной хромой.</div>
+    </div>
+
+    <div class="card" style="display: flex; flex-direction: column; gap: 16px">
+      <div style="display: flex; align-items: center; gap: 8px">
+        <span style="width: 7px; height: 7px; border-radius: 999px; background: oklch(0.500 0.149 162.5)"></span>
+        <span class="disp eyebrow" style="color: oklch(0.500 0.149 162.5)">Цвет предлагаемый · 7 значений</span>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 13px">
+        <div>
+          <div class="disp" style="font-size: 12px; font-weight: 700; margin-bottom: 6px">Действие · 2</div>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px">
+            <span class="sw" style="background: oklch(0.538 0.256 262.4); height: 42px">primary — всё активное и кликабельное</span>
+            <span class="sw" style="background: oklch(0.356 0.216 270.2); height: 42px">accent — редкий второй акцент</span>
+          </div>
+        </div>
+        <div>
+          <div class="disp" style="font-size: 12px; font-weight: 700; margin-bottom: 6px">Статус · 3</div>
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px">
+            <span class="sw" style="background: oklch(0.500 0.149 162.5); height: 42px">готово</span>
+            <span class="sw" style="background: oklch(0.559 0.120 70.1); height: 42px">внимание</span>
+            <span class="sw" style="background: oklch(0.545 0.208 25.3); height: 42px">ошибка</span>
+          </div>
+        </div>
+        <div>
+          <div class="disp" style="font-size: 12px; font-weight: 700; margin-bottom: 6px">Одна содержательная ось · 2</div>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px">
+            <span class="sw" style="background: oklch(0.470 0.110 175.2); height: 42px">внутренний опыт BI</span>
+            <span class="sw" style="background: oklch(0.600 0.185 40.5); height: 42px">мировой опыт</span>
+          </div>
+          <div style="margin-top: 5px; font-size: 11px; color: oklch(0.484 0.041 256.4)">Светлота разведена 0.470 / 0.600 — различимы и в серых градациях, и на печати.</div>
+        </div>
+        <div>
+          <div class="disp" style="font-size: 12px; font-weight: 700; margin-bottom: 6px">Всё остальное — нейтраль</div>
+          <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px">
+            <span class="sw" style="background: oklch(0.218 0.036 251.3); height: 34px">fg</span>
+            <span class="sw" style="background: oklch(0.484 0.041 256.4); height: 34px">muted</span>
+            <span class="sw" style="background: oklch(0.916 0.016 257.2); height: 34px; color: oklch(0.218 0.036 251.3)">border</span>
+            <span class="sw" style="background: oklch(0.955 0.021 268.4); height: 34px; color: oklch(0.218 0.036 251.3)">secondary</span>
+            <span class="sw" style="background: oklch(0.975 0.005 258.3); height: 34px; color: oklch(0.218 0.036 251.3); box-shadow: inset 0 0 0 1px oklch(0.916 0.016 257.2)">bg</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding: 11px 13px; background: color-mix(in oklab, oklch(0.500 0.149 162.5) 6%, oklch(1 0 0)); border: 1px solid color-mix(in oklab, oklch(0.500 0.149 162.5) 24%, transparent); border-radius: 9px; font-size: 12px; line-height: 1.65; color: oklch(0.484 0.041 256.4)">Шесть цветов артефактов уходят в нейтраль — тип артефакта различает иконка, цветом отмечено только состояние. Восемь цветов чипов тем — в нейтраль с primary на активном. <b style="color: oklch(0.218 0.036 251.3); font-weight: 600">src-file / src-link исчезают</b>: файл и ссылка отличаются иконкой и блоком-монограммой. Остаётся 24 → 7, и scope наконец читается как единственная содержательная ось продукта.</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

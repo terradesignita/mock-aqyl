@@ -1,0 +1,258 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700;800&family=Manrope:wght@500;600;700;800&display=swap">
+  <style>
+    body {
+      margin: 0;
+      font-family: "Golos Text", ui-sans-serif, system-ui, sans-serif;
+      font-size: 15px;
+      color: oklch(0.218 0.036 251.3);
+      background: oklch(0.975 0.005 258.3);
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: oklch(0.538 0.256 262.4); }
+    a:hover { color: oklch(0.459 0.214 262.1); }
+    .disp { font-family: "Manrope", "Golos Text", ui-sans-serif, sans-serif; }
+    .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+    .lbl { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .panel { background: oklch(1 0 0); border: 1px solid oklch(0.916 0.016 257.2); border-radius: 12px; box-shadow: 0 1px 2px oklch(0.218 0.036 251.3 / 0.06); }
+    .sect { display: flex; flex-direction: column; gap: 13px; }
+    .sh { font-size: 16px; font-weight: 800; letter-spacing: -0.012em; }
+    .note { font-size: 12px; line-height: 1.6; color: oklch(0.484 0.041 256.4); }
+    .done { display: flex; align-items: flex-start; gap: 11px; padding: 13px 16px; border-radius: 11px; background: color-mix(in oklab, oklch(0.500 0.149 162.5) 7%, oklch(1 0 0)); border: 1px solid color-mix(in oklab, oklch(0.500 0.149 162.5) 30%, transparent); }
+    .donet { font-size: 12px; line-height: 1.6; color: oklch(0.484 0.041 256.4); }
+    .donet b { color: oklch(0.218 0.036 251.3); font-weight: 700; }
+    .tag { display: inline-flex; align-items: center; font-size: 9px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 7px; border-radius: 5px; background: oklch(0.500 0.149 162.5); color: #fff; flex: none; margin-top: 1px; }
+  </style>
+</helmet>
+
+<div style="padding: 40px; display: flex; flex-direction: column; gap: 30px">
+
+  <div style="display: flex; flex-direction: column; gap: 7px">
+    <div class="disp eyebrow" style="color: oklch(0.484 0.041 256.4)">Целевое состояние · рис. 40 и 41</div>
+    <div class="disp" style="font-size: 28px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.13">Вход для нового знания</div>
+    <div style="max-width: 940px; font-size: 14px; line-height: 1.6; color: oklch(0.484 0.041 256.4); text-wrap: pretty">Отчёт упирается в это трижды — рис. 40 (одна CTA), рис. 41 (статус загрузки), находки заказчика №1, 2, 4, 5. Раньше создать кейс в прототипе было нельзя: загрузка жила только в панели источников уже существующего.</div>
+  </div>
+
+  <div class="done">
+    <span class="tag">сделано</span>
+    <div class="donet"><b>Разделы 1 и 2 — в коде.</b> Кнопка «+ Новый кейс» стоит в шапке дашборда и в пустом состоянии, «/» ставит курсор в поиск, диалог называет кейс по содержимому. Виджет статуса виден с любого экрана: этап и процент, «Разобран и добавлен в кейс» со ссылкой, отказ по формату с «Выбрать другой файл». Кейс встаёт в сетку сразу и несёт ту же полосу прогресса. <b>Раздел 3 остался:</b> в пустое состояние переехала только кнопка, «Что такое Кейс» по-прежнему в блокирующей модалке.</div>
+  </div>
+
+  <!-- ============ 1. CTA ============ -->
+  <div class="sect">
+    <div class="disp sh">1 · Дашборд получает одну CTA и «/»</div>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px">
+
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <div style="display: flex; align-items: center; gap: 8px">
+          <span style="width: 7px; height: 7px; border-radius: 999px; background: oklch(0.545 0.208 25.3)"></span>
+          <span class="disp lbl" style="color: oklch(0.545 0.208 25.3)">Сейчас</span>
+        </div>
+        <div class="panel" style="padding: 15px; display: flex; flex-direction: column; gap: 11px">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px">
+            <span class="disp" style="font-size: 19px; font-weight: 800; letter-spacing: -0.015em">Добрый день, Марат</span>
+            <span style="font-size: 11px; color: oklch(0.484 0.041 256.4)">22 материала · 6 направлений</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 9px; height: 38px; padding: 0 11px; border: 1px solid oklch(0.916 0.016 257.2); border-radius: 12px">
+            <span style="width: 28px; height: 16px; border-radius: 999px; background: oklch(0.955 0.021 268.4)"></span>
+            <span style="font-size: 11px; color: oklch(0.484 0.041 256.4)">Поиск</span>
+            <span style="width: 1px; height: 15px; background: oklch(0.916 0.016 257.2)"></span>
+            <span style="font-size: 11px; color: oklch(0.484 0.041 256.4)">Спросите BI AQYL…</span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+            <div style="display: flex; gap: 4px">
+              <span style="font-size: 11px; font-weight: 600; padding: 5px 9px; border-radius: 8px; background: oklch(0.538 0.256 262.4); color: #fff">Все</span>
+              <span style="font-size: 11px; padding: 5px 9px; color: oklch(0.484 0.041 256.4)">Внутренний опыт BI</span>
+              <span style="font-size: 11px; padding: 5px 9px; color: oklch(0.484 0.041 256.4)">Мировой опыт</span>
+            </div>
+            <span style="font-size: 11px; padding: 5px 9px; border-radius: 8px; border: 1px solid oklch(0.916 0.016 257.2); color: oklch(0.484 0.041 256.4)">Фильтры</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; padding: 9px 11px; background: color-mix(in oklab, oklch(0.545 0.208 25.3) 6%, transparent); border: 1px dashed color-mix(in oklab, oklch(0.545 0.208 25.3) 40%, transparent); border-radius: 9px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(0.545 0.208 25.3)" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M9 12h6"/></svg>
+            <span style="font-size: 12px; font-weight: 600; color: oklch(0.545 0.208 25.3)">Ни одной кнопки, добавляющей знание в базу</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <div style="display: flex; align-items: center; gap: 8px">
+          <span style="width: 7px; height: 7px; border-radius: 999px; background: oklch(0.500 0.149 162.5)"></span>
+          <span class="disp lbl" style="color: oklch(0.500 0.149 162.5)">Предлагаю</span>
+        </div>
+        <div class="panel" style="padding: 15px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 1px 2px oklch(0.218 0.036 251.3 / 0.06), 0 8px 24px oklch(0.218 0.036 251.3 / 0.06)">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+            <span class="disp" style="font-size: 26px; font-weight: 800; letter-spacing: -0.024em">Кейсы</span>
+            <span style="display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 700; padding: 10px 16px; border-radius: 9px; background: oklch(0.538 0.256 262.4); color: #fff; box-shadow: 0 8px 24px oklch(0.538 0.256 262.4 / 0.28)">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6"><path d="M12 5v14M5 12h14"/></svg>
+              Новый кейс
+            </span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 9px; height: 42px; padding: 0 12px; border: 1px solid oklch(0.916 0.016 257.2); border-radius: 12px">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(0.484 0.041 256.4)" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4.3-4.3"/></svg>
+            <span style="flex: 1; font-size: 12px; color: oklch(0.484 0.041 256.4)">Спросите обычными словами</span>
+            <span class="disp" style="font-size: 11px; font-weight: 700; padding: 3px 7px; border-radius: 5px; background: oklch(0.955 0.021 268.4); color: oklch(0.484 0.041 256.4)">/</span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+            <div style="display: flex; gap: 18px; align-items: center">
+              <span class="disp" style="font-size: 12px; font-weight: 700; padding-bottom: 6px; border-bottom: 2px solid oklch(0.538 0.256 262.4)">Все 22</span>
+              <span style="font-size: 12px; color: oklch(0.484 0.041 256.4); padding-bottom: 6px">Внутренние 12</span>
+              <span style="font-size: 12px; color: oklch(0.484 0.041 256.4); padding-bottom: 6px">Мировые 10</span>
+            </div>
+            <span style="display: inline-flex; align-items: center; gap: 5px; font-size: 11px; padding: 5px 9px; border-radius: 8px; border: 1px solid oklch(0.916 0.016 257.2); color: oklch(0.484 0.041 256.4)">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M7 12h10M11 18h2"/></svg>
+              Фильтры
+            </span>
+          </div>
+          <div class="note">Приветствие уходит: экран называется тем, что на нём лежит. Приватность и «Закладки» — внутрь «Фильтров», как просит отчёт. Счётчики переезжают в сами вкладки.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 2. СТАТУС ============ -->
+  <div class="sect">
+    <div class="disp sh">2 · Статус загрузки виден с любого экрана</div>
+    <div class="note" style="max-width: 900px">Рис. 41: сворачиваемый виджет как в Google Drive. Сейчас этапы обработки живут только в панели источников открытого кейса — уйдя на дашборд, статус не увидеть, а отклонённый файл надо выбирать заново.</div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px">
+
+      <div class="panel" style="overflow: hidden">
+        <div style="display: flex; align-items: center; gap: 9px; padding: 11px 13px; border-bottom: 1px solid oklch(0.916 0.016 257.2)">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(0.538 0.256 262.4)" stroke-width="2.2"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+          <span style="font-size: 13px; font-weight: 700">Обрабатываю 3 файла</span>
+          <span style="margin-left: auto; color: oklch(0.484 0.041 256.4); font-size: 13px">⌃</span>
+        </div>
+        <div style="padding: 11px 13px; display: flex; flex-direction: column; gap: 10px">
+          <div style="display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 9px">
+            <span class="disp" style="width: 26px; height: 26px; border-radius: 6px; background: color-mix(in oklab, oklch(0.538 0.256 262.4) 13%, transparent); color: oklch(0.538 0.256 262.4); font-size: 8px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center">MD</span>
+            <div style="min-width: 0">
+              <div style="font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Сервисная культура в гостиничном бизнесе</div>
+              <div style="font-size: 11px; color: oklch(0.500 0.149 162.5); font-weight: 600">Готово · вики-страница собрана</div>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(0.500 0.149 162.5)" stroke-width="2.6"><path d="m5 13 4.5 4.5L19 7"/></svg>
+          </div>
+          <div style="display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 9px">
+            <span class="disp" style="width: 26px; height: 26px; border-radius: 6px; background: color-mix(in oklab, oklch(0.538 0.256 262.4) 13%, transparent); color: oklch(0.538 0.256 262.4); font-size: 8px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center">MP4</span>
+            <div style="min-width: 0">
+              <div style="font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Видеозапись от 7 апреля 2026</div>
+              <div style="margin-top: 3px; display: flex; align-items: center; gap: 7px">
+                <span style="flex: 1; height: 4px; border-radius: 999px; background: color-mix(in oklab, oklch(0.538 0.256 262.4) 16%, transparent); display: inline-block">
+                  <span style="display: block; width: 62%; height: 100%; border-radius: 999px; background: oklch(0.538 0.256 262.4)"></span>
+                </span>
+                <span style="font-size: 11px; font-weight: 700; color: oklch(0.538 0.256 262.4); font-variant-numeric: tabular-nums">62 %</span>
+              </div>
+              <div style="margin-top: 2px; font-size: 11px; color: oklch(0.484 0.041 256.4)">Транскрибация</div>
+            </div>
+            <span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" style="overflow: hidden; border-color: color-mix(in oklab, oklch(0.545 0.208 25.3) 40%, transparent)">
+        <div style="display: flex; align-items: center; gap: 9px; padding: 11px 13px; border-bottom: 1px solid color-mix(in oklab, oklch(0.545 0.208 25.3) 30%, transparent); background: color-mix(in oklab, oklch(0.545 0.208 25.3) 5%, transparent)">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(0.545 0.208 25.3)" stroke-width="2.2"><path d="M12 9v5M12 17.5v.5"/><path d="M10.3 3.9 2.4 18a1.8 1.8 0 0 0 1.6 2.7h16a1.8 1.8 0 0 0 1.6-2.7L13.7 3.9a1.8 1.8 0 0 0-3.4 0Z"/></svg>
+          <span style="font-size: 13px; font-weight: 700; color: oklch(0.545 0.208 25.3)">1 файл не принят</span>
+          <span style="margin-left: auto; color: oklch(0.484 0.041 256.4); font-size: 13px">⌃</span>
+        </div>
+        <div style="padding: 12px 13px; display: flex; flex-direction: column; gap: 10px">
+          <div style="display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 9px">
+            <span class="disp" style="width: 26px; height: 26px; border-radius: 6px; background: color-mix(in oklab, oklch(0.545 0.208 25.3) 12%, transparent); color: oklch(0.545 0.208 25.3); font-size: 8px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center">CSV</span>
+            <div style="min-width: 0">
+              <div style="font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">tablica.csv</div>
+              <div style="font-size: 11px; color: oklch(0.484 0.041 256.4)">Таблицы обрабатывать пока нечем</div>
+            </div>
+          </div>
+          <div class="note" style="font-size: 11px">Выгрузите нужный лист в PDF или текст — тогда он попадёт в базу и в поиск.</div>
+          <div style="display: flex; gap: 7px">
+            <span style="font-size: 12px; font-weight: 700; padding: 7px 13px; border-radius: 8px; background: oklch(0.538 0.256 262.4); color: #fff">Выбрать другой файл</span>
+            <span style="font-size: 12px; font-weight: 600; padding: 7px 13px; border-radius: 8px; border: 1px solid oklch(0.916 0.016 257.2); color: oklch(0.484 0.041 256.4)">Скрыть</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 11px">
+        <div class="panel" style="padding: 0; overflow: hidden">
+          <div style="height: 74px; background: linear-gradient(135deg, color-mix(in oklab, oklch(0.540 0.100 175.2) 14%, oklch(1 0 0)), color-mix(in oklab, oklch(0.540 0.100 175.2) 5%, oklch(1 0 0))); border-bottom: 1px solid color-mix(in oklab, oklch(0.540 0.100 175.2) 22%, transparent); display: flex; align-items: center; padding: 0 15px">
+            <span class="disp" style="font-size: 27px; font-weight: 800; letter-spacing: -0.03em; color: color-mix(in oklab, oklch(0.540 0.100 175.2) 88%, oklch(0.218 0.036 251.3))">LL</span>
+          </div>
+          <div style="padding: 13px 15px 15px; display: flex; flex-direction: column; gap: 9px">
+            <div class="disp" style="font-size: 15px; font-weight: 700; letter-spacing: -0.01em; line-height: 1.3">Тренинг: сервисная культура</div>
+            <div style="display: flex; align-items: center; gap: 7px">
+              <span style="flex: 1; height: 4px; border-radius: 999px; background: color-mix(in oklab, oklch(0.538 0.256 262.4) 16%, transparent); display: inline-block">
+                <span style="display: block; width: 62%; height: 100%; border-radius: 999px; background: oklch(0.538 0.256 262.4)"></span>
+              </span>
+              <span style="font-size: 11px; font-weight: 700; color: oklch(0.538 0.256 262.4); font-variant-numeric: tabular-nums">2 из 3</span>
+            </div>
+            <div style="font-size: 11px; color: oklch(0.484 0.041 256.4)">Обрабатываю материалы</div>
+          </div>
+        </div>
+        <div class="note" style="font-size: 11px">Тот же прогресс дублируется на карточке кейса в сетке — видно, что кейс ещё собирается, не открывая его.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 3. ОНБОРДИНГ ============ -->
+  <div class="sect">
+    <div class="disp sh">3 · «Что такое Кейс» — в пустое состояние, а не в модалку</div>
+    <div class="note" style="max-width: 900px">Отчёт: «один тур из 3 шагов по месту; „Что такое кейс/материал“ — в пустое состояние первой карточки». Сейчас это по-прежнему блокирующая модалка до первого действия — просто одна вместо семи.</div>
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px">
+
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <div style="display: flex; align-items: center; gap: 8px">
+          <span style="width: 7px; height: 7px; border-radius: 999px; background: oklch(0.545 0.208 25.3)"></span>
+          <span class="disp lbl" style="color: oklch(0.545 0.208 25.3)">Сейчас · блокирующая модалка</span>
+        </div>
+        <div style="position: relative; padding: 16px; background: oklch(0.955 0.021 268.4); border-radius: 12px; min-height: 176px; display: flex; align-items: center; justify-content: center">
+          <div style="position: absolute; inset: 0; border-radius: 12px; background: oklch(0.218 0.036 251.3 / 0.35)"></div>
+          <div class="panel" style="position: relative; width: 100%; max-width: 290px; padding: 15px; display: flex; flex-direction: column; gap: 9px; box-shadow: 0 12px 40px oklch(0.218 0.036 251.3 / 0.14)">
+            <div class="disp" style="font-size: 14px; font-weight: 800">Кейс и Материал</div>
+            <div style="font-size: 11px; color: oklch(0.484 0.041 256.4)">Два главных слова на этой платформе</div>
+            <div style="height: 46px; border: 1.4px dashed color-mix(in oklab, oklch(0.538 0.256 262.4) 34%, transparent); border-radius: 9px; background: color-mix(in oklab, oklch(0.538 0.256 262.4) 5%, transparent)"></div>
+            <div style="font-size: 11px; line-height: 1.55; color: oklch(0.484 0.041 256.4)">Кейс — это как обычная бумажная папка на столе…</div>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 3px">
+              <span style="font-size: 10px; color: oklch(0.484 0.041 256.4)">Больше не показывать</span>
+              <span style="font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 8px; background: oklch(0.538 0.256 262.4); color: #fff">Понятно</span>
+            </div>
+          </div>
+        </div>
+        <div class="note" style="font-size: 11px">Экран за модалкой недоступен: продукт объясняет себя до того, как человек что-то в нём увидел.</div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <div style="display: flex; align-items: center; gap: 8px">
+          <span style="width: 7px; height: 7px; border-radius: 999px; background: oklch(0.500 0.149 162.5)"></span>
+          <span class="disp lbl" style="color: oklch(0.500 0.149 162.5)">Предлагаю · первая карточка учит</span>
+        </div>
+        <div style="padding: 16px; background: oklch(0.955 0.021 268.4); border-radius: 12px; min-height: 176px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-content: start">
+          <div style="border: 1.6px dashed color-mix(in oklab, oklch(0.538 0.256 262.4) 42%, transparent); border-radius: 10px; background: color-mix(in oklab, oklch(0.538 0.256 262.4) 5%, oklch(1 0 0)); padding: 15px; display: flex; flex-direction: column; gap: 9px">
+            <span style="width: 32px; height: 32px; border-radius: 9px; background: oklch(0.538 0.256 262.4); display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px oklch(0.538 0.256 262.4 / 0.28)">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6"><path d="M12 5v14M5 12h14"/></svg>
+            </span>
+            <div class="disp" style="font-size: 14px; font-weight: 800; letter-spacing: -0.012em; line-height: 1.25">Соберите первый кейс</div>
+            <div style="font-size: 11px; line-height: 1.55; color: oklch(0.484 0.041 256.4)"><b style="color: oklch(0.218 0.036 251.3); font-weight: 600">Кейс — папка</b> на одну тему. Внутрь кладёте материалы: конспект, деку, запись тренинга. Ассистент отвечает по ним и собирает артефакты.</div>
+            <span style="align-self: flex-start; font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 8px; background: oklch(0.538 0.256 262.4); color: #fff">Перетащите файлы или выберите</span>
+          </div>
+          <div class="panel" style="padding: 0; overflow: hidden; opacity: 0.55">
+            <div style="height: 52px; background: linear-gradient(135deg, color-mix(in oklab, oklch(0.572 0.180 40.5) 12%, oklch(1 0 0)), color-mix(in oklab, oklch(0.572 0.180 40.5) 4%, oklch(1 0 0)))"></div>
+            <div style="padding: 11px 13px; display: flex; flex-direction: column; gap: 7px">
+              <div style="height: 9px; width: 82%; border-radius: 999px; background: oklch(0.916 0.016 257.2)"></div>
+              <div style="height: 9px; width: 54%; border-radius: 999px; background: oklch(0.916 0.016 257.2)"></div>
+              <div style="height: 7px; width: 40%; border-radius: 999px; background: oklch(0.955 0.021 268.4)"></div>
+            </div>
+          </div>
+        </div>
+        <div class="note" style="font-size: 11px">Определение живёт там, где оно нужно, и исчезает вместе с пустым состоянием. Остальные два шага тура — тултипы по месту: на панели источников и на студии, по одному при первом заходе в кейс.</div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

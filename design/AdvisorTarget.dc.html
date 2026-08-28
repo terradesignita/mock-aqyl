@@ -1,0 +1,190 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700;800&family=Manrope:wght@500;600;700;800&display=swap">
+  <style>
+    body {
+      margin: 0;
+      font-family: "Golos Text", ui-sans-serif, system-ui, sans-serif;
+      font-size: 15px;
+      color: oklch(0.218 0.036 251.3);
+      background: oklch(0.975 0.005 258.3);
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: oklch(0.538 0.256 262.4); }
+    a:hover { color: oklch(0.459 0.214 262.1); }
+    .disp { font-family: "Manrope", "Golos Text", ui-sans-serif, sans-serif; }
+    .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+    .lbl { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+    .acc { display: flex; align-items: center; gap: 9px; padding: 11px 13px; background: oklch(1 0 0); border: 1px solid oklch(0.916 0.016 257.2); border-radius: 10px; font-size: 13px; font-weight: 700; }
+    .chev { margin-left: auto; color: oklch(0.484 0.041 256.4); font-size: 11px; }
+    .note { font-size: 12px; line-height: 1.6; color: oklch(0.484 0.041 256.4); }
+    .done { display: flex; align-items: flex-start; gap: 11px; padding: 13px 16px; border-radius: 11px; background: color-mix(in oklab, oklch(0.500 0.149 162.5) 7%, oklch(1 0 0)); border: 1px solid color-mix(in oklab, oklch(0.500 0.149 162.5) 30%, transparent); }
+    .donet { font-size: 12px; line-height: 1.6; color: oklch(0.484 0.041 256.4); }
+    .donet b { color: oklch(0.218 0.036 251.3); font-weight: 700; }
+    .tag { display: inline-flex; align-items: center; font-size: 9px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 7px; border-radius: 5px; background: oklch(0.500 0.149 162.5); color: #fff; flex: none; margin-top: 1px; }
+  </style>
+</helmet>
+
+<div style="padding: 40px; display: flex; flex-direction: column; gap: 26px">
+
+  <div style="display: flex; flex-direction: column; gap: 7px">
+    <div class="disp eyebrow" style="color: oklch(0.484 0.041 256.4)">Целевое состояние · рис. 42</div>
+    <div class="disp" style="font-size: 28px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.13">Рекомендация стала документом, а не папкой</div>
+    <div style="max-width: 960px; font-size: 14px; line-height: 1.6; color: oklch(0.484 0.041 256.4); text-wrap: pretty">До правки вердикт был наверху, а ниже стояли шесть закрытых аккордеонов — включая «Варианты решения» и «Риски», то есть саму суть ответа. Отчёт просил перевёрнутую пирамиду целиком; так теперь и сделано.</div>
+  </div>
+
+  <div class="done">
+    <span class="tag">сделано</span>
+    <div class="donet"><b>В коде.</b> Правая колонка — то, что сейчас в прототипе: рекомендация и условия-чипы в карточке вердикта, раскрыты «Варианты решения», «Риски» и «Почему», под заголовком «Справочное — откуда это взято» свёрнуты кейс-аналог, переносимость, факторы изменения, чего не хватает и источники. Левая колонка — история, как было до правки. Не сделано одно: плашка сохранения ведёт к последней консультации, экрана «Мои консультации» по-прежнему нет.</div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px; align-items: start">
+
+    <!-- ============ СЕЙЧАС ============ -->
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; align-items: center; gap: 8px">
+        <span style="width: 7px; height: 7px; border-radius: 999px; background: oklch(0.545 0.208 25.3)"></span>
+        <span class="disp lbl" style="color: oklch(0.545 0.208 25.3)">Было · вердикт + 6 закрытых</span>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 9px">
+        <div style="border: 2px solid color-mix(in oklab, oklch(0.538 0.256 262.4) 50%, transparent); border-radius: 12px; padding: 17px; background: linear-gradient(135deg, color-mix(in oklab, oklch(0.538 0.256 262.4) 9%, oklch(1 0 0)), oklch(1 0 0)); box-shadow: 0 8px 24px oklch(0.538 0.256 262.4 / 0.14)">
+          <div class="disp eyebrow" style="color: oklch(0.538 0.256 262.4); font-size: 10px">Краткий вывод</div>
+          <div class="disp" style="margin-top: 6px; font-size: 18px; font-weight: 800; line-height: 1.25; letter-spacing: -0.015em">Не соглашаться на предложенные условия в текущем виде</div>
+          <div style="margin-top: 8px; font-size: 12px; line-height: 1.6; color: oklch(0.484 0.041 256.4)">Партнёрство может ускорить проверку внешнего спроса, но передавать долю и долгосрочную эксклюзивность до подтверждения рыночной ценности — несоразмерный риск.</div>
+          <div style="margin-top: 11px; padding: 11px; border-left: 3px solid oklch(0.356 0.216 270.2); background: color-mix(in oklab, oklch(0.356 0.216 270.2) 7%, transparent); border-radius: 7px">
+            <div style="font-size: 11px; font-weight: 700; color: oklch(0.356 0.216 270.2)">Главный стратегический инсайт</div>
+            <div style="margin-top: 4px; font-size: 12px; font-weight: 600; line-height: 1.55">Сейчас BI Group продаёт не бизнес, а гипотезу о бизнесе.</div>
+          </div>
+          <div style="margin-top: 11px; display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; padding: 4px 9px; border-radius: 999px; border: 1px solid color-mix(in oklab, oklch(0.559 0.120 70.1) 50%, transparent); color: oklch(0.559 0.120 70.1)">Уровень доказательности: средний</div>
+        </div>
+
+        <div class="acc" style="border-color: color-mix(in oklab, oklch(0.500 0.149 162.5) 34%, transparent)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(0.538 0.256 262.4)" stroke-width="2.2"><path d="M4 6h16M4 12h10M4 18h13"/></svg>
+          Почему сделан такой вывод
+          <span style="font-size: 10px; font-weight: 600; color: oklch(0.500 0.149 162.5)">раскрыт</span>
+          <span class="chev">▲</span>
+        </div>
+        <div class="acc" style="border-color: color-mix(in oklab, oklch(0.500 0.149 162.5) 34%, transparent)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(0.538 0.256 262.4)" stroke-width="2.2"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>
+          Рекомендация и условия
+          <span style="font-size: 10px; font-weight: 600; color: oklch(0.500 0.149 162.5)">раскрыт</span>
+          <span class="chev">▲</span>
+        </div>
+
+        <div style="margin-top: 3px" class="disp eyebrow" style="color: oklch(0.545 0.208 25.3); font-size: 10px">Закрыто по умолчанию</div>
+        <div class="acc"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(0.484 0.041 256.4)" stroke-width="2.2"><path d="M4 19h16M7 19V9M12 19V5M17 19v-7"/></svg>Варианты решения<span class="chev">▼</span></div>
+        <div class="acc"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(0.484 0.041 256.4)" stroke-width="2.2"><path d="M12 9v5M12 17.5v.5"/><path d="M10.3 3.9 2.4 18a1.8 1.8 0 0 0 1.6 2.7h16a1.8 1.8 0 0 0 1.6-2.7L13.7 3.9a1.8 1.8 0 0 0-3.4 0Z"/></svg>Риски<span class="chev">▼</span></div>
+        <div class="acc"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(0.484 0.041 256.4)" stroke-width="2.2"><path d="M4 7h16M4 12h16M4 17h9"/></svg>Релевантный кейс: Dr. John's Products<span class="chev">▼</span></div>
+        <div class="acc"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(0.484 0.041 256.4)" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>Что можно и что нельзя переносить<span class="chev">▼</span></div>
+        <div class="acc"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(0.484 0.041 256.4)" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.6 2.6 0 1 1 3.4 2.5v1M12 17v.5"/></svg>Что может изменить рекомендацию<span class="chev">▼</span></div>
+        <div class="acc"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(0.484 0.041 256.4)" stroke-width="2.2"><path d="M7 8h10M7 12h10M7 16h6"/><rect x="3" y="4" width="18" height="16" rx="2"/></svg>Источники · 4<span class="chev">▼</span></div>
+
+        <div style="padding: 12px 14px; background: color-mix(in oklab, oklch(0.545 0.208 25.3) 5%, oklch(1 0 0)); border: 1px solid color-mix(in oklab, oklch(0.545 0.208 25.3) 24%, transparent); border-radius: 10px" class="note">Чтобы понять, что вообще предлагается делать, надо открыть «Варианты решения». Чтобы понять цену — «Риски». Оба закрыты. Ответ есть, но человек его не прочитал.</div>
+      </div>
+    </div>
+
+    <!-- ============ ПРЕДЛАГАЮ ============ -->
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; align-items: center; gap: 8px">
+        <span style="width: 7px; height: 7px; border-radius: 999px; background: oklch(0.500 0.149 162.5)"></span>
+        <span class="disp lbl" style="color: oklch(0.500 0.149 162.5)">Стало · одна страница</span>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 11px">
+
+        <div style="display: flex; align-items: center; gap: 9px; padding: 9px 13px; background: color-mix(in oklab, oklch(0.500 0.149 162.5) 8%, oklch(1 0 0)); border: 1px solid color-mix(in oklab, oklch(0.500 0.149 162.5) 30%, transparent); border-radius: 10px">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="oklch(0.500 0.149 162.5)" stroke-width="2.6"><path d="m5 13 4.5 4.5L19 7"/></svg>
+          <span style="font-size: 12px; font-weight: 600">Сохранено 27 августа, 15:04</span>
+          <span style="margin-left: auto; font-size: 12px; font-weight: 700; color: oklch(0.538 0.256 262.4)">Мои консультации →</span>
+        </div>
+
+        <div style="border: 2px solid color-mix(in oklab, oklch(0.538 0.256 262.4) 50%, transparent); border-radius: 12px; padding: 19px; background: linear-gradient(135deg, color-mix(in oklab, oklch(0.538 0.256 262.4) 9%, oklch(1 0 0)), oklch(1 0 0)); box-shadow: 0 8px 24px oklch(0.538 0.256 262.4 / 0.14)">
+          <div class="disp eyebrow" style="color: oklch(0.538 0.256 262.4); font-size: 10px">Вывод</div>
+          <div class="disp" style="margin-top: 7px; font-size: 22px; font-weight: 800; line-height: 1.2; letter-spacing: -0.02em; text-wrap: pretty">Не соглашаться на предложенные условия в текущем виде</div>
+          <div style="margin-top: 9px; font-size: 13px; line-height: 1.6; color: oklch(0.484 0.041 256.4)">Партнёрство может ускорить проверку внешнего спроса, но передавать долю и долгосрочную эксклюзивность до подтверждения рыночной ценности — несоразмерный риск.</div>
+
+          <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid color-mix(in oklab, oklch(0.538 0.256 262.4) 20%, transparent)">
+            <div class="disp eyebrow" style="color: oklch(0.484 0.041 256.4); font-size: 10px">Предлагаемые условия</div>
+            <div style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 5px">
+              <span style="font-size: 11px; font-weight: 600; padding: 4px 9px; border-radius: 6px; background: oklch(1 0 0); border: 1px solid oklch(0.916 0.016 257.2)">Пилот 6–9 месяцев</span>
+              <span style="font-size: 11px; font-weight: 600; padding: 4px 9px; border-radius: 6px; background: oklch(1 0 0); border: 1px solid oklch(0.916 0.016 257.2)">Без передачи доли</span>
+              <span style="font-size: 11px; font-weight: 600; padding: 4px 9px; border-radius: 6px; background: oklch(1 0 0); border: 1px solid oklch(0.916 0.016 257.2)">Один сегмент клиентов</span>
+              <span style="font-size: 11px; font-weight: 600; padding: 4px 9px; border-radius: 6px; background: oklch(1 0 0); border: 1px solid oklch(0.916 0.016 257.2)">Измеримые KPI</span>
+              <span style="font-size: 11px; font-weight: 600; padding: 4px 9px; border-radius: 6px; background: oklch(1 0 0); border: 1px solid oklch(0.916 0.016 257.2)">Права на данные и IP у BI</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- сценарии, открыто -->
+        <div style="background: oklch(1 0 0); border: 1px solid oklch(0.916 0.016 257.2); border-radius: 11px; padding: 15px; box-shadow: 0 1px 2px oklch(0.218 0.036 251.3 / 0.06)">
+          <div class="disp" style="font-size: 14px; font-weight: 800; letter-spacing: -0.01em">Варианты решения</div>
+          <div style="margin-top: 11px; display: flex; flex-direction: column; gap: 4px">
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) 62px 62px 62px; gap: 9px; padding-bottom: 6px; border-bottom: 1px solid oklch(0.916 0.016 257.2)">
+              <span class="disp eyebrow" style="font-size: 9px; color: oklch(0.484 0.041 256.4)">Сценарий</span>
+              <span class="disp eyebrow" style="font-size: 9px; color: oklch(0.484 0.041 256.4)">Скорость</span>
+              <span class="disp eyebrow" style="font-size: 9px; color: oklch(0.484 0.041 256.4)">Контроль</span>
+              <span class="disp eyebrow" style="font-size: 9px; color: oklch(0.484 0.041 256.4)">Риск</span>
+            </div>
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) 62px 62px 62px; gap: 9px; align-items: center; padding: 8px 9px; margin: 0 -9px; background: color-mix(in oklab, oklch(0.538 0.256 262.4) 7%, transparent); border-radius: 7px">
+              <span style="font-size: 12px; font-weight: 700">Ограниченный пилот <span style="font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 5px; background: oklch(0.538 0.256 262.4); color: #fff; vertical-align: 1px">рекомендуем</span></span>
+              <span style="font-size: 12px; color: oklch(0.484 0.041 256.4)">Высокая</span>
+              <span style="font-size: 12px; color: oklch(0.484 0.041 256.4)">Высокий</span>
+              <span style="font-size: 12px; font-weight: 600; color: oklch(0.500 0.149 162.5)">Низкий</span>
+            </div>
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) 62px 62px 62px; gap: 9px; align-items: center; padding: 7px 0">
+              <span style="font-size: 12px">Самостоятельный выход</span>
+              <span style="font-size: 12px; color: oklch(0.484 0.041 256.4)">Низкая</span>
+              <span style="font-size: 12px; color: oklch(0.484 0.041 256.4)">Высокий</span>
+              <span style="font-size: 12px; color: oklch(0.559 0.120 70.1)">Средний</span>
+            </div>
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) 62px 62px 62px; gap: 9px; align-items: center; padding: 7px 0">
+              <span style="font-size: 12px">Эксклюзивное партнёрство</span>
+              <span style="font-size: 12px; color: oklch(0.484 0.041 256.4)">Высокая</span>
+              <span style="font-size: 12px; color: oklch(0.484 0.041 256.4)">Низкий</span>
+              <span style="font-size: 12px; color: oklch(0.545 0.208 25.3)">Высокий</span>
+            </div>
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) 62px 62px 62px; gap: 9px; align-items: center; padding: 7px 0">
+              <span style="font-size: 12px">Продажа продукта</span>
+              <span style="font-size: 12px; color: oklch(0.484 0.041 256.4)">Высокая</span>
+              <span style="font-size: 12px; color: oklch(0.484 0.041 256.4)">Отсутствует</span>
+              <span style="font-size: 12px; color: oklch(0.545 0.208 25.3)">Необратимый</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- риски, открыто -->
+        <div style="background: oklch(1 0 0); border: 1px solid oklch(0.916 0.016 257.2); border-radius: 11px; padding: 15px; box-shadow: 0 1px 2px oklch(0.218 0.036 251.3 / 0.06)">
+          <div class="disp" style="font-size: 14px; font-weight: 800; letter-spacing: -0.01em">Риски</div>
+          <div style="margin-top: 9px; display: flex; flex-direction: column; gap: 6px">
+            <div style="display: flex; gap: 8px; align-items: flex-start"><span style="flex: none; margin-top: 6px; width: 4px; height: 4px; border-radius: 999px; background: oklch(0.545 0.208 25.3)"></span><span style="font-size: 12px; line-height: 1.55">Партнёр не обеспечит заявленный канал</span></div>
+            <div style="display: flex; gap: 8px; align-items: flex-start"><span style="flex: none; margin-top: 6px; width: 4px; height: 4px; border-radius: 999px; background: oklch(0.545 0.208 25.3)"></span><span style="font-size: 12px; line-height: 1.55">Внешний спрос окажется слабее внутреннего</span></div>
+            <div style="display: flex; gap: 8px; align-items: flex-start"><span style="flex: none; margin-top: 6px; width: 4px; height: 4px; border-radius: 999px; background: oklch(0.545 0.208 25.3)"></span><span style="font-size: 12px; line-height: 1.55">Эксклюзивность ограничит другие каналы</span></div>
+            <span style="font-size: 11px; font-weight: 600; color: oklch(0.538 0.256 262.4)">Ещё 3 риска</span>
+          </div>
+        </div>
+
+        <div class="disp eyebrow" style="color: oklch(0.484 0.041 256.4); font-size: 10px; margin-top: 3px">Справочное — аккордеонами</div>
+        <div class="acc" style="font-weight: 600; font-size: 12px">Релевантный кейс: Dr. John's Products<span class="chev">▼</span></div>
+        <div class="acc" style="font-weight: 600; font-size: 12px">Что можно и что нельзя переносить<span class="chev">▼</span></div>
+        <div class="acc" style="font-weight: 600; font-size: 12px">Чего не хватает для решения · 7<span class="chev">▼</span></div>
+        <div class="acc" style="font-weight: 600; font-size: 12px">Источники · 4<span class="chev">▼</span></div>
+
+        <div style="padding: 13px 15px; background: color-mix(in oklab, oklch(0.500 0.149 162.5) 7%, oklch(1 0 0)); border: 1px solid color-mix(in oklab, oklch(0.500 0.149 162.5) 24%, transparent); border-radius: 10px; display: flex; flex-direction: column; gap: 5px">
+          <div class="disp" style="font-size: 12px; font-weight: 700">Что изменилось</div>
+          <div class="note">Открыто ровно то, из чего состоит решение: вывод, условия, варианты, риски. Условия вынесены из аккордеона наверх чипами — их читают вместе с выводом, а не отдельно. Свёрнуто справочное: кейс-аналог, переносимость, чего не хватает, источники — это про «откуда я это взял», к нему возвращаются, а не начинают с него. <b style="color: oklch(0.545 0.208 25.3)">Не сделано:</b> плашка сохранения должна вести в «Мои консультации», как просит рис. 42, — пока индикатор есть, но вернуться можно только к последней консультации.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

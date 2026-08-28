@@ -1,0 +1,234 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700;800&family=Manrope:wght@500;600;700;800&display=swap">
+  <style>
+    body {
+      margin: 0;
+      font-family: "Golos Text", ui-sans-serif, system-ui, sans-serif;
+      font-size: 15px;
+      color: oklch(0.218 0.036 251.3);
+      background: oklch(0.975 0.005 258.3);
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: oklch(0.538 0.256 262.4); }
+    a:hover { color: oklch(0.459 0.214 262.1); }
+    .disp { font-family: "Manrope", "Golos Text", ui-sans-serif, sans-serif; }
+  </style>
+</helmet>
+
+<div style="padding: 40px 40px 44px; display: flex; flex-direction: column; gap: 28px">
+
+  <div style="display: flex; flex-direction: column; gap: 6px">
+    <div class="disp" style="font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: oklch(0.484 0.041 256.4)">Проблема 1 · сетка кейсов</div>
+    <div class="disp" style="font-size: 27px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15">22 карточки выглядят одинаково</div>
+    <div style="max-width: 900px; font-size: 14px; line-height: 1.6; color: oklch(0.484 0.041 256.4); text-wrap: pretty">Взгляд не отличает кейс HBS от внутреннего Lessons Learned, пока не прочитает текст. Сетка читается как список. Плюс пять слоёв хрома до первого кейса.</div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px">
+
+    <!-- ================= СЕЙЧАС ================= -->
+    <div style="display: flex; flex-direction: column; gap: 14px">
+      <div style="display: flex; align-items: center; gap: 8px">
+        <span style="width: 7px; height: 7px; border-radius: 999px; background: oklch(0.545 0.208 25.3)"></span>
+        <span class="disp" style="font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: oklch(0.545 0.208 25.3)">Сейчас</span>
+      </div>
+
+      <!-- хром -->
+      <div style="display: flex; flex-direction: column; gap: 7px; padding: 14px; background: oklch(1 0 0); border: 1px solid oklch(0.916 0.016 257.2); border-radius: 12px; box-shadow: 0 1px 2px oklch(0.218 0.036 251.3 / 0.06)">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px">
+          <span class="disp" style="font-size: 17px; font-weight: 800; letter-spacing: -0.01em">Добрый день, Марат</span>
+          <span style="font-size: 10px; color: oklch(0.484 0.041 256.4)">22 материала · 6 направлений</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 10px; border: 1px solid oklch(0.916 0.016 257.2); border-radius: 12px">
+          <span style="width: 26px; height: 15px; border-radius: 999px; background: oklch(0.955 0.021 268.4)"></span>
+          <span style="font-size: 10px; color: oklch(0.484 0.041 256.4)">Поиск</span>
+          <span style="width: 1px; height: 14px; background: oklch(0.916 0.016 257.2)"></span>
+          <span style="font-size: 10px; color: oklch(0.484 0.041 256.4)">Спросите BI AQYL…</span>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+          <div style="display: flex; gap: 4px">
+            <span style="font-size: 10px; font-weight: 600; padding: 4px 8px; border-radius: 8px; background: oklch(0.538 0.256 262.4); color: #fff">Все</span>
+            <span style="font-size: 10px; padding: 4px 8px; border-radius: 8px; color: oklch(0.484 0.041 256.4)">Внутренний опыт BI</span>
+            <span style="font-size: 10px; padding: 4px 8px; border-radius: 8px; color: oklch(0.484 0.041 256.4)">Мировой опыт</span>
+          </div>
+          <span style="font-size: 10px; padding: 4px 8px; border-radius: 8px; border: 1px solid oklch(0.916 0.016 257.2); color: oklch(0.484 0.041 256.4)">Фильтры</span>
+        </div>
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px; padding-top: 3px">
+          <span class="disp" style="font-size: 13px; font-weight: 800">Кейсы</span>
+          <span style="font-size: 10px; color: oklch(0.484 0.041 256.4); opacity: 0.7">Найдено: 22</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px">
+          <span style="font-size: 10px; padding: 3px 8px; border-radius: 999px; border: 1px solid oklch(0.916 0.016 257.2); color: oklch(0.484 0.041 256.4)"># Темы</span>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+          <div style="display: flex; gap: 3px; padding: 3px; border: 1px solid oklch(0.916 0.016 257.2); border-radius: 12px">
+            <span style="font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 8px; background: oklch(0.538 0.256 262.4); color: #fff">Все</span>
+            <span style="font-size: 10px; padding: 3px 8px; color: oklch(0.484 0.041 256.4)">Приватные</span>
+            <span style="font-size: 10px; padding: 3px 8px; color: oklch(0.484 0.041 256.4)">Общие</span>
+          </div>
+          <span style="font-size: 10px; padding: 4px 8px; border-radius: 12px; border: 1px solid oklch(0.916 0.016 257.2); color: oklch(0.484 0.041 256.4)">Закладки</span>
+        </div>
+        <div style="margin-top: 4px; font-size: 10px; font-weight: 600; color: oklch(0.545 0.208 25.3)">5 рядов управления · ~40 текстовых элементов до первого кейса</div>
+      </div>
+
+      <!-- карточка как есть -->
+      <div style="display: flex; flex-direction: column; gap: 12px">
+        <div style="background: oklch(1 0 0); border: 1px solid oklch(0.916 0.016 257.2); border-radius: 10px; padding: 20px; box-shadow: 0 1px 2px oklch(0.218 0.036 251.3 / 0.06); display: flex; flex-direction: column; gap: 16px">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+            <div style="display: flex; align-items: center; gap: 4px">
+              <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 5px; background: oklch(0.955 0.021 268.4); color: oklch(0.356 0.216 270.2)">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-5 6-5s6 1.7 6 5"/><path d="M16 6.2a3.2 3.2 0 0 1 0 5.6"/></svg>
+                Общий
+              </span>
+              <span style="width: 14px; height: 14px; border-radius: 999px; border: 1.4px solid oklch(0.916 0.016 257.2); color: oklch(0.484 0.041 256.4); font-size: 9px; display: inline-flex; align-items: center; justify-content: center">?</span>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(0.484 0.041 256.4)" stroke-width="2"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg>
+          </div>
+          <div>
+            <div style="font-size: 16px; font-weight: 700; line-height: 1.35">
+              <span style="display: inline-block; width: 7px; height: 7px; border-radius: 999px; background: oklch(0.538 0.256 262.4); margin-right: 7px; vertical-align: middle"></span>HBS Case: Amazon's Two-Pizza Teams
+            </div>
+            <div style="margin-top: 8px; font-size: 14px; line-height: 1.6; color: oklch(0.484 0.041 256.4)">Как ограничение размера команды меняет скорость принятия решений и владение результатом.</div>
+          </div>
+          <div style="border-top: 1px solid oklch(0.916 0.016 257.2); padding-top: 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px">
+            <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; color: oklch(0.484 0.041 256.4)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(0.572 0.180 40.5)" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 3 2.5 15 0 18M12 3c-2.5 3-2.5 15 0 18"/></svg>
+              <span style="color: oklch(0.572 0.180 40.5); white-space: nowrap">Мировой опыт</span>
+              <span>·</span>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
+              <span>2 файла</span>
+            </div>
+            <span style="font-size: 12px; font-weight: 700; color: oklch(0.538 0.256 262.4); opacity: 0.45">Открыть →</span>
+          </div>
+        </div>
+
+        <div style="background: oklch(1 0 0); border: 1px solid oklch(0.916 0.016 257.2); border-radius: 10px; padding: 20px; box-shadow: 0 1px 2px oklch(0.218 0.036 251.3 / 0.06); display: flex; flex-direction: column; gap: 16px">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+            <div style="display: flex; align-items: center; gap: 4px">
+              <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 5px; background: oklch(0.955 0.021 268.4); color: oklch(0.356 0.216 270.2)">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-5 6-5s6 1.7 6 5"/><path d="M16 6.2a3.2 3.2 0 0 1 0 5.6"/></svg>
+                Общий
+              </span>
+              <span style="width: 14px; height: 14px; border-radius: 999px; border: 1.4px solid oklch(0.916 0.016 257.2); color: oklch(0.484 0.041 256.4); font-size: 9px; display: inline-flex; align-items: center; justify-content: center">?</span>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(0.484 0.041 256.4)" stroke-width="2"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg>
+          </div>
+          <div>
+            <div style="font-size: 16px; font-weight: 700; line-height: 1.35">Уроки внедрения BIM на крупных объектах</div>
+            <div style="margin-top: 8px; font-size: 14px; line-height: 1.6; color: oklch(0.484 0.041 256.4)">Синтез 14 проектов: где BIM-модель реально экономит время, а где становится дорогой формальностью.</div>
+          </div>
+          <div style="border-top: 1px solid oklch(0.916 0.016 257.2); padding-top: 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px">
+            <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; color: oklch(0.484 0.041 256.4)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="oklch(0.540 0.100 175.2)" stroke-width="2"><path d="M4 21V8l8-5 8 5v13"/><path d="M9 21v-6h6v6"/></svg>
+              <span style="color: oklch(0.540 0.100 175.2); white-space: nowrap">Внутренний опыт</span>
+              <span>·</span>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
+              <span>3 файла</span>
+            </div>
+            <span style="font-size: 12px; font-weight: 700; color: oklch(0.538 0.256 262.4); opacity: 0.45">Открыть →</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= ПРЕДЛАГАЮ ================= -->
+    <div style="display: flex; flex-direction: column; gap: 14px">
+      <div style="display: flex; align-items: center; gap: 8px">
+        <span style="width: 7px; height: 7px; border-radius: 999px; background: oklch(0.500 0.149 162.5)"></span>
+        <span class="disp" style="font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: oklch(0.500 0.149 162.5)">Предлагаю</span>
+      </div>
+
+      <!-- хром -->
+      <div style="display: flex; flex-direction: column; gap: 12px; padding: 14px; background: oklch(1 0 0); border: 1px solid oklch(0.916 0.016 257.2); border-radius: 12px; box-shadow: 0 1px 2px oklch(0.218 0.036 251.3 / 0.06)">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px">
+          <span class="disp" style="font-size: 22px; font-weight: 800; letter-spacing: -0.02em">Кейсы</span>
+          <span style="font-size: 10px; color: oklch(0.484 0.041 256.4)">22 кейса · 42 материала</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; border: 1.5px solid oklch(0.538 0.256 262.4); border-radius: 12px; box-shadow: 0 0 0 4px color-mix(in oklab, oklch(0.538 0.256 262.4) 10%, transparent)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(0.538 0.256 262.4)" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4.3-4.3"/></svg>
+          <span style="font-size: 11px; color: oklch(0.484 0.041 256.4)">Спросите обычными словами или включите советника</span>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+          <div style="display: flex; gap: 16px; align-items: center">
+            <span class="disp" style="font-size: 11px; font-weight: 700; padding-bottom: 5px; border-bottom: 2px solid oklch(0.538 0.256 262.4)">Все 22</span>
+            <span style="font-size: 11px; color: oklch(0.484 0.041 256.4); padding-bottom: 5px">Внутренние 12</span>
+            <span style="font-size: 11px; color: oklch(0.484 0.041 256.4); padding-bottom: 5px">Мировые 10</span>
+          </div>
+          <div style="display: flex; gap: 6px">
+            <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 10px; padding: 4px 8px; border-radius: 8px; border: 1px solid oklch(0.916 0.016 257.2); color: oklch(0.484 0.041 256.4)">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M7 12h10M11 18h2"/></svg>
+              Фильтры
+            </span>
+          </div>
+        </div>
+        <div style="font-size: 10px; font-weight: 600; color: oklch(0.500 0.149 162.5)">2 ряда управления · счётчики в самих табах, приватность и закладки — внутрь «Фильтров»</div>
+      </div>
+
+      <!-- карточка-предложение -->
+      <div style="display: flex; flex-direction: column; gap: 12px">
+
+        <div style="background: oklch(1 0 0); border: 1px solid oklch(0.916 0.016 257.2); border-radius: 10px; overflow: hidden; box-shadow: 0 1px 2px oklch(0.218 0.036 251.3 / 0.06), 0 8px 24px oklch(0.218 0.036 251.3 / 0.06)">
+          <div style="position: relative; height: 92px; background: linear-gradient(135deg, color-mix(in oklab, oklch(0.572 0.180 40.5) 14%, oklch(1 0 0)), color-mix(in oklab, oklch(0.572 0.180 40.5) 5%, oklch(1 0 0))); border-bottom: 1px solid color-mix(in oklab, oklch(0.572 0.180 40.5) 22%, transparent); display: flex; align-items: center; justify-content: space-between; padding: 0 18px">
+            <span class="disp" style="font-size: 34px; font-weight: 800; letter-spacing: -0.03em; color: color-mix(in oklab, oklch(0.572 0.180 40.5) 88%, oklch(0.218 0.036 251.3))">HBS</span>
+            <span style="display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 600; padding: 4px 9px; border-radius: 999px; background: oklch(1 0 0 / 0.82); color: oklch(0.572 0.180 40.5)">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg>
+              Документ
+            </span>
+          </div>
+          <div style="padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 12px">
+            <div class="disp" style="font-size: 17px; font-weight: 700; line-height: 1.3; letter-spacing: -0.011em; text-wrap: pretty">
+              <span style="display: inline-block; width: 6px; height: 6px; border-radius: 999px; background: oklch(0.538 0.256 262.4); margin-right: 7px; vertical-align: 3px"></span>HBS Case: Amazon's Two-Pizza Teams
+            </div>
+            <div style="display: flex; align-items: center; gap: 7px; font-size: 12px; color: oklch(0.484 0.041 256.4)">
+              <span style="color: oklch(0.572 0.180 40.5); font-weight: 600">Мировой опыт</span>
+              <span style="opacity: 0.4">·</span>
+              <span>2 материала</span>
+              <span style="opacity: 0.4">·</span>
+              <span>2019</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="background: oklch(1 0 0); border: 1px solid oklch(0.916 0.016 257.2); border-radius: 10px; overflow: hidden; box-shadow: 0 1px 2px oklch(0.218 0.036 251.3 / 0.06)">
+          <div style="position: relative; height: 92px; background: linear-gradient(135deg, color-mix(in oklab, oklch(0.540 0.100 175.2) 14%, oklch(1 0 0)), color-mix(in oklab, oklch(0.540 0.100 175.2) 5%, oklch(1 0 0))); border-bottom: 1px solid color-mix(in oklab, oklch(0.540 0.100 175.2) 22%, transparent); display: flex; align-items: center; justify-content: space-between; padding: 0 18px">
+            <span class="disp" style="font-size: 34px; font-weight: 800; letter-spacing: -0.03em; color: color-mix(in oklab, oklch(0.540 0.100 175.2) 88%, oklch(0.218 0.036 251.3))">LL</span>
+            <span style="display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 600; padding: 4px 9px; border-radius: 999px; background: oklch(1 0 0 / 0.82); color: oklch(0.540 0.100 175.2)">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="13" rx="1.6"/><path d="M8 21h8M12 17v4"/><path d="M8 11h5"/></svg>
+              Презентация
+            </span>
+          </div>
+          <div style="padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 12px">
+            <div class="disp" style="font-size: 17px; font-weight: 700; line-height: 1.3; letter-spacing: -0.011em; text-wrap: pretty">Уроки внедрения BIM на крупных объектах</div>
+            <div style="display: flex; align-items: center; gap: 7px; font-size: 12px; color: oklch(0.484 0.041 256.4)">
+              <span style="color: oklch(0.540 0.100 175.2); font-weight: 600">Внутренний опыт</span>
+              <span style="opacity: 0.4">·</span>
+              <span>3 материала</span>
+              <span style="opacity: 0.4">·</span>
+              <span>2025</span>
+              <span style="opacity: 0.4">·</span>
+              <span style="display: inline-flex; align-items: center; gap: 3px">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="oklch(0.559 0.120 70.1)" stroke-width="2.4"><rect x="5" y="11" width="14" height="9" rx="1.6"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+                <span style="color: oklch(0.559 0.120 70.1); font-weight: 600">Приватный</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 5px; padding: 13px 15px; background: color-mix(in oklab, oklch(0.500 0.149 162.5) 7%, oklch(1 0 0)); border: 1px solid color-mix(in oklab, oklch(0.500 0.149 162.5) 24%, transparent); border-radius: 10px">
+        <div class="disp" style="font-size: 12px; font-weight: 700">Что изменилось</div>
+        <div style="font-size: 12px; line-height: 1.65; color: oklch(0.484 0.041 256.4)">Обложка генерируется из данных, которые уже есть: <b style="color: oklch(0.218 0.036 251.3); font-weight: 600">scope</b> даёт цвет, <b style="color: oklch(0.218 0.036 251.3); font-weight: 600">source</b> — монограмму, <b style="color: oklch(0.218 0.036 251.3); font-weight: 600">media_type</b> — иконку. Никаких стоковых картинок. Название ушло на display-шрифт и 17px, описание — внутрь кейса. Бейдж «Общий» снят с каждой карточки: приватность — редкий случай, метится только она.</div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

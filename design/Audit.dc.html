@@ -1,0 +1,242 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700;800&family=Manrope:wght@500;600;700;800&display=swap">
+  <style>
+    body {
+      margin: 0;
+      font-family: "Golos Text", ui-sans-serif, system-ui, sans-serif;
+      font-size: 15px;
+      color: oklch(0.218 0.036 251.3);
+      background: oklch(0.975 0.005 258.3);
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: oklch(0.538 0.256 262.4); }
+    a:hover { color: oklch(0.459 0.214 262.1); }
+    .disp { font-family: "Manrope", "Golos Text", ui-sans-serif, sans-serif; }
+    .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+    .row { display: grid; grid-template-columns: 44px minmax(0, 1fr) 118px 300px; gap: 14px; align-items: start; padding: 11px 14px; border-bottom: 1px solid oklch(0.916 0.016 257.2); }
+    .fig { font-size: 11px; font-weight: 700; color: oklch(0.484 0.041 256.4); font-variant-numeric: tabular-nums; padding-top: 1px; }
+    .ask { font-size: 13px; line-height: 1.45; font-weight: 500; }
+    .why { font-size: 12px; line-height: 1.5; color: oklch(0.484 0.041 256.4); }
+    .pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+    .dot { width: 6px; height: 6px; border-radius: 999px; flex: none; }
+    .no { background: color-mix(in oklab, oklch(0.545 0.208 25.3) 12%, transparent); color: oklch(0.545 0.208 25.3) }
+    .half { background: color-mix(in oklab, oklch(0.559 0.120 70.1) 15%, transparent); color: oklch(0.559 0.120 70.1) }
+    .yes { background: color-mix(in oklab, oklch(0.500 0.149 162.5) 13%, transparent); color: oklch(0.500 0.149 162.5) }
+    .na { background: oklch(0.955 0.021 268.4); color: oklch(0.484 0.041 256.4) }
+    .rno { background: color-mix(in oklab, oklch(0.545 0.208 25.3) 4%, transparent) }
+    .rhalf { background: color-mix(in oklab, oklch(0.559 0.120 70.1) 5%, transparent) }
+    .ryes { background: color-mix(in oklab, oklch(0.500 0.149 162.5) 4%, transparent) }
+    .new { display: inline-flex; align-items: center; font-size: 9px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 6px; border-radius: 5px; background: oklch(0.500 0.149 162.5); color: #fff; vertical-align: 1px; margin-left: 6px }
+    code { font-size: 11px }
+    b { color: oklch(0.218 0.036 251.3) }
+  </style>
+</helmet>
+
+<div style="padding: 40px; display: flex; flex-direction: column; gap: 24px">
+
+  <div style="display: flex; flex-direction: column; gap: 7px">
+    <div class="disp eyebrow" style="color: oklch(0.484 0.041 256.4)">Ревизия · сверка с отчётом от 21.08.2026</div>
+    <div class="disp" style="font-size: 28px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.13">Что отчёт просил по UX — и что с этим стало</div>
+    <div style="max-width: 1000px; font-size: 14px; line-height: 1.6; color: oklch(0.484 0.041 256.4); text-wrap: pretty">Раздел 6 «Текстовая плотность», целевые макеты 6.1 (рис. 40–42) и пункт P2.1. Только UX-часть: дефекты BUG-01…26 закрыты отдельно и здесь не повторяются. Зелёной меткой <span class="new" style="margin-left: 0">сделано</span> — семь пунктов, закрытых после первой ревизии.</div>
+  </div>
+
+  <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center">
+    <span class="pill yes"><span class="dot" style="background: currentColor"></span>В коде · 14</span>
+    <span class="pill half"><span class="dot" style="background: currentColor"></span>Частично · 6</span>
+    <span class="pill no"><span class="dot" style="background: currentColor"></span>Не закрыто · 1</span>
+    <span class="pill na"><span class="dot" style="background: currentColor"></span>Не воспроизводится · 1</span>
+    <span style="font-size: 11px; color: oklch(0.484 0.041 256.4)">было: 11 / 7 / 3 / 1, до правок — 7 / 8 / 6 / 1</span>
+  </div>
+
+  <div style="background: oklch(1 0 0); border: 1px solid oklch(0.916 0.016 257.2); border-radius: 12px; box-shadow: 0 1px 2px oklch(0.218 0.036 251.3 / 0.06), 0 8px 24px oklch(0.218 0.036 251.3 / 0.06); overflow: hidden">
+
+    <div class="row" style="background: oklch(0.975 0.005 258.3)">
+      <span class="disp eyebrow" style="color: oklch(0.484 0.041 256.4); font-size: 10px">Рис.</span>
+      <span class="disp eyebrow" style="color: oklch(0.484 0.041 256.4); font-size: 10px">Что просил отчёт</span>
+      <span class="disp eyebrow" style="color: oklch(0.484 0.041 256.4); font-size: 10px">Статус</span>
+      <span class="disp eyebrow" style="color: oklch(0.484 0.041 256.4); font-size: 10px">Что фактически в прототипе</span>
+    </div>
+
+    <!-- ================== НЕ ЗАКРЫТО ================== -->
+
+    <div class="row rno">
+      <span class="fig">6</span>
+      <span class="ask">Обучающий блок с примерами — только при пустом вводе, свернуть после первого запроса</span>
+      <span class="pill no">Не закрыто</span>
+      <span class="why">Блок примеров советника показывается при каждом пустом запросе бессрочно — счётчика сессий и сворачивания нет.</span>
+    </div>
+
+
+    <!-- ================== ЧАСТИЧНО ================== -->
+    <div class="row rhalf">
+      <span class="fig">40</span>
+      <span class="ask">Карточка: обложка по теме + название + «N материалов · дата», описание — внутрь кейса</span>
+      <span class="pill half">Частично</span>
+      <span class="why">Описание сжато с 3 строк до 2, бейдж «Новый кейс» заменён точкой. <b>Обложки нет</b>, описание всё ещё в сетке. Макет — стр. «Плотность и система», разбор 1.</span>
+    </div>
+
+    <div class="row rhalf">
+      <span class="fig">6</span>
+      <span class="ask">Бейдж приватности — иконка-замок без слова</span>
+      <span class="pill half">Частично</span>
+      <span class="why">Бейдж со словом «Общий» по-прежнему на каждой карточке — метится частый случай вместо редкого.</span>
+    </div>
+
+    <div class="row rhalf">
+      <span class="fig">6</span>
+      <span class="ask">Теги и приватность — за одну кнопку «Фильтры»; на экране поиск + 3 вкладки</span>
+      <span class="pill half">Частично</span>
+      <span class="why">22 тега убраны за кнопку «Темы». <b>Приватность и «Закладки» остались на экране</b> — рядов управления 3, а не 2.</span>
+    </div>
+
+    <div class="row rhalf">
+      <span class="fig">6</span>
+      <span class="ask">Онбординг: один тур из 3 шагов по месту; «Что такое кейс» — в пустое состояние</span>
+      <span class="pill half">Частично</span>
+      <span class="why">Семь модальных экранов свёрнуты в один, пустое состояние получило кнопку «Новый кейс». Но это по-прежнему <b>блокирующая модалка</b> до первого действия, а не тултипы по месту.</span>
+    </div>
+
+
+    <div class="row rhalf">
+      <span class="fig">6</span>
+      <span class="ask">Единый тост-центр: каждое действие отвечает</span>
+      <span class="pill half">Частично</span>
+      <span class="why">Молчавшие действия озвучены — <b>31 вызов тоста</b>, но без правил: успех, ошибка и информация выглядят одинаково весомо и уезжают по таймеру.</span>
+    </div>
+
+    <div class="row rhalf">
+      <span class="fig">42</span>
+      <span class="ask">Плашка «Сохранено · вернуться из „Мои консультации“»</span>
+      <span class="pill half">Частично</span>
+      <span class="why">Индикатор «Сохранено — вернётся после перезагрузки» есть, черновик восстанавливается. <b>Экрана «Мои консультации» нет</b> — вернуться можно только к последнему.</span>
+    </div>
+
+    <!-- ================== В КОДЕ ================== -->
+    <div class="row ryes">
+      <span class="fig">41</span>
+      <span class="ask">Прогресс на карточке кейса + сворачиваемый виджет статуса<span class="new">сделано</span></span>
+      <span class="pill yes">В коде</span>
+      <span class="why">Обработка вынесена в один провайдер над маршрутами — до этого она дублировалась в панели источников и в диалоге создания. Виджет в углу виден с любого экрана: этап и процент, «Разобран и добавлен в кейс» со ссылкой, отказ по формату. Кейс из файла встаёт в сетку сразу и несёт ту же полосу прогресса.</span>
+    </div>
+
+    <div class="row ryes">
+      <span class="fig">41</span>
+      <span class="ask">Явная ошибка формата с кнопкой «Повторить»<span class="new">сделано</span></span>
+      <span class="pill yes">В коде</span>
+      <span class="why">Отклонённый файл стал записью в виджете: причина плюс кнопка «Выбрать другой файл». Та же кнопка появилась в блоке отклонённых внутри кейса — файл больше не надо искать заново вручную.</span>
+    </div>
+
+    <div class="row ryes">
+      <span class="fig">6</span>
+      <span class="ask">Убрать «?»-кнопки из рабочих зон, справка — в одном месте<span class="new">сделано</span></span>
+      <span class="pill yes">В коде</span>
+      <span class="why">18 «?» в 11 файлах → 3, все в Настройках. Два стали видимой подписью там, где были инструкцией, а не справкой. Остальные — в одном входе «Как это работает» в шапке: восемь разделов и горячие клавиши. Удалено 21 осиротевший ключ словаря. <b>Расхождение с отчётом:</b> в Настройках «?» оставлены — это служебный экран.</span>
+    </div>
+
+    <div class="row ryes">
+      <span class="fig">40</span>
+      <span class="ask">Одна CTA «+ Новый кейс» на дашборде<span class="new">сделано</span></span>
+      <span class="pill yes">В коде</span>
+      <span class="why">Кнопка в шапке дашборда и в пустом состоянии. Диалог: направление, drag&amp;drop, отклонение форматов, этапы разбора, название из содержимого. Кейс встаёт первым в сетку и открывается сразу — загруженный файл уже его источник, «1 из 1».</span>
+    </div>
+
+    <div class="row ryes">
+      <span class="fig">40</span>
+      <span class="ask">Поиск по «/»<span class="new">сделано</span></span>
+      <span class="pill yes">В коде</span>
+      <span class="why">«/» ставит курсор в поиск; внутри полей ввода клавиша работает как обычно. Подсказка <code>/</code> показана в строке поиска, пока она пустая.</span>
+    </div>
+
+    <div class="row ryes">
+      <span class="fig">37</span>
+      <span class="ask">Убрать псевдометрики «84 %» и «RU» с карточек инсайтов<span class="new">сделано</span></span>
+      <span class="pill yes">В коде</span>
+      <span class="why">Вместо крупного числа — плашка происхождения: «По 2 фрагментам», «Источник: Lessons Learned Database», «Оценка модели, не из источника». <code>relevance</code> ушла и из инфографики со слайдами: теперь она только ранжирует поиск и нигде не показывается.</span>
+    </div>
+
+    <div class="row ryes">
+      <span class="fig">42</span>
+      <span class="ask">Рекомендация: вывод и условия сразу, обоснование — аккордеонами ниже<span class="new">сделано</span></span>
+      <span class="pill yes">В коде</span>
+      <span class="why">Рекомендация и условия-чипы переехали в карточку вердикта. Раскрыто: «Варианты решения», «Риски», «Почему». Свёрнуто под заголовком «Справочное — откуда это взято»: кейс-аналог, переносимость, что может изменить, чего не хватает, источники.</span>
+    </div>
+
+    <div class="row">
+      <span class="fig">36</span>
+      <span class="ask">Карточка открывается одним кликом</span>
+      <span class="pill yes">В коде</span>
+      <span class="why">Оверлей-подтверждение удалён, ссылка-подложка на всю карточку, одна точка входа для клавиатуры.</span>
+    </div>
+
+    <div class="row">
+      <span class="fig">38</span>
+      <span class="ask">Убрать мотивационные цитаты из рабочих зон</span>
+      <span class="pill yes">В коде</span>
+      <span class="why">Блок цитат в студии заменён строкой про сверку цифр с источниками.</span>
+    </div>
+
+    <div class="row">
+      <span class="fig">35</span>
+      <span class="ask">Синяя точка «непрочитано» вместо бейджа «Новый кейс»</span>
+      <span class="pill yes">В коде</span>
+      <span class="why">Бейдж снят, точка 8px перед названием, скрытая подпись для скринридера.</span>
+    </div>
+
+    <div class="row">
+      <span class="fig">35</span>
+      <span class="ask">Автонейминг материалов из содержимого вместо имён файлов и UUID</span>
+      <span class="pill yes">В коде</span>
+      <span class="why">Заголовок из текста, дата из таймстемпа, причёсанное имя файла как фолбэк. <code>audio_2026-04-07_14-24-15</code> → «Аудиозапись от 7 апреля 2026, 14:24». Тем же путём получает имя новый кейс.</span>
+    </div>
+
+    <div class="row">
+      <span class="fig">35</span>
+      <span class="ask">Плюрализация: «1 файлов» → «1 файл»</span>
+      <span class="pill yes">В коде</span>
+      <span class="why">Правила русского, английского и казахского в отдельном модуле, покрыты тестами. Последний найденный случай — «по 1 выбранным источникам» в чате кейса — поправлен.</span>
+    </div>
+
+    <div class="row">
+      <span class="fig">25</span>
+      <span class="ask">Метрики в настройках — подключить или скрыть</span>
+      <span class="pill yes">В коде</span>
+      <span class="why">Состав базы считается из фактических данных, активность — из журнала действий, пустое состояние вместо нулей.</span>
+    </div>
+
+    <div class="row">
+      <span class="fig">14</span>
+      <span class="ask">Проценты у артефактов — считать честно либо убрать</span>
+      <span class="pill yes">В коде</span>
+      <span class="why">«Релевантность 88 %», «покрытие цитатами», «горизонт эффекта» убраны из отчёта, инфографики и колоды карточек; осталось считаемое с подписью «не оценка модели».</span>
+    </div>
+
+    <div class="row" style="border-bottom: none">
+      <span class="fig">20</span>
+      <span class="ask">Чистка сниппетов поиска, дедупликация выдачи по кейсу</span>
+      <span class="pill na">Не воспр.</span>
+      <span class="why">В прототипе сниппет — это <code>executive_summary</code> карточки, фронтматтера нет; один кейс = одна запись, дублей нет. Дефект бэкендовый.</span>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px">
+    <div style="padding: 15px 17px; background: color-mix(in oklab, oklch(0.500 0.149 162.5) 6%, oklch(1 0 0)); border: 1px solid color-mix(in oklab, oklch(0.500 0.149 162.5) 24%, transparent); border-radius: 11px; display: flex; flex-direction: column; gap: 6px">
+      <div class="disp" style="font-size: 13px; font-weight: 700">Что закрыла вторая ревизия</div>
+      <div style="font-size: 12px; line-height: 1.65; color: oklch(0.484 0.041 256.4)">Главным провалом было <b>отсутствие входа для нового знания</b>: отчёт упирался в это трижды (рис. 40, рис. 41, находки заказчика №1, 2, 4, 5), а создать кейс в прототипе было нельзя вообще. Входной поток закрыт целиком: CTA, диалог с разбором файла, «/» для поиска, виджет статуса с любого экрана и «Выбрать другой файл» вместо тупика на отклонённом формате. Плюс два пункта, которые первая ревизия зря объявила сделанными (псевдометрики рис. 37, пирамида рис. 42), и чистка хрома: 18 «?» → 3.<br><br><b>Осталось одно «не закрыто»:</b> блок примеров советника не сворачивается после первого запроса — нужен счётчик сессий. Из «частично» самое заметное — обложки карточек (макет на второй странице) и правила тостов: их 31, и две трети сообщают «получилось».</div>
+    </div>
+    <div style="padding: 15px 17px; background: color-mix(in oklab, oklch(0.545 0.208 25.3) 5%, oklch(1 0 0)); border: 1px solid color-mix(in oklab, oklch(0.545 0.208 25.3) 24%, transparent); border-radius: 11px; display: flex; flex-direction: column; gap: 6px">
+      <div class="disp" style="font-size: 13px; font-weight: 700">С чем в отчёте я не согласен</div>
+      <div style="font-size: 12px; line-height: 1.65; color: oklch(0.484 0.041 256.4)">Раздел 7 выстроен как таблица «догонять / паритет» с NotebookLM, и только в последнем абзаце признаёт, что советник и консилиум — дифференциаторы. Порядок стоит перевернуть: notebook-часть это гигиена с известным эталоном, а продукт — советник и консилиум. Иначе бюджет уйдёт на обложки карточек, а два уникальных модуля останутся с потерей состояния.</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

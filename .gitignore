@@ -40,3 +40,6 @@ graphify-out/
 
 # Playwright MCP verification artifacts
 .playwright-mcp/
+
+# Собранный канвас разбора UX: 2,7 МБ генерируются из design/*.dc.html + canvas.json
+design/bi-aqyl-ux-razbor.html
